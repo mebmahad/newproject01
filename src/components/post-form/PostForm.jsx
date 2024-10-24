@@ -1,4 +1,4 @@
-import React, {useCallback} from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Input, Select } from ".."; // Import necessary components
 import service from "../../appwrite/config"; // Adjusted to use your complaintService
@@ -6,74 +6,67 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 export default function PostForm({ post }) {
-    const { register, handleSubmit, watch, setValue, control, getValues } = useForm({
+    const { register, handleSubmit, setValue, watch } = useForm({
         defaultValues: {
             areas: post?.areas || "",
             subarea: post?.subarea || "",
             feild: post?.feild || "",
             problem: post?.problem || "",
             status: post?.status || "active",
-            id: post?.$id || "",
+            id: post?.$id || `post-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate random unique ID
+            createdAt: post?.createdAt || new Date().toISOString(), // Add createdAt field
         },
     });
 
+    const [daysPassed, setDaysPassed] = useState(0); // State to store the days passed
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
+
+    const calculateDaysPassed = (createdAt) => {
+        const createdDate = new Date(createdAt);
+        const currentDate = new Date();
+        const differenceInTime = currentDate - createdDate;
+        const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24)); // Convert to days
+        return differenceInDays;
+    };
+
+    useEffect(() => {
+        if (post?.createdAt) {
+            const days = calculateDaysPassed(post.createdAt);
+            setDaysPassed(days);
+        }
+    }, [post]);
 
     const submit = async (data) => {
         try {
             let dbPost;
 
             if (post) {
-                // Check if post is defined before accessing $id
                 if (!post.$id) {
                     throw new Error("Post ID is not available");
                 }
-                dbPost = await service.updatePost(post.$id, {
-                    ...data,
-                });
+                dbPost = await service.updatePost(post.$id, { ...data });
             } else {
                 dbPost = await service.createPost({ ...data, userId: userData?.$id });
             }
 
             if (dbPost) {
-                navigate(`/post/${dbPost.$id}`); // Navigate to the specific post
+                navigate(`/post/${dbPost.$id}`);
             }
         } catch (error) {
             console.error("Error submitting form:", error);
         }
     };
-    const idTransfrorm = useCallback((value) => {
-        if (value && typeof value === "string")
-            return value
-                .trim()
-                .replace(/[^a-zA-Z\d\s]+/g, "-")
-                .replace(/\s/g, "-");
-
-        return "";
-    }, []);
-
-    React.useEffect(() => {
-        const subscription = watch((value, { name }) => {
-            if (name === "problem") {
-                setValue("id", idTransfrorm(value.problem), { shouldValidate: true });
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, [watch, idTransfrorm, setValue]);
 
     return (
         <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
             <div className="w-2/3 px-2">
-            <Input
+                <Input
                     label="Id :"
                     placeholder="id"
                     className="mb-4"
                     {...register("id", { required: true })}
-                    onInput={(e) => {
-                        setValue("id", idTransfrorm(e.currentTarget.value), { shouldValidate: true });
-                    }}
+                    readOnly // Make it read-only if you don't want users to modify the ID
                 />
                 <Input
                     label="Area:"
@@ -99,6 +92,9 @@ export default function PostForm({ post }) {
                     className="mb-4"
                     {...register("problem", { required: true })}
                 />
+                <div className="mb-4">
+                    <strong>Days since post creation:</strong> {daysPassed} days
+                </div>
             </div>
             <div className="w-1/3 px-2">
                 <Select

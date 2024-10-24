@@ -10,7 +10,7 @@ class Service {
         this.databases = new Databases(this.client);
     }
 
-    async createPost({ areas, subarea, feild, problem, status, userId, id }) {
+    async createPost({ areas, subarea, feild, problem, status, userId, createdAt, id }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
@@ -23,6 +23,7 @@ class Service {
                     problem,
                     status,
                     userId,
+                    createdAt,
                 }
             );
         } catch (error) {

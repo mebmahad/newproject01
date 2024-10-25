@@ -7,7 +7,7 @@ import { Button } from "../components";
 
 const AllPosts = () => {
     const [posts, setPosts] = useState([]);
-    const [filters, setFilters] = useState({ areas: "", field: "", status: "active" });
+    const [filters, setFilters] = useState({ areas: "", feild: "", status: "active" });
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -15,7 +15,7 @@ const AllPosts = () => {
                 const queries = [];
                 if (filters.status) queries.push(Query.equal("status", filters.status));
                 if (filters.areas) queries.push(Query.equal("areas", filters.areas));
-                if (filters.field) queries.push(Query.equal("field", filters.field));
+                if (filters.feild) queries.push(Query.equal("feild", filters.feild));
 
                 const response = await service.getPosts(queries); // Call your service
 
@@ -68,9 +68,9 @@ const AllPosts = () => {
                         onChange={(e) => setFilters({ ...filters, areas: e.target.value })}
                     />
                     <DynamicInput
-                        label="Field"
-                        value={filters.field}
-                        onChange={(e) => setFilters({ ...filters, field: e.target.value })}
+                        label="Feild"
+                        value={filters.feild}
+                        onChange={(e) => setFilters({ ...filters, feild: e.target.value })}
                     />
                 </div>
             </div>

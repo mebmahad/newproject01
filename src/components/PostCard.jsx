@@ -8,7 +8,11 @@ function PostCard({ $id, areas, subarea, feild, problem, createdAt }) {
     if (createdAt) {
       const createdDate = new Date(createdAt);
       const currentDate = new Date();
-      const differenceInTime = currentDate - createdDate;
+
+      // Calculate days passed in UTC to avoid timezone discrepancies
+      const differenceInTime = Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()) 
+        - Date.UTC(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate());
+
       const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24)); // Convert to days
       setDaysPassed(differenceInDays);
     }
@@ -24,7 +28,7 @@ function PostCard({ $id, areas, subarea, feild, problem, createdAt }) {
           <span className="mx-2">{problem}</span>
         </li>
         <div className="text-sm text-gray-500 ml-auto">
-          {daysPassed} days ago
+          {daysPassed} {daysPassed === 1 ? "day" : "days"} ago
         </div>
       </div>
     </Link>
@@ -32,4 +36,3 @@ function PostCard({ $id, areas, subarea, feild, problem, createdAt }) {
 }
 
 export default PostCard;
-

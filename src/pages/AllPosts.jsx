@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Container, PostCard } from "../components";
 import service from "../appwrite/config";
 import { Query } from "appwrite";
-import DynamicInput from "../components/DynamicInput"; // Import the new DynamicInput component
+import DynamicInput from "../components/DynamicInput";
 import { Button } from "../components";
 
 const AllPosts = () => {
@@ -17,24 +17,21 @@ const AllPosts = () => {
                 if (filters.areas) queries.push(Query.equal("areas", filters.areas));
                 if (filters.feild) queries.push(Query.equal("feild", filters.feild));
 
-                const response = await service.getPosts(queries); // Call your service
-
-                console.log("Fetched posts response:", response); // Log the response for debugging
+                const response = await service.getPosts(queries);
 
                 if (response && response.documents) {
-                    setPosts(response.documents); // Set posts if response contains documents
+                    setPosts(response.documents);
                 } else {
-                    setPosts([]); // Set to empty array if no documents
+                    setPosts([]);
                 }
             } catch (error) {
                 console.error("Error fetching posts:", error);
-                setPosts([]); // Fallback to empty array on error
+                setPosts([]);
             }
         };
 
         fetchPosts();
     }, [filters]);
-
 
     return (
         <Container>
@@ -53,7 +50,7 @@ const AllPosts = () => {
                         </div>
                         {posts.map((post) => (
                             <div key={post.$id}>
-                                <PostCard {...post} />
+                                <PostCard {...post} createdAt={post.createdAt} /> {/* Pass createdAt */}
                             </div>
                         ))}
                     </div>
@@ -68,7 +65,7 @@ const AllPosts = () => {
                         onChange={(e) => setFilters({ ...filters, areas: e.target.value })}
                     />
                     <DynamicInput
-                        label="Feild"
+                        label="Field"
                         value={filters.feild}
                         onChange={(e) => setFilters({ ...filters, feild: e.target.value })}
                     />

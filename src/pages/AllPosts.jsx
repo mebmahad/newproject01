@@ -11,14 +11,10 @@ const AllPosts = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await service.getPosts([
-        Query.equal("status", activeTab === "incomplete" ? "active" : "approval"),
-      ]);
-      if (response && response.documents) {
-        setPosts(response.documents);
-      } else {
-        setPosts([]);
-      }
+      const queryStatus = activeTab === "incomplete" ? "active" :
+                          activeTab === "approval" ? "approval" : "completed";
+      const response = await service.getPosts([Query.equal("status", queryStatus)]);
+      setPosts(response && response.documents ? response.documents : []);
     } catch (error) {
       console.error("Error fetching posts:", error);
       setPosts([]);
@@ -38,15 +34,17 @@ const AllPosts = () => {
   const handleBatchApproval = async () => {
     try {
       const updatePromises = selectedPosts.map((postId) =>
-        service.updatePost(postId, { status: "approval" })
+        service.updatePost(postId, { status: "inactive" })
       );
       await Promise.all(updatePromises);
-      alert("Selected posts submitted for approval.");
+      alert("Selected posts marked as completed.");
       setSelectedPosts([]); // Clear selected posts
       fetchPosts(); // Refresh the list
+      // Fetch completed posts as well
+      setActiveTab("completed"); // Optionally switch to the completed tab
     } catch (error) {
-      console.error("Failed to submit posts for approval:", error);
-      alert("An error occurred while submitting the posts.");
+      console.error("Failed to mark posts as completed:", error);
+      alert("An error occurred while updating the posts.");
     }
   };
 
@@ -58,18 +56,22 @@ const AllPosts = () => {
           <div className="flex gap-2 mb-4 justify-center">
             <Button onClick={() => setActiveTab("incomplete")}>Incomplete</Button>
             <Button onClick={() => setActiveTab("approval")}>In Approval</Button>
+            <Button onClick={() => setActiveTab("inactive")}>Completed</Button>
           </div>
           {posts.map((post) => (
             <PostCard
               key={post.$id}
               {...post}
-              isSelectable={activeTab === "incomplete"}
+              isSelectable={activeTab === "incomplete" || activeTab === "approval"} // Allow selection in the right tabs
               onSelect={handleSelectPost}
             />
           ))}
-          {activeTab === "incomplete" && selectedPosts.length > 0 && (
-            <Button onClick={handleBatchApproval} className="bg-blue-500 text-white mt-4">
-              Submit Selected for Approval
+          {selectedPosts.length > 0 && activeTab === "approval" && (
+            <Button
+              onClick={handleBatchApproval}
+              className="bg-blue-500 text-white mt-4"
+            >
+              Mark Selected as Completed
             </Button>
           )}
         </div>

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import service from '../appwrite/config';
 
 function PostCard({ $id, areas, subarea, feild, problem, createdAt, status, isSelectable, onSelect }) {
   const [daysPassed, setDaysPassed] = useState(0);
@@ -20,7 +19,7 @@ function PostCard({ $id, areas, subarea, feild, problem, createdAt, status, isSe
 
   const handleCheckboxChange = () => {
     setIsChecked(!isChecked);
-    onSelect($id, !isChecked); // Send selection status to parent component
+    onSelect($id, !isChecked);
   };
 
   return (
@@ -31,7 +30,6 @@ function PostCard({ $id, areas, subarea, feild, problem, createdAt, status, isSe
             type="checkbox"
             className="mr-2"
             checked={isChecked}
-            disabled={status === "approval"}
             onChange={handleCheckboxChange}
           />
         )}

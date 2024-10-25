@@ -2,80 +2,80 @@ import React, { useEffect, useState } from "react";
 import { Container, PostCard } from "../components";
 import service from "../appwrite/config";
 import { Query } from "appwrite";
-import DynamicInput from "../components/DynamicInput";
 import { Button } from "../components";
 
 const AllPosts = () => {
-    const [posts, setPosts] = useState([]);
-    const [filters, setFilters] = useState({ areas: "", feild: "", status: "active" });
+  const [posts, setPosts] = useState([]);
+  const [selectedPosts, setSelectedPosts] = useState([]);
+  const [activeTab, setActiveTab] = useState("incomplete");
 
-    useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                const queries = [];
-                if (filters.status) queries.push(Query.equal("status", filters.status));
-                if (filters.areas) queries.push(Query.equal("areas", filters.areas));
-                if (filters.feild) queries.push(Query.equal("feild", filters.feild));
+  const fetchPosts = async () => {
+    try {
+      const response = await service.getPosts([
+        Query.equal("status", activeTab === "incomplete" ? "active" : "approval"),
+      ]);
+      if (response && response.documents) {
+        setPosts(response.documents);
+      } else {
+        setPosts([]);
+      }
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setPosts([]);
+    }
+  };
 
-                const response = await service.getPosts(queries);
+  useEffect(() => {
+    fetchPosts();
+  }, [activeTab]);
 
-                if (response && response.documents) {
-                    setPosts(response.documents);
-                } else {
-                    setPosts([]);
-                }
-            } catch (error) {
-                console.error("Error fetching posts:", error);
-                setPosts([]);
-            }
-        };
-
-        fetchPosts();
-    }, [filters]);
-
-    return (
-        <Container>
-            <div className="flex flex-col-reverse md:flex-row gap-4">
-                {/* Complaints Section */}
-                <div className="w-full md:w-3/4">
-                    <h2 className="text-lg font-bold mb-2">Complaints</h2>
-                    <div className="space-y-4">
-                        <div className="flex gap-2 mt-4 justify-center">
-                            <Button onClick={() => setFilters({ ...filters, status: "active" })}>
-                                Incomplete
-                            </Button>
-                            <Button onClick={() => setFilters({ ...filters, status: "approval" })}>
-                                In Approval
-                            </Button>
-                            <Button onClick={() => setFilters({ ...filters, status: "inactive" })}>
-                                Complete
-                            </Button>
-                        </div>
-                        {posts.map((post) => (
-                            <div key={post.$id}>
-                                <PostCard {...post} createdAt={post.createdAt} /> {/* Pass createdAt */}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Filters Section */}
-                <div className="w-full md:w-1/4">
-                    <h2 className="text-lg font-bold mb-2">Filters</h2>
-                    <DynamicInput
-                        label="Areas"
-                        value={filters.areas}
-                        onChange={(e) => setFilters({ ...filters, areas: e.target.value })}
-                    />
-                    <DynamicInput
-                        label="Field"
-                        value={filters.feild}
-                        onChange={(e) => setFilters({ ...filters, feild: e.target.value })}
-                    />
-                </div>
-            </div>
-        </Container>
+  const handleSelectPost = (postId, isSelected) => {
+    setSelectedPosts((prevSelected) =>
+      isSelected ? [...prevSelected, postId] : prevSelected.filter((id) => id !== postId)
     );
+  };
+
+  const handleBatchApproval = async () => {
+    try {
+      const updatePromises = selectedPosts.map((postId) =>
+        service.updatePost(postId, { status: "approval" })
+      );
+      await Promise.all(updatePromises);
+      alert("Selected posts submitted for approval.");
+      setSelectedPosts([]); // Clear selected posts
+      fetchPosts(); // Refresh the list
+    } catch (error) {
+      console.error("Failed to submit posts for approval:", error);
+      alert("An error occurred while submitting the posts.");
+    }
+  };
+
+  return (
+    <Container>
+      <div className="flex flex-col-reverse md:flex-row gap-4">
+        <div className="w-full md:w-3/4">
+          <h2 className="text-lg font-bold mb-2">Complaints</h2>
+          <div className="flex gap-2 mb-4 justify-center">
+            <Button onClick={() => setActiveTab("incomplete")}>Incomplete</Button>
+            <Button onClick={() => setActiveTab("approval")}>In Approval</Button>
+          </div>
+          {posts.map((post) => (
+            <PostCard
+              key={post.$id}
+              {...post}
+              isSelectable={activeTab === "incomplete"}
+              onSelect={handleSelectPost}
+            />
+          ))}
+          {activeTab === "incomplete" && selectedPosts.length > 0 && (
+            <Button onClick={handleBatchApproval} className="bg-blue-500 text-white mt-4">
+              Submit Selected for Approval
+            </Button>
+          )}
+        </div>
+      </div>
+    </Container>
+  );
 };
 
 export default AllPosts;

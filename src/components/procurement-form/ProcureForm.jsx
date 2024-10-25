@@ -12,12 +12,17 @@ const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     </div>
 ));
 
-export default function ProcureForm({ procure }) {
+// Function to generate a unique ID
+const generateUniqueId = () => {
+    return `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+};
+
+export default function ProcureForm({ postId }) {
     const { register, handleSubmit, watch, setValue } = useForm({
         defaultValues: {
-            Item: procure?.Item || "",
-            Quantity: procure?.Quantity || "",
-            id: procure?.$id || "",
+            Item: "",
+            Quantity: "",
+            id: generateUniqueId(), // Generate a unique id on form initialization
         },
     });
 
@@ -29,18 +34,11 @@ export default function ProcureForm({ procure }) {
 
     const submit = async (data) => {
         try {
-            let dbProcure;
-
-            if (procure) {
-                if (!procure.$id) {
-                    throw new Error("Post ID is not available");
-                }
-                dbProcure = await service.updateProcure(procure.$id, {
-                    ...data,
-                });
-            } else {
-                dbProcure = await service.createProcure({ ...data, userId: userData?.$id });
-            }
+            const dbProcure = await service.createProcure({ 
+                ...data, 
+                userId: userData?.$id,
+                postId: postId // Include postId in the procurement request
+            });
 
             if (dbProcure) {
                 navigate(`/procure/${dbProcure.$id}`); 
@@ -127,9 +125,7 @@ export default function ProcureForm({ procure }) {
                     placeholder="id"
                     className="mb-4"
                     {...register("id", { required: true })}
-                    onInput={(e) => {
-                        setValue("id", idTransform(e.currentTarget.value), { shouldValidate: true });
-                    }}
+                    disabled // Disable the input field for ID
                 />
                 <Input
                     label="Item:"
@@ -163,11 +159,10 @@ export default function ProcureForm({ procure }) {
                     className="mb-4"
                     {...register("Quantity", { required: true })}
                 />
-                <Button type="submit" bgColor={procure ? "bg-green-500" : undefined} className="w-full">
-                    {procure ? "Update" : "Submit"}
+                <Button type="submit" className="w-full bg-green-500">
+                    Submit
                 </Button>
             </div>
         </form>
     );
 }
-

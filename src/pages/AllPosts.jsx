@@ -55,7 +55,7 @@ const AllPosts = () => {
                             <div key={post.$id}>
                                 <PostCard {...post} />
                                 {/* Add Material Required button here */}
-                                <Link to={`/add-procure`}>
+                                <Link to={`/add-procure/${post.$id}`}>
                                     <Button className="bg-blue-500 mt-2">Material Required</Button>
                                 </Link>
                             </div>

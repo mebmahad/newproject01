@@ -106,7 +106,7 @@ class Service {
         return this.getPosts([Query.equal("feild", feild)]); // Fetch complaints by field
     }
 
-    async createProcure({ Item, Quantity, userId, id }) {
+    async createProcure({ Item, Quantity, userId, postId, id }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
@@ -116,6 +116,7 @@ class Service {
                     Item,
                     Quantity,
                     userId,
+                    postId,
                 }
             );
         } catch (error) {

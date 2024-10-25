@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container, PostCard } from "../components";
+import { Link } from "react-router-dom"; // <-- Add this import
 import service from "../appwrite/config";
 import { Query } from "appwrite";
 import DynamicInput from "../components/DynamicInput";

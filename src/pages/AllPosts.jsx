@@ -7,7 +7,7 @@ import { Button } from "../components";
 
 const AllPosts = () => {
     const [posts, setPosts] = useState([]);
-    const [filters, setFilters] = useState({ areas: "", feild: "", status: "active" });
+    const [filters, setFilters] = useState({ areas: "", field: "", status: "active" });
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -15,7 +15,7 @@ const AllPosts = () => {
                 const queries = [];
                 if (filters.status) queries.push(Query.equal("status", filters.status));
                 if (filters.areas) queries.push(Query.equal("areas", filters.areas));
-                if (filters.feild) queries.push(Query.equal("feild", filters.feild));
+                if (filters.field) queries.push(Query.equal("field", filters.field));
 
                 const response = await service.getPosts(queries); // Call your service
 

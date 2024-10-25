@@ -29,7 +29,7 @@ export default function Post() {
                     }
 
                     // Check if the current user is the author
-                    if (userData && post.userId === userData.$id) {
+                    if (userData && post.userId === userData?.$id) {
                         setIsAuthor(true);
                     } else {
                         setIsAuthor(false);
@@ -83,7 +83,7 @@ export default function Post() {
                             <li><strong>Field:</strong> {post.feild}</li>
                             <li><strong>Problem:</strong> {post.problem}</li>
                             <li><strong>Post ID:</strong> {post.$id}</li> {/* Show the post ID */}
-                            <li><strong>Days since created:</strong> {daysPassed} days ago</li> {/* Show days since creation */}
+                            <li><strong>Days :</strong> {daysPassed} </li> {/* Show days since creation */}
                             <br />
                         </ul>
                     </div>

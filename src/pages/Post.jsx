@@ -14,33 +14,45 @@ export default function Post() {
     const userData = useSelector((state) => state.auth.userData);
 
     useEffect(() => {
-        if (id) {
-            service.getPost(id).then((post) => {
-                if (post) {
-                    setPost(post);
+        const fetchPost = async () => {
+            if (id) {
+                try {
+                    const post = await service.getPost(id);
+                    if (post) {
+                        setPost(post);
 
-                    // Calculate days passed since createdAt
-                    if (post.createdAt) {
-                        const createdDate = new Date(post.createdAt);
-                        const currentDate = new Date();
-                        const differenceInTime = currentDate - createdDate;
-                        const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24)); // Convert to days
-                        setDaysPassed(differenceInDays);
-                    }
+                        // Calculate days passed since createdAt, ensure dates are in UTC
+                        if (post.createdAt) {
+                            const createdDate = new Date(post.createdAt);
+                            const currentDate = new Date();
+                            
+                            // Convert both dates to UTC to avoid timezone issues
+                            const differenceInTime = Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()) 
+                                - Date.UTC(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate());
 
-                    // Check if the current user is the author
-                    if (userData && post.userId === userData?.$id) {
-                        setIsAuthor(true);
+                            const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24)); // Convert to days
+                            setDaysPassed(differenceInDays);
+                        }
+
+                        // Check if the current user is the author
+                        if (userData && userData.$id && post.userId === userData.$id) {
+                            setIsAuthor(true);
+                        } else {
+                            setIsAuthor(false);
+                        }
                     } else {
-                        setIsAuthor(false);
+                        navigate("/");
                     }
-                } else {
+                } catch (error) {
+                    console.error("Error fetching post:", error);
                     navigate("/");
                 }
-            });
-        } else {
-            navigate("/");
-        }
+            } else {
+                navigate("/");
+            }
+        };
+
+        fetchPost();
     }, [id, navigate, userData]);
 
     const deletePost = async () => {

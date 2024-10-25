@@ -14,7 +14,7 @@ const AllPosts = () => {
   const fetchPosts = async () => {
     try {
       const queryStatus = activeTab === "incomplete" ? "active" :
-                          activeTab === "approval" ? "approval" : "completed";
+                          activeTab === "approval" ? "approval" : "inactive";
       const queries = [Query.equal("status", queryStatus)];
       if (filters.areas) queries.push(Query.equal("areas", filters.areas));
       if (filters.feild) queries.push(Query.equal("feild", filters.feild));
@@ -40,7 +40,7 @@ const AllPosts = () => {
   const handleBatchApproval = async () => {
     try {
       const updatePromises = selectedPosts.map((postId) =>
-        service.updatePost(postId, { status: "completed" })
+        service.updatePost(postId, { status: "inactive" })
       );
       await Promise.all(updatePromises);
       alert("Selected posts marked as completed.");
@@ -87,7 +87,7 @@ const AllPosts = () => {
           <div className="flex gap-2 mb-4 justify-center">
             <Button onClick={() => setActiveTab("incomplete")}>Incomplete</Button>
             <Button onClick={() => setActiveTab("approval")}>In Approval</Button>
-            <Button onClick={() => setActiveTab("completed")}>Completed</Button>
+            <Button onClick={() => setActiveTab("inactive")}>Completed</Button>
           </div>
           {posts.length > 0 ? (
             posts.map((post) => (

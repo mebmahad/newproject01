@@ -12,7 +12,7 @@ const AllPosts = () => {
   const fetchPosts = async () => {
     try {
       const queryStatus = activeTab === "incomplete" ? "active" :
-                          activeTab === "approval" ? "approval" : "completed";
+                          activeTab === "approval" ? "approval" : "inactive";
       const response = await service.getPosts([Query.equal("status", queryStatus)]);
       setPosts(response && response.documents ? response.documents : []);
     } catch (error) {

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import service from '../appwrite/config'; // Import your service for updating status
 
-function PostCard({ $id, areas, subarea, feild, problem, createdAt }) {
+function PostCard({ $id, areas, subarea, feild, problem, createdAt, status }) {
   const [daysPassed, setDaysPassed] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(status);
 
   useEffect(() => {
     if (createdAt) {
@@ -22,8 +24,17 @@ function PostCard({ $id, areas, subarea, feild, problem, createdAt }) {
     setIsChecked(!isChecked);
   };
 
-  const handleApprovalSubmit = () => {
-    alert("Request submitted for approval.");
+  const handleApprovalSubmit = async () => {
+    try {
+      // Use the existing updatePost method to update only the status field
+      await service.updatePost($id, { status: "approval" });
+      // Update local status
+      setCurrentStatus("approval");
+      alert("Request submitted for approval.");
+    } catch (error) {
+      console.error("Failed to submit approval request:", error);
+      alert("An error occurred while submitting the request.");
+    }
   };
 
   return (
@@ -38,6 +49,11 @@ function PostCard({ $id, areas, subarea, feild, problem, createdAt }) {
           {daysPassed} {daysPassed === 1 ? "day" : "days"} ago
         </div>
       </Link>
+
+      {/* Show current status */}
+      <div className="mt-1 text-sm">
+        Status: <span className={`font-bold ${currentStatus === "approval" ? "text-blue-500" : ""}`}>{currentStatus}</span>
+      </div>
 
       {/* Checkbox and button outside the Link component */}
       <div className="flex items-center mt-2">

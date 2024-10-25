@@ -44,6 +44,9 @@ const AllPosts = () => {
                             <Button onClick={() => setFilters({ ...filters, status: "active" })}>
                                 Incomplete
                             </Button>
+                            <Button onClick={() => setFilters({ ...filters, status: "approval" })}>
+                                In Approval
+                            </Button>
                             <Button onClick={() => setFilters({ ...filters, status: "inactive" })}>
                                 Complete
                             </Button>

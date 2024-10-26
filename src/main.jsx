@@ -93,7 +93,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/add-procure",
+        path: "/add-procure/:id",
         element: (
           <AuthLayout authentication>
             {""}

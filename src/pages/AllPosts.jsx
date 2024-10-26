@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container, PostCard } from "../components";
-import { Link } from "react-router-dom"; // <-- Add this import
+import { Link } from "react-router-dom";
 import service from "../appwrite/config";
 import { Query } from "appwrite";
 import DynamicInput from "../components/DynamicInput";
@@ -19,7 +19,6 @@ const AllPosts = () => {
                 if (filters.feild) queries.push(Query.equal("feild", filters.feild));
 
                 const response = await service.getPosts(queries);
-
                 console.log("Fetched posts response:", response);
 
                 if (response && response.documents) {
@@ -57,10 +56,12 @@ const AllPosts = () => {
                         {posts.map((post) => (
                             <div key={post.$id}>
                                 <PostCard {...post} />
-                                {/* Add Material Required button here */}
-                                <Link to={`/add-procure/${post.$id}`}>
-                                    <Button className="bg-blue-500 mt-2">Material Required</Button>
-                                </Link>
+                                {/* Show Material Required button only if status is "active" */}
+                                {post.status === "active" && (
+                                    <Link to={`/add-procure/${post.$id}`}>
+                                        <Button className="bg-blue-500 mt-2">Material Required</Button>
+                                    </Link>
+                                )}
                             </div>
                         ))}
                     </div>

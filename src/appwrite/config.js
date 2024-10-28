@@ -233,18 +233,14 @@ class Service {
         }
     }
 
-    async searchItems(input = "") {
+    async searchItems(input) {
         try {
             const response = await this.getItems([Query.search("Item", input)]);
-            if (response.documents) {
-                return response.documents; // Return the array of documents
-            } else {
-                console.warn("No documents found.");
-                return []; // Return an empty array if no documents are found
-            }
+            // Ensure response.documents is an array
+            return Array.isArray(response.documents) ? response.documents : [];
         } catch (error) {
             console.error("Error in searchItems:", error);
-            return []; // Return an empty array on error
+            return [];
         }
     }
     

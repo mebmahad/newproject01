@@ -26,22 +26,22 @@ export default function PoForm({ po }) {
   const navigate = useNavigate();
   const userData = useSelector((state) => state.auth.userData);
 
-  // Fetch vendors and items with default empty string input for initial list
+  // Fetch vendors and items with only a valid search input
   useEffect(() => {
-    const fetchVendors = async () => {
+    const fetchVendors = async (input = "") => {
       try {
-        const response = await service.searchVendor("");
-        setVendors(response || []);  // Default to empty array if undefined
+        const response = input ? await service.searchVendor(input) : await service.getAllVendors();
+        setVendors(response || []);  
       } catch (error) {
         console.error('Error fetching vendors:', error);
         setVendors([]); // Set to empty array on error
       }
     };
 
-    const fetchItems = async () => {
+    const fetchItems = async (input = "") => {
       try {
-        const response = await service.searchItems("");
-        setItems(response || []);  // Default to empty array if undefined
+        const response = input ? await service.searchItems(input) : await service.getAllItems();
+        setItems(response || []);  
       } catch (error) {
         console.error('Error fetching items:', error);
         setItems([]); // Set to empty array on error

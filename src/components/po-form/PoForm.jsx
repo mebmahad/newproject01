@@ -11,7 +11,7 @@ export default function PoForm({ po }) {
       VendorName: po?.VendorName || '',
       Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
       Amount: po?.Amount || 0,
-      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate unique ID
+      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
     },
   });
 
@@ -29,21 +29,21 @@ export default function PoForm({ po }) {
   useEffect(() => {
     const fetchVendors = async () => {
       try {
-        const response = await service.getVendors(); // Fetch all vendors
-        setVendors(response.documents || []); // Store vendors
+        const response = await service.getVendors();
+        setVendors(response.documents || []); // Ensure this holds an array of vendor objects
       } catch (error) {
         console.error('Error fetching vendors:', error);
-        setVendors([]); // Set to empty array on error
+        setVendors([]);
       }
     };
 
     const fetchItems = async () => {
       try {
-        const response = await service.getItems(); // Fetch all items
-        setItems(response.documents || []); // Store items
+        const response = await service.getItems();
+        setItems(response.documents || []); // Ensure this holds an array of item objects
       } catch (error) {
         console.error('Error fetching items:', error);
-        setItems([]); // Set to empty array on error
+        setItems([]);
       }
     };
 
@@ -54,10 +54,10 @@ export default function PoForm({ po }) {
   useEffect(() => {
     const subscription = watch((value) => {
       const calculatedTotal = value.Items.reduce((acc, item) => {
-        return acc + item.qty * item.rate; // Calculate total amount
+        return acc + item.qty * item.rate;
       }, 0);
       setTotalAmount(calculatedTotal);
-      setValue('Amount', calculatedTotal); // Set the total amount in the form
+      setValue('Amount', calculatedTotal);
     });
     return () => subscription.unsubscribe();
   }, [watch, setValue]);
@@ -66,12 +66,12 @@ export default function PoForm({ po }) {
     try {
       let dbPo;
       if (po) {
-        dbPo = await service.updatePo(po.$id, data); // Update existing PO
+        dbPo = await service.updatePo(po.$id, data);
       } else {
-        dbPo = await service.createPo({ ...data, userId: userData?.$id }); // Create new PO
+        dbPo = await service.createPo({ ...data, userId: userData?.$id });
       }
       if (dbPo) {
-        navigate(`/po/${dbPo.$id}`); // Navigate to PO details page
+        navigate(`/po/${dbPo.$id}`);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -79,20 +79,20 @@ export default function PoForm({ po }) {
   };
 
   const addItem = () => {
-    append({ name: '', qty: 0, rate: 0 }); // Add new item row
+    append({ name: '', qty: 0, rate: 0 });
   };
 
   const handleItemSearch = async (event, value, index) => {
     if (value) {
-      const searchResults = await service.searchItems(value); // Search for items based on input
-      setItems(searchResults.documents || []); // Update items in state
+      const searchResults = await service.searchItems(value);
+      setItems(searchResults.documents || []); // Update items with search results
     }
   };
 
   const handleVendorSearch = async (event, value) => {
     if (value) {
-      const searchResults = await service.searchVendor(value); // Search for vendors based on input
-      setVendors(searchResults.documents || []); // Update vendors in state
+      const searchResults = await service.searchVendor(value);
+      setVendors(searchResults.documents || []); // Update vendors with search results
     }
   };
 
@@ -104,13 +104,13 @@ export default function PoForm({ po }) {
           placeholder="Auto-generated ID"
           className="mb-4"
           {...register('id')}
-          disabled // Auto-generated ID
+          disabled
           fullWidth
         />
 
         <Autocomplete
           options={vendors}
-          getOptionLabel={(option) => option.name || ''}
+          getOptionLabel={(option) => option.name || ''} // Ensure 'name' is the correct property
           renderInput={(params) => <TextField {...params} label="Vendor Name" />}
           onChange={(event, value) => setValue('VendorName', value?.name || '')}
           onInputChange={handleVendorSearch} // Trigger vendor search
@@ -122,7 +122,7 @@ export default function PoForm({ po }) {
           <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
             <Autocomplete
               options={items}
-              getOptionLabel={(option) => option.name || ''}
+              getOptionLabel={(option) => option.name || ''} // Ensure 'name' is the correct property
               renderInput={(params) => <TextField {...params} label={`Item ${index + 1}`} />}
               onChange={(event, value) => {
                 setValue(`Items.${index}.name`, value?.name || '');

@@ -365,6 +365,96 @@ class Service {
             return false;
         }
     }
+
+    async createPo({ vendorname, itemlist, amount, id }) {
+        try {
+            return await this.databases.createDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdpo,
+                id,
+                {
+                    vendorname,
+                    itemlist,
+                    amount,
+                }
+            );
+        } catch (error) {
+            console.log("PoService :: createPo :: error", error);
+        }
+    }
+
+    async updatePo(id, { vendorname, itemlist, amount }) {
+        try {
+            return await this.databases.updateDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdpo,
+                id,
+                {
+                    vendorname,
+                    itemlist,
+                    amount,
+                }
+            );
+        } catch (error) {
+            console.log("PoService :: updatePo :: error", error);
+        }
+    }
+
+    async deletePo(id) {
+        try {
+            await this.databases.deleteDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdpo,
+                id
+            );
+            return true;
+        } catch (error) {
+            console.log("PoService :: deletePo :: error", error);
+            return false;
+        }
+    }
+
+    async searchPo(input) {
+        try {
+            const response = await this.getPos([Query.search("Name", input)]);
+            if (response.documents) {
+                return response.documents; // Return the array of documents
+            } else {
+                console.warn("No documents found.");
+                return []; // Return an empty array if no documents are found
+            }
+        } catch (error) {
+            console.error("Error in searchPos:", error);
+            return []; // Return an empty array on error
+        }
+    }
+    
+
+    async getPo(id) {
+        try {
+            return await this.databases.getDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdpo,
+                id
+            );
+        } catch (error) {
+            console.log("PoService :: Po :: error", error);
+            return false;
+        }
+    }
+
+    async getPos(queries = []) {
+        try {
+            return await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdpo,
+                queries
+            );
+        } catch (error) {
+            console.log("PoService :: Pos :: error", error);
+            return false;
+        }
+    }
 }
 
 const service = new Service();

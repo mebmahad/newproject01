@@ -30,18 +30,20 @@ export default function PoForm({ po }) {
     const fetchVendors = async () => {
       try {
         const response = await service.getVendors();
-        setVendors(response.vendors);
+        setVendors(response.vendors || []);  // Default to empty array if undefined
       } catch (error) {
         console.error('Error fetching vendors:', error);
+        setVendors([]); // Set to empty array on error
       }
     };
 
     const fetchItems = async () => {
       try {
         const response = await service.getItems();
-        setItems(response.items);
+        setItems(response.items || []);  // Default to empty array if undefined
       } catch (error) {
         console.error('Error fetching items:', error);
+        setItems([]); // Set to empty array on error
       }
     };
 
@@ -93,8 +95,8 @@ export default function PoForm({ po }) {
         />
 
         <Autocomplete
-          options={vendors}
-          getOptionLabel={(option) => option.name}
+          options={vendors || []} // Default to empty array if undefined
+          getOptionLabel={(option) => option.name || ''}
           renderInput={(params) => <TextField {...params} label="Vendor Name" />}
           onChange={(event, value) => setValue('VendorName', value?.name || '')}
           className="mb-4"
@@ -104,8 +106,8 @@ export default function PoForm({ po }) {
         {fields.map((item, index) => (
           <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
             <Autocomplete
-              options={items}
-              getOptionLabel={(option) => option.name}
+              options={items || []} // Default to empty array if undefined
+              getOptionLabel={(option) => option.name || ''}
               renderInput={(params) => <TextField {...params} label={`Item ${index + 1}`} />}
               onChange={(event, value) =>
                 setValue(`Items.${index}.name`, value?.name || '')

@@ -11,7 +11,7 @@ export default function PoForm({ po }) {
       VendorName: po?.VendorName || '',
       Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
       Amount: po?.Amount || '',
-      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate unique ID
     },
   });
 
@@ -26,25 +26,26 @@ export default function PoForm({ po }) {
   const navigate = useNavigate();
   const userData = useSelector((state) => state.auth.userData);
 
-  // Fetch vendors and items with only a valid search input
+  // Fetch vendors from Appwrite
   useEffect(() => {
-    const fetchVendors = async (input = "") => {
+    const fetchVendors = async () => {
       try {
-        const response = input ? await service.searchVendor(input) : await service.getVendors();
-        setVendors(response || []);  
+        const response = await service.searchVendor('');
+        setVendors(Array.isArray(response) ? response : []);
       } catch (error) {
         console.error('Error fetching vendors:', error);
-        setVendors([]); // Set to empty array on error
+        setVendors([]);
       }
     };
 
-    const fetchItems = async (input = "") => {
+    // Fetch items from Appwrite
+    const fetchItems = async () => {
       try {
-        const response = input ? await service.searchItems(input) : await service.getItems();
-        setItems(response || []);  
+        const response = await service.searchItems('');
+        setItems(Array.isArray(response) ? response : []);
       } catch (error) {
         console.error('Error fetching items:', error);
-        setItems([]); // Set to empty array on error
+        setItems([]);
       }
     };
 
@@ -52,10 +53,11 @@ export default function PoForm({ po }) {
     fetchItems();
   }, []);
 
+  // Watch for changes in items list and calculate total amount
   useEffect(() => {
     const subscription = watch((value) => {
       const calculatedTotal = value.Items.reduce((acc, item) => {
-        return acc + item.qty * item.rate;
+        return acc + (item.qty || 0) * (item.rate || 0);
       }, 0);
       setTotalAmount(calculatedTotal);
       setValue('Amount', calculatedTotal);
@@ -95,8 +97,9 @@ export default function PoForm({ po }) {
           fullWidth
         />
 
+        {/* Vendor selection */}
         <Autocomplete
-          options={vendors || []}
+          options={vendors}
           getOptionLabel={(option) => option.Name || ''}
           renderInput={(params) => <TextField {...params} label="Vendor Name" />}
           onChange={(event, value) => setValue('VendorName', value?.Name || '')}
@@ -104,10 +107,12 @@ export default function PoForm({ po }) {
           fullWidth
         />
 
+        {/* Items Section */}
         {fields.map((item, index) => (
           <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
+            {/* Item Selection */}
             <Autocomplete
-              options={items || []}
+              options={items}
               getOptionLabel={(option) => option.Item || ''}
               renderInput={(params) => <TextField {...params} label={`Item ${index + 1}`} />}
               onChange={(event, value) =>
@@ -116,6 +121,7 @@ export default function PoForm({ po }) {
               fullWidth
               className="mb-2"
             />
+            {/* Quantity Input */}
             <TextField
               label="Quantity"
               type="number"
@@ -124,6 +130,7 @@ export default function PoForm({ po }) {
               fullWidth
               className="mb-2"
             />
+            {/* Rate Input */}
             <TextField
               label="Rate"
               type="number"
@@ -132,16 +139,19 @@ export default function PoForm({ po }) {
               fullWidth
               className="mb-2"
             />
+            {/* Remove Item Button */}
             <Button variant="outlined" color="secondary" onClick={() => remove(index)}>
               Remove Item
             </Button>
           </div>
         ))}
 
+        {/* Add Item Button */}
         <Button variant="contained" color="primary" onClick={addItem} className="mb-4">
           Add Item
         </Button>
 
+        {/* Total Amount Display */}
         <TextField
           label="Total Amount"
           placeholder="Total Amount"
@@ -151,6 +161,7 @@ export default function PoForm({ po }) {
           className="mb-4"
         />
 
+        {/* Submit Button */}
         <Button type="submit" variant="contained" color={po ? 'primary' : 'secondary'} fullWidth>
           {po ? 'Update PO' : 'Submit PO'}
         </Button>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button, TextField, Autocomplete } from '@mui/material';
-import service from '../../appwrite/config';
+import service from '../../appwrite/config'; // Ensure this path is correct
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
@@ -11,7 +11,7 @@ export default function PoForm({ po }) {
       VendorName: po?.VendorName || '',
       Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
       Amount: po?.Amount || 0,
-      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate unique ID
     },
   });
 
@@ -29,23 +29,21 @@ export default function PoForm({ po }) {
   useEffect(() => {
     const fetchVendors = async () => {
       try {
-        const response = await service.getVendors();
-        console.log("Fetched Vendors:", response.documents); // Log to inspect
-        setVendors(response.documents || []);
+        const response = await service.searchVendor('');
+        setVendors(response.documents || []); // Default to empty array if undefined
       } catch (error) {
         console.error('Error fetching vendors:', error);
-        setVendors([]);
+        setVendors([]); // Set to empty array on error
       }
     };
 
     const fetchItems = async () => {
       try {
-        const response = await service.getItems();
-        console.log("Fetched Items:", response.documents); // Log to inspect
-        setItems(response.documents || []);
+        const response = await service.searchItems('');
+        setItems(response.documents || []); // Default to empty array if undefined
       } catch (error) {
         console.error('Error fetching items:', error);
-        setItems([]);
+        setItems([]); // Set to empty array on error
       }
     };
 
@@ -84,19 +82,17 @@ export default function PoForm({ po }) {
     append({ name: '', qty: 0, rate: 0 });
   };
 
-  const handleItemSearch = async (event, value, index) => {
-    if (value) {
-      const searchResults = await service.searchItems(value);
-      console.log("Search Results for Items:", searchResults); // Log to inspect
-      setItems(searchResults.documents || []);
-    }
-  };
-
   const handleVendorSearch = async (event, value) => {
     if (value) {
       const searchResults = await service.searchVendor(value);
-      console.log("Search Results for Vendors:", searchResults); // Log to inspect
       setVendors(searchResults.documents || []);
+    }
+  };
+
+  const handleItemSearch = async (event, value, index) => {
+    if (value) {
+      const searchResults = await service.searchItems(value);
+      setItems(searchResults.documents || []);
     }
   };
 
@@ -108,35 +104,34 @@ export default function PoForm({ po }) {
           placeholder="Auto-generated ID"
           className="mb-4"
           {...register('id')}
-          disabled
+          disabled // Auto-generated ID
           fullWidth
         />
 
         <Autocomplete
           options={vendors}
-          getOptionLabel={(option) => option.name || ''} // Ensure 'name' is correct
+          getOptionLabel={(option) => option.name || ''}
           renderInput={(params) => <TextField {...params} label="Vendor Name" />}
           onChange={(event, value) => setValue('VendorName', value?.name || '')}
           onInputChange={handleVendorSearch} // Trigger vendor search
           className="mb-4"
           fullWidth
-          noOptionsText="No vendors found" // Informative message
+          noOptionsText="No vendors found"
         />
 
         {fields.map((item, index) => (
           <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
             <Autocomplete
               options={items}
-              getOptionLabel={(option) => option.name || ''} // Ensure 'name' is correct
+              getOptionLabel={(option) => option.name || ''}
               renderInput={(params) => <TextField {...params} label={`Item ${index + 1}`} />}
-              onChange={(event, value) => {
-                setValue(`Items.${index}.name`, value?.name || '');
-                setValue(`Items.${index}.rate`, value?.rate || 0); // Set rate from selected item
-              }}
+              onChange={(event, value) =>
+                setValue(`Items.${index}.name`, value?.name || '')
+              }
               onInputChange={(event, value) => handleItemSearch(event, value, index)} // Trigger item search
-              className="mb-2"
               fullWidth
-              noOptionsText="No items found" // Informative message
+              className="mb-2"
+              noOptionsText="No items found"
             />
             <TextField
               label="Quantity"

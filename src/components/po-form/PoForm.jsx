@@ -11,7 +11,7 @@ export default function PoForm({ po }) {
       VendorName: po?.VendorName || '',
       Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
       Amount: po?.Amount || '',
-      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate unique ID
+      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
     },
   });
 
@@ -26,11 +26,11 @@ export default function PoForm({ po }) {
   const navigate = useNavigate();
   const userData = useSelector((state) => state.auth.userData);
 
-  // Fetch vendors from Appwrite
   useEffect(() => {
     const fetchVendors = async () => {
       try {
         const response = await service.searchVendor('');
+        console.log("Fetched vendors:", response);
         setVendors(Array.isArray(response) ? response : []);
       } catch (error) {
         console.error('Error fetching vendors:', error);
@@ -38,10 +38,10 @@ export default function PoForm({ po }) {
       }
     };
 
-    // Fetch items from Appwrite
     const fetchItems = async () => {
       try {
         const response = await service.searchItems('');
+        console.log("Fetched items:", response);
         setItems(Array.isArray(response) ? response : []);
       } catch (error) {
         console.error('Error fetching items:', error);
@@ -53,7 +53,6 @@ export default function PoForm({ po }) {
     fetchItems();
   }, []);
 
-  // Watch for changes in items list and calculate total amount
   useEffect(() => {
     const subscription = watch((value) => {
       const calculatedTotal = value.Items.reduce((acc, item) => {
@@ -110,7 +109,6 @@ export default function PoForm({ po }) {
         {/* Items Section */}
         {fields.map((item, index) => (
           <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
-            {/* Item Selection */}
             <Autocomplete
               options={items}
               getOptionLabel={(option) => option.Item || ''}
@@ -121,7 +119,6 @@ export default function PoForm({ po }) {
               fullWidth
               className="mb-2"
             />
-            {/* Quantity Input */}
             <TextField
               label="Quantity"
               type="number"
@@ -130,7 +127,6 @@ export default function PoForm({ po }) {
               fullWidth
               className="mb-2"
             />
-            {/* Rate Input */}
             <TextField
               label="Rate"
               type="number"
@@ -139,19 +135,16 @@ export default function PoForm({ po }) {
               fullWidth
               className="mb-2"
             />
-            {/* Remove Item Button */}
             <Button variant="outlined" color="secondary" onClick={() => remove(index)}>
               Remove Item
             </Button>
           </div>
         ))}
 
-        {/* Add Item Button */}
         <Button variant="contained" color="primary" onClick={addItem} className="mb-4">
           Add Item
         </Button>
 
-        {/* Total Amount Display */}
         <TextField
           label="Total Amount"
           placeholder="Total Amount"
@@ -161,7 +154,6 @@ export default function PoForm({ po }) {
           className="mb-4"
         />
 
-        {/* Submit Button */}
         <Button type="submit" variant="contained" color={po ? 'primary' : 'secondary'} fullWidth>
           {po ? 'Update PO' : 'Submit PO'}
         </Button>

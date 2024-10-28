@@ -30,6 +30,7 @@ export default function PoForm({ po }) {
     const fetchVendors = async () => {
       try {
         const response = await service.searchVendor('');
+        console.log('Fetched vendors:', response.documents); // Debugging line
         setVendors(response.documents || []); // Default to empty array if undefined
       } catch (error) {
         console.error('Error fetching vendors:', error);
@@ -40,6 +41,7 @@ export default function PoForm({ po }) {
     const fetchItems = async () => {
       try {
         const response = await service.searchItems('');
+        console.log('Fetched items:', response.documents); // Debugging line
         setItems(response.documents || []); // Default to empty array if undefined
       } catch (error) {
         console.error('Error fetching items:', error);
@@ -92,6 +94,7 @@ export default function PoForm({ po }) {
   const handleItemSearch = async (event, value, index) => {
     if (value) {
       const searchResults = await service.searchItems(value);
+      console.log(`Search results for item ${index}:`, searchResults.documents); // Debugging line
       setItems(searchResults.documents || []);
     }
   };
@@ -123,7 +126,7 @@ export default function PoForm({ po }) {
           <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
             <Autocomplete
               options={items}
-              getOptionLabel={(option) => option.name || ''}
+              getOptionLabel={(option) => option.name || ''} // Ensure this matches your data structure
               renderInput={(params) => <TextField {...params} label={`Item ${index + 1}`} />}
               onChange={(event, value) =>
                 setValue(`Items.${index}.name`, value?.name || '')

@@ -94,8 +94,12 @@ export default function PoForm({ po }) {
   const handleItemSearch = async (event, value, index) => {
     if (value) {
       const searchResults = await service.searchItems(value);
-      console.log(`Search results for item ${index}:`, searchResults.documents); // Debugging line
-      setItems(searchResults.documents || []);
+      console.log(`Search results for item ${index}:`, searchResults); // Debugging line
+      if (searchResults.total > 0) {
+        setItems(searchResults.documents || []);
+      } else {
+        setItems([]); // Clear items if none found
+      }
     }
   };
 

@@ -30,7 +30,7 @@ export default function PoForm({ po }) {
   useEffect(() => {
     const fetchVendors = async (input = "") => {
       try {
-        const response = input ? await service.searchVendor(input) : await service.getAllVendors();
+        const response = input ? await service.searchVendor(input) : await service.getVendors();
         setVendors(response || []);  
       } catch (error) {
         console.error('Error fetching vendors:', error);
@@ -40,7 +40,7 @@ export default function PoForm({ po }) {
 
     const fetchItems = async (input = "") => {
       try {
-        const response = input ? await service.searchItems(input) : await service.getAllItems();
+        const response = input ? await service.searchItems(input) : await service.getItems();
         setItems(response || []);  
       } catch (error) {
         console.error('Error fetching items:', error);

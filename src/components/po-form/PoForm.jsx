@@ -30,7 +30,8 @@ export default function PoForm({ po }) {
     const fetchVendors = async () => {
       try {
         const response = await service.getVendors();
-        setVendors(response.documents || []); // Ensure this holds an array of vendor objects
+        console.log("Fetched Vendors:", response.documents); // Log to inspect
+        setVendors(response.documents || []);
       } catch (error) {
         console.error('Error fetching vendors:', error);
         setVendors([]);
@@ -40,7 +41,8 @@ export default function PoForm({ po }) {
     const fetchItems = async () => {
       try {
         const response = await service.getItems();
-        setItems(response.documents || []); // Ensure this holds an array of item objects
+        console.log("Fetched Items:", response.documents); // Log to inspect
+        setItems(response.documents || []);
       } catch (error) {
         console.error('Error fetching items:', error);
         setItems([]);
@@ -85,14 +87,16 @@ export default function PoForm({ po }) {
   const handleItemSearch = async (event, value, index) => {
     if (value) {
       const searchResults = await service.searchItems(value);
-      setItems(searchResults.documents || []); // Update items with search results
+      console.log("Search Results for Items:", searchResults); // Log to inspect
+      setItems(searchResults.documents || []);
     }
   };
 
   const handleVendorSearch = async (event, value) => {
     if (value) {
       const searchResults = await service.searchVendor(value);
-      setVendors(searchResults.documents || []); // Update vendors with search results
+      console.log("Search Results for Vendors:", searchResults); // Log to inspect
+      setVendors(searchResults.documents || []);
     }
   };
 
@@ -110,19 +114,20 @@ export default function PoForm({ po }) {
 
         <Autocomplete
           options={vendors}
-          getOptionLabel={(option) => option.name || ''} // Ensure 'name' is the correct property
+          getOptionLabel={(option) => option.name || ''} // Ensure 'name' is correct
           renderInput={(params) => <TextField {...params} label="Vendor Name" />}
           onChange={(event, value) => setValue('VendorName', value?.name || '')}
           onInputChange={handleVendorSearch} // Trigger vendor search
           className="mb-4"
           fullWidth
+          noOptionsText="No vendors found" // Informative message
         />
 
         {fields.map((item, index) => (
           <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
             <Autocomplete
               options={items}
-              getOptionLabel={(option) => option.name || ''} // Ensure 'name' is the correct property
+              getOptionLabel={(option) => option.name || ''} // Ensure 'name' is correct
               renderInput={(params) => <TextField {...params} label={`Item ${index + 1}`} />}
               onChange={(event, value) => {
                 setValue(`Items.${index}.name`, value?.name || '');
@@ -131,6 +136,7 @@ export default function PoForm({ po }) {
               onInputChange={(event, value) => handleItemSearch(event, value, index)} // Trigger item search
               className="mb-2"
               fullWidth
+              noOptionsText="No items found" // Informative message
             />
             <TextField
               label="Quantity"

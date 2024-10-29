@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button, TextField, Autocomplete } from '@mui/material';
-import service from '../../appwrite/config'; // Ensure this path is correct
+import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
@@ -10,16 +10,12 @@ export default function PoForm({ po }) {
     defaultValues: {
       VendorName: po?.VendorName || '',
       Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
-      Amount: po?.Amount || 0,
-      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate unique ID
+      Amount: po?.Amount || '',
+      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'Items',
-  });
-
+  const { fields, append, remove } = useFieldArray({ control, name: 'Items' });
   const [vendors, setVendors] = useState([]);
   const [items, setItems] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -27,37 +23,23 @@ export default function PoForm({ po }) {
   const userData = useSelector((state) => state.auth.userData);
 
   useEffect(() => {
-    const fetchVendors = async () => {
+    // Fetch vendors and items once at component mount
+    const fetchInitialData = async () => {
       try {
-        const response = await service.searchVendor('');
-        console.log('Fetched vendors:', response.documents); // Debugging line
-        setVendors(response.documents || []); // Default to empty array if undefined
+        const vendorResults = await service.searchVendor('');
+        const itemResults = await service.searchItems('');
+        setVendors(vendorResults.documents || []);
+        setItems(itemResults.documents || []);
       } catch (error) {
-        console.error('Error fetching vendors:', error);
-        setVendors([]); // Set to empty array on error
+        console.error('Error fetching initial data:', error);
       }
     };
-
-    const fetchItems = async () => {
-      try {
-        const response = await service.searchItems('');
-        console.log('Fetched items:', response.documents); // Debugging line
-        setItems(response.documents || []); // Default to empty array if undefined
-      } catch (error) {
-        console.error('Error fetching items:', error);
-        setItems([]); // Set to empty array on error
-      }
-    };
-
-    fetchVendors();
-    fetchItems();
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
     const subscription = watch((value) => {
-      const calculatedTotal = value.Items.reduce((acc, item) => {
-        return acc + item.qty * item.rate;
-      }, 0);
+      const calculatedTotal = value.Items.reduce((acc, item) => acc + item.qty * item.rate, 0);
       setTotalAmount(calculatedTotal);
       setValue('Amount', calculatedTotal);
     });
@@ -80,28 +62,7 @@ export default function PoForm({ po }) {
     }
   };
 
-  const addItem = () => {
-    append({ name: '', qty: 0, rate: 0 });
-  };
-
-  const handleVendorSearch = async (event, value) => {
-    if (value) {
-      const searchResults = await service.searchVendor(value);
-      setVendors(searchResults.documents || []);
-    }
-  };
-
-  const handleItemSearch = async (event, value, index) => {
-    if (value) {
-      const searchResults = await service.searchItems(value);
-      console.log(`Search results for item ${index}:`, searchResults); // Debugging line
-      if (searchResults.total > 0) {
-        setItems(searchResults.documents || []);
-      } else {
-        setItems([]); // Clear items if none found
-      }
-    }
-  };
+  const addItem = () => append({ name: '', qty: 0, rate: 0 });
 
   return (
     <form onSubmit={handleSubmit(submit)} className="flex flex-wrap p-4">
@@ -111,7 +72,7 @@ export default function PoForm({ po }) {
           placeholder="Auto-generated ID"
           className="mb-4"
           {...register('id')}
-          disabled // Auto-generated ID
+          disabled
           fullWidth
         />
 
@@ -120,22 +81,17 @@ export default function PoForm({ po }) {
           getOptionLabel={(option) => option.name || ''}
           renderInput={(params) => <TextField {...params} label="Vendor Name" />}
           onChange={(event, value) => setValue('VendorName', value?.name || '')}
-          onInputChange={handleVendorSearch} // Trigger vendor search
           className="mb-4"
           fullWidth
-          noOptionsText="No vendors found"
         />
 
         {fields.map((item, index) => (
           <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
             <Autocomplete
               options={items}
-              getOptionLabel={(option) => option.name || ''} // Ensure this matches your data structure
+              getOptionLabel={(option) => option.name || ''}
               renderInput={(params) => <TextField {...params} label={`Item ${index + 1}`} />}
-              onChange={(event, value) =>
-                setValue(`Items.${index}.name`, value?.name || '')
-              }
-              onInputChange={(event, value) => handleItemSearch(event, value, index)} // Trigger item search
+              onChange={(event, value) => setValue(`Items.${index}.name`, value?.name || '')}
               fullWidth
               className="mb-2"
               noOptionsText="No items found"

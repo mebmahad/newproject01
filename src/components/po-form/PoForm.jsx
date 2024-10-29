@@ -1,167 +1,174 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, Autocomplete } from '@mui/material';
+import { Button, TextField } from '@mui/material';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
+const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
+    <div className="mb-4">
+        <label htmlFor={id}>{label}</label>
+        <input ref={ref} id={id} {...props} onInput={onInput} className="border p-2 w-full" />
+    </div>
+));
+
 export default function PoForm({ po }) {
-  const { register, handleSubmit, control, setValue, watch } = useForm({
-    defaultValues: {
-      VendorName: po?.VendorName || '',
-      Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
-      Amount: po?.Amount || '',
-      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate unique ID
-    },
-  });
+    const { register, handleSubmit, control, setValue, watch } = useForm({
+        defaultValues: {
+            VendorName: po?.VendorName || '',
+            Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
+            Amount: po?.Amount || '',
+            id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        },
+    });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'Items',
-  });
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: 'Items',
+    });
 
-  const [vendors, setVendors] = useState([]);
-  const [items, setItems] = useState([]);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const navigate = useNavigate();
-  const userData = useSelector((state) => state.auth.userData);
+    const [vendorSuggestions, setVendorSuggestions] = useState([]);
+    const [itemSuggestions, setItemSuggestions] = useState([]);
+    const [totalAmount, setTotalAmount] = useState(0);
+    const navigate = useNavigate();
+    const userData = useSelector((state) => state.auth.userData);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const vendorResponse = await service.searchVendor('');
-        const itemResponse = await service.searchItems('');
-
-        // Check if data is available, otherwise log warning
-        if (vendorResponse?.documents?.length) {
-          setVendors(vendorResponse.documents);
-        } else {
-          console.warn('No vendors found');
-          setVendors([{ Name: 'Dummy Vendor 1' }, { Name: 'Dummy Vendor 2' }]); // Dummy data for testing
+    const fetchVendorSuggestions = async (input) => {
+        if (!input) {
+            setVendorSuggestions([]);
+            return;
         }
-
-        if (itemResponse?.documents?.length) {
-          setItems(itemResponse.documents);
-        } else {
-          console.warn('No items found');
-          setItems([{ name: 'Dummy Item 1' }, { name: 'Dummy Item 2' }]); // Dummy data for testing
+        try {
+            const results = await service.searchVendor(input);
+            setVendorSuggestions(results.documents.map((vendor) => vendor.Name));
+        } catch (error) {
+            console.error('Error fetching vendor suggestions:', error);
+            setVendorSuggestions([]);
         }
-
-        console.log("Fetched vendors:", vendorResponse?.documents);
-        console.log("Fetched items:", itemResponse?.documents);
-
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
     };
 
-    fetchData();
-  }, []);
+    const fetchItemSuggestions = async (input) => {
+        if (!input) {
+            setItemSuggestions([]);
+            return;
+        }
+        try {
+            const results = await service.searchItems(input);
+            setItemSuggestions(results.documents.map((item) => item.name));
+        } catch (error) {
+            console.error('Error fetching item suggestions:', error);
+            setItemSuggestions([]);
+        }
+    };
 
-  // Calculate total amount whenever items change
-  useEffect(() => {
-    const subscription = watch((value) => {
-      const calculatedTotal = value.Items.reduce((acc, item) => {
-        return acc + (item.qty || 0) * (item.rate || 0);
-      }, 0);
-      setTotalAmount(calculatedTotal);
-      setValue('Amount', calculatedTotal);
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, setValue]);
+    const handleVendorInputChange = (e) => {
+        const inputValue = e.currentTarget.value;
+        setValue('VendorName', inputValue, { shouldValidate: true });
+        fetchVendorSuggestions(inputValue);
+    };
 
-  const submit = async (data) => {
-    try {
-      let dbPo;
-      if (po) {
-        dbPo = await service.updatePo(po.$id, data);
-      } else {
-        dbPo = await service.createPo({ ...data, userId: userData?.$id });
-      }
-      if (dbPo) {
-        navigate(`/po/${dbPo.$id}`);
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-    }
-  };
+    const handleItemInputChange = (index, e) => {
+        const inputValue = e.currentTarget.value;
+        setValue(`Items.${index}.name`, inputValue, { shouldValidate: true });
+        fetchItemSuggestions(inputValue);
+    };
 
-  const addItem = () => {
-    append({ name: '', qty: 0, rate: 0 });
-  };
+    const handleItemSuggestionClick = (index, itemName) => {
+        setItemSuggestions([]);
+        setValue(`Items.${index}.name`, itemName, { shouldValidate: true });
+    };
 
-  return (
-    <form onSubmit={handleSubmit(submit)} className="flex flex-wrap p-4">
-      <div className="w-full">
-        <TextField
-          label="ID"
-          placeholder="Auto-generated ID"
-          className="mb-4"
-          {...register('id')}
-          disabled // Auto-generated ID
-          fullWidth
-        />
+    useEffect(() => {
+        const subscription = watch((value) => {
+            const calculatedTotal = value.Items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
+            setTotalAmount(calculatedTotal);
+            setValue('Amount', calculatedTotal);
+        });
+        return () => subscription.unsubscribe();
+    }, [watch, setValue]);
 
-        <Autocomplete
-          options={vendors || []} // Default to empty array if undefined
-          getOptionLabel={(option) => option.Name || ''}
-          renderInput={(params) => <TextField {...params} label="Vendor Name" />}
-          onChange={(event, value) => setValue('VendorName', value?.Name || '')}
-          className="mb-4"
-          fullWidth
-        />
+    const submit = async (data) => {
+        try {
+            const dbPo = po
+                ? await service.updatePo(po.$id, data)
+                : await service.createPo({ ...data, userId: userData?.$id });
 
-        {fields.map((item, index) => (
-          <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
-            <Autocomplete
-              options={items || []} // Default to empty array if undefined
-              getOptionLabel={(option) => option.name || ''}
-              renderInput={(params) => <TextField {...params} label={`Item ${index + 1}`} />}
-              onChange={(event, value) =>
-                setValue(`Items.${index}.name`, value?.name || '')
-              }
-              fullWidth
-              className="mb-2"
-            />
-            <TextField
-              label="Quantity"
-              type="number"
-              placeholder="Quantity"
-              {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
-              fullWidth
-              className="mb-2"
-            />
-            <TextField
-              label="Rate"
-              type="number"
-              placeholder="Rate"
-              {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
-              fullWidth
-              className="mb-2"
-            />
-            <Button variant="outlined" color="secondary" onClick={() => remove(index)}>
-              Remove Item
-            </Button>
-          </div>
-        ))}
+            if (dbPo) navigate(`/po/${dbPo.$id}`);
+        } catch (error) {
+            console.error('Error submitting form:', error);
+        }
+    };
 
-        <Button variant="contained" color="primary" onClick={addItem} className="mb-4">
-          Add Item
-        </Button>
+    return (
+        <form onSubmit={handleSubmit(submit)} className="flex flex-wrap p-4">
+            <div className="w-full">
+                <Input
+                    label="Vendor Name:"
+                    id="vendorName"
+                    placeholder="Vendor Name"
+                    {...register('VendorName', { required: true })}
+                    onInput={handleVendorInputChange}
+                />
+                {vendorSuggestions.length > 0 && (
+                    <ul className="absolute bg-white border border-gray-300 w-full z-10">
+                        {vendorSuggestions.map((vendor, index) => (
+                            <li
+                                key={index}
+                                onClick={() => setValue('VendorName', vendor, { shouldValidate: true })}
+                                className="p-2 hover:bg-gray-200 cursor-pointer"
+                            >
+                                {vendor}
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
-        <TextField
-          label="Total Amount"
-          placeholder="Total Amount"
-          value={totalAmount}
-          disabled
-          fullWidth
-          className="mb-4"
-        />
+                {fields.map((item, index) => (
+                    <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
+                        <Input
+                            label={`Item ${index + 1}`}
+                            id={`item-${index}`}
+                            placeholder="Item name"
+                            {...register(`Items.${index}.name`, { required: true })}
+                            onInput={(e) => handleItemInputChange(index, e)}
+                        />
+                        {itemSuggestions.length > 0 && (
+                            <ul className="absolute bg-white border border-gray-300 w-full z-10">
+                                {itemSuggestions.map((itemName, idx) => (
+                                    <li
+                                        key={idx}
+                                        onClick={() => handleItemSuggestionClick(index, itemName)}
+                                        className="p-2 hover:bg-gray-200 cursor-pointer"
+                                    >
+                                        {itemName}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <Input
+                            label="Quantity"
+                            type="number"
+                            {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
+                        />
+                        <Input
+                            label="Rate"
+                            type="number"
+                            {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
+                        />
+                        <Button variant="outlined" color="secondary" onClick={() => remove(index)}>
+                            Remove Item
+                        </Button>
+                    </div>
+                ))}
+                <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
+                    Add Item
+                </Button>
 
-        <Button type="submit" variant="contained" color={po ? 'primary' : 'secondary'} fullWidth>
-          {po ? 'Update PO' : 'Submit PO'}
-        </Button>
-      </div>
-    </form>
-  );
+                <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mb-4" />
+                <Button type="submit" variant="contained" color="primary" fullWidth>
+                    {po ? 'Update PO' : 'Submit PO'}
+                </Button>
+            </div>
+        </form>
+    );
 }

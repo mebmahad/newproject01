@@ -54,7 +54,7 @@ export default function PoForm({ po }) {
         }
         try {
             const results = await service.searchItems(input);
-            setItemSuggestions(results.documents.map((item) => item.name));
+            setItemSuggestions(results.documents.map((item) => item.Item));
         } catch (error) {
             console.error('Error fetching item suggestions:', error);
             setItemSuggestions([]);

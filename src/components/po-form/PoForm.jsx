@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField } from '@mui/material';
-import service from '../../appwrite/config';
-import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "../index"; // Adjust import to your actual button component
+import service from "../../appwrite/config"; // Adjusted to use your service
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     <div className="mb-4">
@@ -12,48 +12,34 @@ const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     </div>
 ));
 
-export default function PoForm({ po }) {
-    const { register, handleSubmit, control, setValue, getValues } = useForm({
+const PoForm = ({ postId }) => {
+    const { register, handleSubmit, setValue } = useForm({
         defaultValues: {
-            VendorName: po?.VendorName || '',
-            Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
-            Amount: po?.Amount || '',
-            id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+            item: "",
+            vendor: "",
+            quantity: "",
         },
     });
 
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: 'Items',
-    });
-
-    const [vendorSuggestions, setVendorSuggestions] = useState([]);
-    const [itemSuggestions, setItemSuggestions] = useState([]);
-    const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
+    const [itemSuggestions, setItemSuggestions] = useState([]);
+    const [vendorSuggestions, setVendorSuggestions] = useState([]);
 
-    // Avoid using setValue in a watch to prevent excessive re-renders
-    useEffect(() => {
-        const calculateTotalAmount = () => {
-            const items = getValues('Items');
-            const total = items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
-            setTotalAmount(total);
-        };
-        calculateTotalAmount();
-    }, [fields, getValues]);
-
-    const fetchVendorSuggestions = async (input) => {
-        if (!input) {
-            setVendorSuggestions([]);
-            return;
-        }
+    const submit = async (data) => {
         try {
-            const results = await service.searchVendor(input);
-            setVendorSuggestions(results.documents.map((vendor) => vendor.Name));
+            const poData = {
+                ...data,
+                userId: userData?.$id,
+                postId: postId,
+            };
+
+            const poResponse = await service.createPurchaseOrder(poData);
+            if (poResponse) {
+                navigate(`/purchase-orders/${poResponse.$id}`);
+            }
         } catch (error) {
-            console.error('Error fetching vendor suggestions:', error);
-            setVendorSuggestions([]);
+            console.error("Error submitting form:", error);
         }
     };
 
@@ -64,50 +50,90 @@ export default function PoForm({ po }) {
         }
         try {
             const results = await service.searchItems(input);
-            setItemSuggestions(results.documents.map((item) => item.name));
+
+            if (results && Array.isArray(results.documents)) {
+                setItemSuggestions(results.documents.map((item) => item.name));
+            } else {
+                console.warn("Unexpected format from searchItems response:", results);
+                setItemSuggestions([]);
+            }
         } catch (error) {
-            console.error('Error fetching item suggestions:', error);
+            console.error("Error fetching item suggestions:", error);
             setItemSuggestions([]);
         }
     };
 
-    const handleVendorInputChange = (e) => {
-        const inputValue = e.currentTarget.value;
-        setValue('VendorName', inputValue, { shouldValidate: true });
-        fetchVendorSuggestions(inputValue);
-    };
-
-    const handleItemInputChange = (index, e) => {
-        const inputValue = e.currentTarget.value;
-        setValue(`Items.${index}.name`, inputValue, { shouldValidate: true });
-        fetchItemSuggestions(inputValue);
-    };
-
-    const handleItemSuggestionClick = (index, itemName) => {
-        setItemSuggestions([]);
-        setValue(`Items.${index}.name`, itemName, { shouldValidate: true });
-    };
-
-    const submit = async (data) => {
+    const fetchVendorSuggestions = async (input) => {
+        if (!input) {
+            setVendorSuggestions([]);
+            return;
+        }
         try {
-            const dbPo = po
-                ? await service.updatePo(po.$id, data)
-                : await service.createPo({ ...data, userId: userData?.$id });
+            const results = await service.searchVendors(input);
 
-            if (dbPo) navigate(`/po/${dbPo.$id}`);
+            if (results && Array.isArray(results.documents)) {
+                setVendorSuggestions(results.documents.map((vendor) => vendor.name));
+            } else {
+                console.warn("Unexpected format from searchVendors response:", results);
+                setVendorSuggestions([]);
+            }
         } catch (error) {
-            console.error('Error submitting form:', error);
+            console.error("Error fetching vendor suggestions:", error);
+            setVendorSuggestions([]);
         }
     };
 
+    const handleItemInputChange = (e) => {
+        const inputValue = e.currentTarget.value;
+        setValue("item", inputValue, { shouldValidate: true });
+        fetchItemSuggestions(inputValue);
+    };
+
+    const handleVendorInputChange = (e) => {
+        const inputValue = e.currentTarget.value;
+        setValue("vendor", inputValue, { shouldValidate: true });
+        fetchVendorSuggestions(inputValue);
+    };
+
+    const handleItemSuggestionClick = (item) => {
+        setValue("item", item, { shouldValidate: true });
+        setItemSuggestions([]);
+    };
+
+    const handleVendorSuggestionClick = (vendor) => {
+        setValue("vendor", vendor, { shouldValidate: true });
+        setVendorSuggestions([]);
+    };
+
     return (
-        <form onSubmit={handleSubmit(submit)} className="flex flex-wrap p-4">
-            <div className="w-full">
+        <form onSubmit={handleSubmit(submit)} className="flex justify-center items-center min-h-screen">
+            <div className="flex flex-col">
                 <Input
-                    label="Vendor Name:"
-                    id="vendorName"
-                    placeholder="Vendor Name"
-                    {...register('VendorName', { required: true })}
+                    label="Item:"
+                    id="item"
+                    placeholder="Enter item"
+                    {...register("item", { required: true })}
+                    onInput={handleItemInputChange}
+                />
+                {itemSuggestions.length > 0 && (
+                    <ul className="absolute bg-white border border-gray-300 w-full z-10">
+                        {itemSuggestions.map((item, index) => (
+                            <li
+                                key={index}
+                                onClick={() => handleItemSuggestionClick(item)}
+                                className="p-2 hover:bg-gray-200 cursor-pointer"
+                            >
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+
+                <Input
+                    label="Vendor:"
+                    id="vendor"
+                    placeholder="Enter vendor"
+                    {...register("vendor", { required: true })}
                     onInput={handleVendorInputChange}
                 />
                 {vendorSuggestions.length > 0 && (
@@ -115,7 +141,7 @@ export default function PoForm({ po }) {
                         {vendorSuggestions.map((vendor, index) => (
                             <li
                                 key={index}
-                                onClick={() => setValue('VendorName', vendor, { shouldValidate: true })}
+                                onClick={() => handleVendorSuggestionClick(vendor)}
                                 className="p-2 hover:bg-gray-200 cursor-pointer"
                             >
                                 {vendor}
@@ -124,52 +150,19 @@ export default function PoForm({ po }) {
                     </ul>
                 )}
 
-                {fields.map((item, index) => (
-                    <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
-                        <Input
-                            label={`Item ${index + 1}`}
-                            id={`item-${index}`}
-                            placeholder="Item name"
-                            {...register(`Items.${index}.name`, { required: true })}
-                            onInput={(e) => handleItemInputChange(index, e)}
-                        />
-                        {itemSuggestions.length > 0 && (
-                            <ul className="absolute bg-white border border-gray-300 w-full z-10">
-                                {itemSuggestions.map((itemName, idx) => (
-                                    <li
-                                        key={idx}
-                                        onClick={() => handleItemSuggestionClick(index, itemName)}
-                                        className="p-2 hover:bg-gray-200 cursor-pointer"
-                                    >
-                                        {itemName}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        <Input
-                            label="Quantity"
-                            type="number"
-                            {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
-                        />
-                        <Input
-                            label="Rate"
-                            type="number"
-                            {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
-                        />
-                        <Button variant="outlined" color="secondary" onClick={() => remove(index)}>
-                            Remove Item
-                        </Button>
-                    </div>
-                ))}
-                <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
-                    Add Item
-                </Button>
+                <Input
+                    label="Quantity:"
+                    id="quantity"
+                    placeholder="Enter quantity"
+                    {...register("quantity", { required: true })}
+                />
 
-                <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mb-4" />
-                <Button type="submit" variant="contained" color="primary" fullWidth>
-                    {po ? 'Update PO' : 'Submit PO'}
+                <Button type="submit" className="w-full bg-green-500 mt-4">
+                    Submit
                 </Button>
             </div>
         </form>
     );
-}
+};
+
+export default PoForm;

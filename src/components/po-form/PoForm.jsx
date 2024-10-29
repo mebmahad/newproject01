@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, Autocomplete } from '@mui/material';
-import service from '../../appwrite/config';
+import { Button, TextField, Autocomplete, MenuItem } from '@mui/material';
+import service from '../../appwrite/config'; // Import your Appwrite service
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
@@ -15,7 +15,11 @@ export default function PoForm({ po }) {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({ control, name: 'Items' });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'Items',
+  });
+
   const [vendors, setVendors] = useState([]);
   const [items, setItems] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -23,23 +27,31 @@ export default function PoForm({ po }) {
   const userData = useSelector((state) => state.auth.userData);
 
   useEffect(() => {
-    // Fetch vendors and items once at component mount
-    const fetchInitialData = async () => {
+    // Fetching vendors and items initially
+    const fetchData = async () => {
       try {
-        const vendorResults = await service.searchVendor('');
-        const itemResults = await service.searchItems('');
-        setVendors(vendorResults.documents || []);
-        setItems(itemResults.documents || []);
+        const vendorResponse = await service.searchVendor('');
+        setVendors(vendorResponse.documents || []);
+
+        const itemResponse = await service.searchItems('');
+        setItems(itemResponse.documents || []);
+
+        console.log("Fetched vendors:", vendorResponse.documents);
+        console.log("Fetched items:", itemResponse.documents);
       } catch (error) {
-        console.error('Error fetching initial data:', error);
+        console.error('Error fetching data:', error);
       }
     };
-    fetchInitialData();
+
+    fetchData();
   }, []);
 
   useEffect(() => {
+    // Calculate total amount
     const subscription = watch((value) => {
-      const calculatedTotal = value.Items.reduce((acc, item) => acc + item.qty * item.rate, 0);
+      const calculatedTotal = value.Items.reduce((acc, item) => {
+        return acc + item.qty * item.rate;
+      }, 0);
       setTotalAmount(calculatedTotal);
       setValue('Amount', calculatedTotal);
     });
@@ -62,7 +74,9 @@ export default function PoForm({ po }) {
     }
   };
 
-  const addItem = () => append({ name: '', qty: 0, rate: 0 });
+  const addItem = () => {
+    append({ name: '', qty: 0, rate: 0 });
+  };
 
   return (
     <form onSubmit={handleSubmit(submit)} className="flex flex-wrap p-4">
@@ -72,29 +86,32 @@ export default function PoForm({ po }) {
           placeholder="Auto-generated ID"
           className="mb-4"
           {...register('id')}
-          disabled
+          disabled // Auto-generated ID
           fullWidth
         />
 
+        {/* Vendor dropdown */}
         <Autocomplete
           options={vendors}
-          getOptionLabel={(option) => option.name || ''}
+          getOptionLabel={(option) => option.Name || ''} // Use 'Name' key for display
           renderInput={(params) => <TextField {...params} label="Vendor Name" />}
-          onChange={(event, value) => setValue('VendorName', value?.name || '')}
+          onChange={(event, value) => setValue('VendorName', value?.Name || '')}
           className="mb-4"
           fullWidth
         />
 
+        {/* Items list */}
         {fields.map((item, index) => (
           <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
             <Autocomplete
-              options={items}
-              getOptionLabel={(option) => option.name || ''}
+              options={items} // Populated items list
+              getOptionLabel={(option) => option.Item || ''}
               renderInput={(params) => <TextField {...params} label={`Item ${index + 1}`} />}
-              onChange={(event, value) => setValue(`Items.${index}.name`, value?.name || '')}
+              onChange={(event, value) =>
+                setValue(`Items.${index}.name`, value?.Item || '')
+              }
               fullWidth
               className="mb-2"
-              noOptionsText="No items found"
             />
             <TextField
               label="Quantity"

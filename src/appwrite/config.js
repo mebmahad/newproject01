@@ -233,7 +233,7 @@ class Service {
         }
     }
 
-    async searchItems(input = '') {
+    async searchItems(input) {
         try {
             const response = await this.getItems([Query.search("Item", input)]);
             console.log("searchItems response:", response);
@@ -325,7 +325,7 @@ class Service {
         }
     }
 
-    async searchVendor(input = '') {
+    async searchVendor(input) {
         try {
             const response = await this.getVendors([Query.search("Name", input)]);
             console.log("searchVendor response:", response);

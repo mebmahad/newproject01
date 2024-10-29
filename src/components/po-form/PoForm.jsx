@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, Autocomplete, MenuItem } from '@mui/material';
-import service from '../../appwrite/config'; // Import your Appwrite service
+import { Button, TextField, Autocomplete } from '@mui/material';
+import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
@@ -11,7 +11,7 @@ export default function PoForm({ po }) {
       VendorName: po?.VendorName || '',
       Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
       Amount: po?.Amount || '',
-      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+      id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate unique ID
     },
   });
 
@@ -27,17 +27,29 @@ export default function PoForm({ po }) {
   const userData = useSelector((state) => state.auth.userData);
 
   useEffect(() => {
-    // Fetching vendors and items initially
     const fetchData = async () => {
       try {
         const vendorResponse = await service.searchVendor('');
-        setVendors(vendorResponse.documents || []);
-
         const itemResponse = await service.searchItems('');
-        setItems(itemResponse.documents || []);
 
-        console.log("Fetched vendors:", vendorResponse.documents);
-        console.log("Fetched items:", itemResponse.documents);
+        // Check if data is available, otherwise log warning
+        if (vendorResponse?.documents?.length) {
+          setVendors(vendorResponse.documents);
+        } else {
+          console.warn('No vendors found');
+          setVendors([{ Name: 'Dummy Vendor 1' }, { Name: 'Dummy Vendor 2' }]); // Dummy data for testing
+        }
+
+        if (itemResponse?.documents?.length) {
+          setItems(itemResponse.documents);
+        } else {
+          console.warn('No items found');
+          setItems([{ name: 'Dummy Item 1' }, { name: 'Dummy Item 2' }]); // Dummy data for testing
+        }
+
+        console.log("Fetched vendors:", vendorResponse?.documents);
+        console.log("Fetched items:", itemResponse?.documents);
+
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -46,11 +58,11 @@ export default function PoForm({ po }) {
     fetchData();
   }, []);
 
+  // Calculate total amount whenever items change
   useEffect(() => {
-    // Calculate total amount
     const subscription = watch((value) => {
       const calculatedTotal = value.Items.reduce((acc, item) => {
-        return acc + item.qty * item.rate;
+        return acc + (item.qty || 0) * (item.rate || 0);
       }, 0);
       setTotalAmount(calculatedTotal);
       setValue('Amount', calculatedTotal);
@@ -90,25 +102,23 @@ export default function PoForm({ po }) {
           fullWidth
         />
 
-        {/* Vendor dropdown */}
         <Autocomplete
-          options={vendors}
-          getOptionLabel={(option) => option.Name || ''} // Use 'Name' key for display
+          options={vendors || []} // Default to empty array if undefined
+          getOptionLabel={(option) => option.Name || ''}
           renderInput={(params) => <TextField {...params} label="Vendor Name" />}
           onChange={(event, value) => setValue('VendorName', value?.Name || '')}
           className="mb-4"
           fullWidth
         />
 
-        {/* Items list */}
         {fields.map((item, index) => (
           <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
             <Autocomplete
-              options={items} // Populated items list
-              getOptionLabel={(option) => option.Item || ''}
+              options={items || []} // Default to empty array if undefined
+              getOptionLabel={(option) => option.name || ''}
               renderInput={(params) => <TextField {...params} label={`Item ${index + 1}`} />}
               onChange={(event, value) =>
-                setValue(`Items.${index}.name`, value?.Item || '')
+                setValue(`Items.${index}.name`, value?.name || '')
               }
               fullWidth
               className="mb-2"

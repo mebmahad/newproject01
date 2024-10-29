@@ -13,7 +13,7 @@ const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
 ));
 
 export default function PoForm({ po }) {
-    const { register, handleSubmit, control, setValue, watch } = useForm({
+    const { register, handleSubmit, control, setValue, getValues } = useForm({
         defaultValues: {
             VendorName: po?.VendorName || '',
             Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
@@ -32,6 +32,16 @@ export default function PoForm({ po }) {
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
+
+    // Avoid using setValue in a watch to prevent excessive re-renders
+    useEffect(() => {
+        const calculateTotalAmount = () => {
+            const items = getValues('Items');
+            const total = items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
+            setTotalAmount(total);
+        };
+        calculateTotalAmount();
+    }, [fields, getValues]);
 
     const fetchVendorSuggestions = async (input) => {
         if (!input) {
@@ -77,15 +87,6 @@ export default function PoForm({ po }) {
         setItemSuggestions([]);
         setValue(`Items.${index}.name`, itemName, { shouldValidate: true });
     };
-
-    useEffect(() => {
-        const subscription = watch((value) => {
-            const calculatedTotal = value.Items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
-            setTotalAmount(calculatedTotal);
-            setValue('Amount', calculatedTotal);
-        });
-        return () => subscription.unsubscribe();
-    }, [watch, setValue]);
 
     const submit = async (data) => {
         try {

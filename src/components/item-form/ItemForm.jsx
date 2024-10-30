@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Button, Input } from ".."; // Import necessary components
-import service from "../../appwrite/config"; // Adjusted to use your complaintService
+import { Button, Input } from "..";
+import { getLocationsByLocation } from "../../appwrite/confi"; // Adjust according to actual service import
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { v4 as uuidv4 } from "uuid"; // Import uuid for unique id generation
+import { v4 as uuidv4 } from "uuid";
 
 export default function ItemForm({ item }) {
     const { register, handleSubmit, setValue } = useForm({
         defaultValues: {
-            id: item?.$id || uuidv4(), // Generate unique id if not provided
+            id: item?.$id || uuidv4(),
             Item: item?.Item || "",
             Head: item?.Head || "",
             Price: item?.Price || "",
@@ -26,7 +26,7 @@ export default function ItemForm({ item }) {
     useEffect(() => {
         const fetchLocations = async () => {
             try {
-                const locationData = service.getLocationsByLocation(); // Fetch locations
+                const locationData = await getLocationsByLocation(); // Await to get the locations data
                 setLocations(locationData); // Set only location names
             } catch (error) {
                 console.error("Error fetching locations:", error);
@@ -38,16 +38,12 @@ export default function ItemForm({ item }) {
     const submit = async (data) => {
         try {
             let dbItem;
-
             if (item) {
-                // Update existing item
                 if (!item.$id) throw new Error("Item ID is not available");
                 dbItem = await service.updateItem(item.$id, { ...data });
             } else {
-                // Create new item
                 dbItem = await service.createItem({ ...data, userId: userData?.$id });
             }
-
             if (dbItem) {
                 navigate(`/item/${dbItem.$id}`);
             }
@@ -68,7 +64,7 @@ export default function ItemForm({ item }) {
                     placeholder="Auto-generated ID"
                     className="mb-4"
                     {...register("id")}
-                    disabled // Disable the id input field
+                    disabled
                 />
                 <Input
                     label="Item:"
@@ -106,13 +102,13 @@ export default function ItemForm({ item }) {
                     onChange={(e) => setValue("Location", e.target.value)}
                 >
                     <option value="">Select a location</option>
-                    {locations.map((location) => (
-                        <option key={location.$id} value={location.name}>
-                            {location.name}
+                    {locations.map((location, index) => (
+                        <option key={index} value={location}>
+                            {location}
                         </option>
                     ))}
                 </select>
-                
+
                 <Button type="button" onClick={handleAddLocation} className="mb-4">
                     Add Location
                 </Button>

@@ -1,6 +1,5 @@
 import conf from '../conf/conf.js';
 import { Client, ID, Databases, Query } from "appwrite";
-import Item from '../pages/Item.jsx';
 
 class Service {
     constructor() {
@@ -398,18 +397,6 @@ class Service {
             );
         } catch (error) {
             console.log("LocationService :: updateLocation :: error", error);
-        }
-    }
-
-    async getLocationsByLocation() {
-        try {
-            const response = await this.getLocations(conf.appwriteDatabaseId, conf.appwriteCollectionIdlocation);
-            // Map to extract only the `location` attribute
-            const locations = response.documents.map((doc) => doc.location);
-            return locations;
-        } catch (error) {
-            console.error("Error fetching locations:", error);
-            throw error;
         }
     }
 

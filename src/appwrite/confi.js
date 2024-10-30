@@ -1,0 +1,27 @@
+// service.js
+import conf from '../conf/conf.js';
+import { Client, ID, Databases, Query } from "appwrite";
+
+class Service {
+    constructor() {
+        this.client = new Client()
+            .setEndpoint(conf.appwriteUrl)
+            .setProject(conf.appwriteProjectId);
+        this.databases = new Databases(this.client);
+    }
+}
+
+const databaseId = conf.appwriteDatabaseId;
+const collectionId = conf.appwriteCollectionIdlocation;
+
+export const getLocationsByLocation = async () => {
+    try {
+        const response = await databases.listDocuments(databaseId, collectionId);
+        // Extract only the `location` attribute from each document
+        const locations = response.documents.map((doc) => doc.location);
+        return locations;
+    } catch (error) {
+        console.error("Error fetching locations:", error);
+        throw error;
+    }
+};

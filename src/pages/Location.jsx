@@ -13,12 +13,12 @@ export default function Location() {
     const userData = useSelector((state) => state.auth.userData);
 
     useEffect(() => {
-        const fetchPost = async () => {
+        const fetchLocation = async () => {
             if (id) {
                 try {
                     const location = await service.getLocation(id);
                     if (location) {
-                        setPost(location);
+                        setLocation(location);
 
                         // Check if the current user is the author
                         if (userData && userData.$id && location.userId === userData.$id) {
@@ -38,10 +38,10 @@ export default function Location() {
             }
         };
 
-        fetchPost();
+        fetchLocation();
     }, [id, navigate, userData]);
 
-    const deletePost = async () => {
+    const deleteLocation = async () => {
         const confirmed = window.confirm("Are you sure you want to delete this location?");
         if (confirmed) {
             const status = await service.deleteLocation(location.$id);
@@ -61,7 +61,7 @@ export default function Location() {
                                 <Link to={`/edit-location/${location.$id}`}>
                                     <Button className="bg-green-500 mr-3">Edit</Button>
                                 </Link>
-                                <Button className="bg-red-500" onClick={deletePost}>
+                                <Button className="bg-red-500" onClick={deleteLocation}>
                                     Delete
                                 </Button>
                             </div>

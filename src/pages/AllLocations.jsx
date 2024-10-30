@@ -22,7 +22,7 @@ const AllLocations = () => {
                     setLocations([]); // Set to empty array if no documents
                 }
             } catch (error) {
-                setError("Failed to fetch items."); // Set error message
+                setError("Failed to fetch locations."); // Set error message
                 setLocations([]); // Fallback to empty array on error
             } finally {
                 setLoading(false); // Set loading to false regardless of success or error

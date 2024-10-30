@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Button, Input } from "components/index.js"; // Import necessary components
+import { Button, Input } from ".."; // Import necessary components
 import service from "../../appwrite/config"; // Adjusted to use your complaintService
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";

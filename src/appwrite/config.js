@@ -401,10 +401,18 @@ class Service {
         }
     }
 
-    async getLocationsByLocation(location) {
-        return this.getLocations([Query.equal("location", location)]); // Fetch complaints by area
+    async getLocationsByLocation() {
+        try {
+            const response = await databases.listDocuments(databaseId, collectionId);
+            // Map to extract only the `location` attribute
+            const locations = response.documents.map((doc) => doc.location);
+            return locations;
+        } catch (error) {
+            console.error("Error fetching locations:", error);
+            throw error;
+        }
     }
-    
+
     async deleteLocation(id) {
         try {
             await this.databases.deleteDocument(

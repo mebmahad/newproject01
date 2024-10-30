@@ -26,8 +26,8 @@ export default function ItemForm({ item }) {
     useEffect(() => {
         const fetchLocations = async () => {
             try {
-                const response = await service.getLocations("location"); // Adjust service method to fetch locations
-                setLocations(response.documents || []);
+                const locationData = await service.getLocationsByLocation(); // Fetch locations
+                setLocations(locationData); // Set only location names
             } catch (error) {
                 console.error("Error fetching locations:", error);
             }

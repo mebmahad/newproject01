@@ -98,8 +98,8 @@ export default function ItemForm({ item }) {
                 <select
                     id="location"
                     className="mb-4"
-                    {...register("Location", { required: true })}
-                    onChange={(e) => setValue("Location", e.target.value)}
+                    {...register("location", { required: true })}
+                    onChange={(e) => setValue("location", e.target.value)}
                 >
                     <option value="">Select a location</option>
                     {locations.map((location) => (

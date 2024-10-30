@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Button, Input } from "..";
-import { getLocationsByLocation } from "../../appwrite/confi"; // Adjust according to actual service import
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
+import { getLocationsByLocation } from "../../appwrite/config"; // Import the correct function
 
 export default function ItemForm({ item }) {
     const { register, handleSubmit, setValue } = useForm({
@@ -14,20 +13,19 @@ export default function ItemForm({ item }) {
             Head: item?.Head || "",
             Price: item?.Price || "",
             Quantity: item?.Quantity || "",
-            Location: item?.Location || "", // Set as empty initially
-        },
+            Location: item?.Location || ""
+        }
     });
 
     const [locations, setLocations] = useState([]);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
 
-    // Fetch locations from Appwrite
     useEffect(() => {
         const fetchLocations = async () => {
             try {
-                const locationData = await getLocationsByLocation(); // Await to get the locations data
-                setLocations(locationData); // Set only location names
+                const locationData = await getLocationsByLocation(); // Fetch locations correctly
+                setLocations(locationData);
             } catch (error) {
                 console.error("Error fetching locations:", error);
             }
@@ -44,6 +42,7 @@ export default function ItemForm({ item }) {
             } else {
                 dbItem = await service.createItem({ ...data, userId: userData?.$id });
             }
+
             if (dbItem) {
                 navigate(`/item/${dbItem.$id}`);
             }
@@ -108,7 +107,7 @@ export default function ItemForm({ item }) {
                         </option>
                     ))}
                 </select>
-
+                
                 <Button type="button" onClick={handleAddLocation} className="mb-4">
                     Add Location
                 </Button>

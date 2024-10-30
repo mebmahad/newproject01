@@ -403,7 +403,7 @@ class Service {
 
     async getLocationsByLocation() {
         try {
-            const response = await databases.listDocuments(conf.appwriteDatabaseId, conf.appwriteCollectionIdlocation);
+            const response = await this.getLocations(conf.appwriteDatabaseId, conf.appwriteCollectionIdlocation);
             // Map to extract only the `location` attribute
             const locations = response.documents.map((doc) => doc.location);
             return locations;

@@ -27,7 +27,6 @@ const MAIN_LOCATIONS = [
     { id: "submain9", name: "TRANSFORMER SIDE ROOM" },
     { id: "submain10", name: "SARKARI AWING HALL" },
     { id: "submain11", name: "GROUND TINSHADE" },
-    
 ];
 
 export default function LocationForm({ location }) {

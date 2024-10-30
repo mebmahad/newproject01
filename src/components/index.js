@@ -11,9 +11,11 @@ import Login from "./Login";
 import Button from "./Button";
 import PostForm from "./post-form/PostForm";
 import ProcureForm from "./procurement-form/ProcureForm";
+import LocationForm from "./location-form/LocationForm";
 import ItemForm from "./item-form/ItemForm";
 import VendorForm from "./vendor-form/VendorForm"
 import PostCard from "./PostCard";
+import LocationCard from "./LocationCard";
 import ProcureCard from "./ProcureCard";
 import ItemCard from "./ItemCard";
 import VendorCard from "./VendorCard"
@@ -35,6 +37,8 @@ export {
     ProcureForm,
     ItemForm,
     VendorForm,
+    LocationForm,
+    LocationCard,
     PostCard,
     ProcureCard,
     ItemCard,

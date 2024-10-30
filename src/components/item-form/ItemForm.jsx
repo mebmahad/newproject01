@@ -7,14 +7,14 @@ import { useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid"; // Import uuid for unique id generation
 
 export default function ItemForm({ item }) {
-    const { register, handleSubmit, setValue, watch } = useForm({
+    const { register, handleSubmit, setValue } = useForm({
         defaultValues: {
             id: item?.$id || uuidv4(), // Generate unique id if not provided
             Item: item?.Item || "",
             Head: item?.Head || "",
             Price: item?.Price || "",
             Quantity: item?.Quantity || "",
-            Location: item?.Location || "active",
+            Location: item?.Location || "", // Set as empty initially
         },
     });
 
@@ -26,7 +26,7 @@ export default function ItemForm({ item }) {
     useEffect(() => {
         const fetchLocations = async () => {
             try {
-                const response = await service.getLocations('location'); // Adjust service method to fetch locations
+                const response = await service.getLocations("location"); // Adjust service method to fetch locations
                 setLocations(response.documents || []);
             } catch (error) {
                 console.error("Error fetching locations:", error);
@@ -40,9 +40,11 @@ export default function ItemForm({ item }) {
             let dbItem;
 
             if (item) {
+                // Update existing item
                 if (!item.$id) throw new Error("Item ID is not available");
                 dbItem = await service.updateItem(item.$id, { ...data });
             } else {
+                // Create new item
                 dbItem = await service.createItem({ ...data, userId: userData?.$id });
             }
 
@@ -84,12 +86,14 @@ export default function ItemForm({ item }) {
                     label="Price:"
                     placeholder="Price"
                     className="mb-4"
+                    type="number"
                     {...register("Price", { required: true })}
                 />
                 <Input
                     label="Quantity:"
                     placeholder="Quantity"
                     className="mb-4"
+                    type="number"
                     {...register("Quantity", { required: true })}
                 />
             </div>
@@ -97,9 +101,9 @@ export default function ItemForm({ item }) {
                 <label htmlFor="location" className="block mb-2">Location:</label>
                 <select
                     id="location"
-                    className="mb-4"
-                    {...register("location", { required: true })}
-                    onChange={(e) => setValue("location", e.target.value)}
+                    className="mb-4 border rounded p-2 w-full"
+                    {...register("Location", { required: true })}
+                    onChange={(e) => setValue("Location", e.target.value)}
                 >
                     <option value="">Select a location</option>
                     {locations.map((location) => (

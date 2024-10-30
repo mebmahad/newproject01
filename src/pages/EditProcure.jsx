@@ -26,7 +26,7 @@ function EditProcure() {
                         navigate('/all-procures'); // Redirect if post not found
                     }
                 } catch (error) {
-                    console.error("Failed to fetch post:", error);
+                    console.error("Failed to fetch procure:", error);
                     navigate('/all-procures'); // Redirect on error
                 }
             } else {

@@ -28,6 +28,10 @@ import AddPo from './pages/AddPo.jsx';
 import EditPo from './pages/EditPo.jsx';
 import AllPos from "./pages/AllPos";
 import Po from "./pages/Po.jsx";
+import EditLocation from './pages/EditLocation.jsx';
+import AllLocations from "./pages/AllLocations";
+import AddLocation from "./pages/AddLocation.jsx";
+import Location from "./pages/Location.jsx";
 
 
 const router = createBrowserRouter([
@@ -208,6 +212,38 @@ const router = createBrowserRouter([
         path: "/po/:id", // Changed from slug to id
         element: <Po />,
       },
+      {
+        path: "/all-locations",
+        element: (
+          <AuthLayout authentication>
+          {""}
+          <AllLocations />
+        </AuthLayout>
+        ),
+      },
+      {
+        path: "/add-location",
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <AddLocation />
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/edit-location/:id", // Changed from slug to id
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <EditLocation />
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/location/:id", // Changed from slug to id
+        element: <Location />,
+      },
+
     ],
   },
 ]);

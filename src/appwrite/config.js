@@ -276,7 +276,7 @@ class Service {
         }
     }
 
-    async createVendor({ Name, Address, GSTNo, id }) {
+    async createVendor({ Name, Address, GSTNo, userId, id }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
@@ -364,6 +364,96 @@ class Service {
             );
         } catch (error) {
             console.log("VendorService :: VendorComplaints :: error", error);
+            return false;
+        }
+    }
+
+    async createLocation({ location, mainlocation, userId, id }) {
+        try {
+            return await this.databases.createDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdlocation,
+                id,
+                {
+                    location,
+                    mainlocation,
+                    userId,
+                }
+            );
+        } catch (error) {
+            console.log("LocationService :: createLocation :: error", error);
+        }
+    }
+
+    async updateLocation(id, { location, mainlocation }) {
+        try {
+            return await this.databases.updateDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdlocation,
+                id,
+                {
+                    location,
+                    mainlocation,
+                }
+            );
+        } catch (error) {
+            console.log("LocationService :: updateLocation :: error", error);
+        }
+    }
+
+    async deleteLocation(id) {
+        try {
+            await this.databases.deleteDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdlocation,
+                id
+            );
+            return true;
+        } catch (error) {
+            console.log("LocationService :: deleteLocation :: error", error);
+            return false;
+        }
+    }
+
+    async searchLocation(input) {
+        try {
+            const response = await this.getLocations([Query.search("location", input)]);
+            console.log("searchVendor response:", response);
+            if (response.documents) {
+                return response.documents;
+            } else {
+                console.warn("No locations found.");
+                return [];
+            }
+        } catch (error) {
+            console.error("Error in searchLoacation:", error);
+            return [];
+        }
+    }
+    
+
+    async getLocation(id) {
+        try {
+            return await this.databases.getDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdlocation,
+                id
+            );
+        } catch (error) {
+            console.log("LocationService :: LocationComplaint :: error", error);
+            return false;
+        }
+    }
+
+    async getLocations(queries = []) {
+        try {
+            return await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdlocation,
+                queries
+            );
+        } catch (error) {
+            console.log("LocationService :: LocationComplaints :: error", error);
             return false;
         }
     }

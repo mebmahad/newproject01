@@ -1,15 +1,4 @@
-// service.js
-import conf from '../conf/conf.js';
-import { Client, ID, Databases, Query } from "appwrite";
-
-class Service {
-    constructor() {
-        this.client = new Client()
-            .setEndpoint(conf.appwriteUrl)
-            .setProject(conf.appwriteProjectId);
-        this.databases = new Databases(this.client);
-    }
-}
+import { databases } from "../appwrite/config"; // Import the databases object from your config
 
 const databaseId = conf.appwriteDatabaseId;
 const collectionId = conf.appwriteCollectionIdlocation;

@@ -401,6 +401,10 @@ class Service {
         }
     }
 
+    async getLocationsByLocation(location) {
+        return this.getLocations([Query.equal("location", location)]); // Fetch complaints by area
+    }
+    
     async deleteLocation(id) {
         try {
             await this.databases.deleteDocument(

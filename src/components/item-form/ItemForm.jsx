@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
+import {Input, Button} from "../index";
 import { getLocationsByLocation } from "../../appwrite/confi"; // Import the correct function
 
 export default function ItemForm({ item }) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button, TextField } from '@mui/material';
 import service from '../../appwrite/config';
@@ -22,71 +22,68 @@ export default function PoForm({ po }) {
         },
     });
 
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: 'Items',
-    });
-
+    const { fields, append, remove } = useFieldArray({ control, name: 'Items' });
     const [vendorSuggestions, setVendorSuggestions] = useState([]);
     const [itemSuggestions, setItemSuggestions] = useState([]);
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
-    const [filters, setFilters] = useState({ Item: "", Name: "" });
+    const [filters, setFilters] = useState({ Item: '', Name: '' });
 
-    useEffect(() => {
-        const fetchItems = async () => {
-            try {
-                const queries = [];
-                if (filters.Item) queries.push(Query.equal("Item", filters.Item));
-                
-                const response = await service.getItems(queries);
-                setItemSuggestions(response.documents || []);
-            } catch (error) {
-                console.error("Error fetching items:", error);
-                setItemSuggestions([]);
-            }
-        };
-
-        const fetchVendors = async () => {
-            try {
-                const queries = [];
-                if (filters.Name) queries.push(Query.equal("Name", filters.Name));
-                
-                const response = await service.getVendors(queries);
-                setVendorSuggestions(response.documents || []);
-            } catch (error) {
-                console.error("Error fetching vendors:", error);
+    // Fetch vendor and item suggestions based on filters
+    const fetchSuggestions = useCallback(async () => {
+        try {
+            if (filters.Name) {
+                const vendorResponse = await service.getVendors([Query.equal("Name", filters.Name)]);
+                setVendorSuggestions(vendorResponse.documents || []);
+            } else {
                 setVendorSuggestions([]);
             }
-        };
 
-        if (filters.Name) fetchVendors();
-        if (filters.Item) fetchItems();
+            if (filters.Item) {
+                const itemResponse = await service.getItems([Query.equal("Item", filters.Item)]);
+                setItemSuggestions(itemResponse.documents || []);
+            } else {
+                setItemSuggestions([]);
+            }
+        } catch (error) {
+            console.error("Error fetching suggestions:", error);
+            setVendorSuggestions([]);
+            setItemSuggestions([]);
+        }
     }, [filters]);
 
-    const handleVendorInputChange = (e) => {
-        const inputValue = e.currentTarget.value;
-        setValue('VendorName', inputValue, { shouldValidate: true });
-        setFilters((prevFilters) => ({ ...prevFilters, Name: inputValue }));
+    useEffect(() => {
+        fetchSuggestions();
+    }, [fetchSuggestions]);
+
+    // Debounce input changes
+    const debounce = (func, delay) => {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func(...args), delay);
+        };
     };
 
-    const handleVendorSuggestionClick = (vendorName) => {
-        setVendorSuggestions([]);
-        setValue('VendorName', vendorName, { shouldValidate: true });
-    };
+    const handleVendorInputChange = debounce((e) => {
+        setFilters((prevFilters) => ({ ...prevFilters, Name: e.target.value }));
+    }, 300);
 
     const handleItemInputChange = (index, e) => {
-        const inputValue = e.currentTarget.value;
-        setValue(`Items.${index}.name`, inputValue, { shouldValidate: true });
-        setFilters((prevFilters) => ({ ...prevFilters, Item: inputValue }));
+        debounce((inputValue) => {
+            setFilters((prevFilters) => ({ ...prevFilters, Item: inputValue }));
+        }, 300)(e.target.value);
+
+        setValue(`Items.${index}.name`, e.target.value);
     };
 
     const handleItemSuggestionClick = (index, itemName) => {
         setItemSuggestions([]);
-        setValue(`Items.${index}.name`, itemName, { shouldValidate: true });
+        setValue(`Items.${index}.name`, itemName);
     };
 
+    // Calculate total amount
     useEffect(() => {
         const subscription = watch((value) => {
             const calculatedTotal = value.Items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
@@ -96,15 +93,15 @@ export default function PoForm({ po }) {
         return () => subscription.unsubscribe();
     }, [watch, setValue]);
 
+    // Handle form submission
     const submit = async (data) => {
         try {
             const dbPo = po
                 ? await service.updatePo(po.$id, data)
                 : await service.createPo({ ...data, userId: userData?.$id });
-
             if (dbPo) navigate(`/po/${dbPo.$id}`);
         } catch (error) {
-            console.error('Error submitting form:', error);
+            console.error("Error submitting form:", error);
         }
     };
 
@@ -127,7 +124,7 @@ export default function PoForm({ po }) {
                         {vendorSuggestions.map((vendor, index) => (
                             <li
                                 key={index}
-                                onClick={() => handleVendorSuggestionClick(vendor.Name)}
+                                onClick={() => setValue('VendorName', vendor.Name)}
                                 className="p-2 hover:bg-gray-200 cursor-pointer"
                             >
                                 {vendor.Name}

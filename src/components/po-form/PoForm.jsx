@@ -99,6 +99,10 @@ export default function PoForm({ po }) {
         }
     };
 
+    const handleAddVendor = () => {
+        navigate('/add-vendor');
+    };
+
     return (
         <form onSubmit={handleSubmit(submit)} className="flex flex-wrap p-4">
             <div className="w-full">
@@ -122,6 +126,9 @@ export default function PoForm({ po }) {
                         ))}
                     </ul>
                 )}
+                <Button type="button" onClick={handleAddVendor} className="mb-4">
+                    Add Vendor
+                </Button>
 
                 {fields.map((item, index) => (
                     <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">

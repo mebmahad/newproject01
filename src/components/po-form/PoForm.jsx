@@ -1,16 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button, TextField } from '@mui/material';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-
-const Input = React.forwardRef(({ label, id, ...props }, ref) => (
-    <div className="mb-4">
-        <label htmlFor={id}>{label}</label>
-        <input ref={ref} id={id} {...props} className="border p-2 w-full" />
-    </div>
-));
+import _ from 'lodash';
 
 export default function PoForm({ po }) {
     const { register, handleSubmit, control, setValue, watch } = useForm({
@@ -22,69 +16,62 @@ export default function PoForm({ po }) {
         },
     });
 
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: 'Items',
-    });
-
-    const [vendorList, setVendorList] = useState([]);
-    const [itemList, setItemList] = useState([]);
-    const [filteredVendors, setFilteredVendors] = useState([]);
-    const [filteredItems, setFilteredItems] = useState([]);
+    const { fields, append, remove } = useFieldArray({ control, name: 'Items' });
+    const [vendorSuggestions, setVendorSuggestions] = useState([]);
+    const [itemSuggestions, setItemSuggestions] = useState([]);
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
+    const [filters, setFilters] = useState({ vendor: "", item: "" });
 
-    useEffect(() => {
-        const fetchVendors = async () => {
+    // Debounced fetch functions to limit calls
+    const debouncedFetchVendorSuggestions = useCallback(
+        _.debounce(async (input) => {
             try {
-                const response = await service.getVendors();
-                setVendorList(response.documents);
-                setFilteredVendors(response.documents);
+                const results = await service.searchVendor(input);
+                setVendorSuggestions(results.documents.map((vendor) => vendor.Name));
             } catch (error) {
-                console.error('Error fetching vendors:', error);
+                console.error("Error fetching vendor suggestions:", error);
+                setVendorSuggestions([]);
             }
-        };
+        }, 300),
+        []
+    );
 
-        const fetchItems = async () => {
+    const debouncedFetchItemSuggestions = useCallback(
+        _.debounce(async (input) => {
             try {
-                const response = await service.getItems();
-                setItemList(response.documents);
-                setFilteredItems(response.documents);
+                const results = await service.searchItems(input);
+                setItemSuggestions(results.documents.map((item) => item.Item));
             } catch (error) {
-                console.error('Error fetching items:', error);
+                console.error("Error fetching item suggestions:", error);
+                setItemSuggestions([]);
             }
-        };
+        }, 300),
+        []
+    );
 
-        fetchVendors();
-        fetchItems();
-    }, []);
-
-    const handleVendorFilterChange = (e) => {
-        const inputValue = e.target.value.toLowerCase();
-        setFilteredVendors(vendorList.filter(vendor => vendor.Name.toLowerCase().includes(inputValue)));
-        setValue('VendorName', inputValue);
+    // Handle Vendor and Item input changes with debounce
+    const handleVendorInputChange = (e) => {
+        const inputValue = e.currentTarget.value;
+        setFilters((prevFilters) => ({ ...prevFilters, vendor: inputValue }));
+        setValue('VendorName', inputValue, { shouldValidate: true });
+        debouncedFetchVendorSuggestions(inputValue);
     };
 
-    const handleItemFilterChange = (index, e) => {
-        const inputValue = e.target.value.toLowerCase();
-        setFilteredItems(itemList.filter(item => item.Item.toLowerCase().includes(inputValue)));
-        setValue(`Items.${index}.name`, inputValue);
-    };
-
-    const handleVendorSelect = (vendor) => {
-        setValue('VendorName', vendor.Name);
-        setFilteredVendors([]); // Clear suggestions
-    };
-
-    const handleItemSelect = (index, item) => {
-        setValue(`Items.${index}.name`, item.Item);
-        setFilteredItems([]); // Clear suggestions
+    const handleItemInputChange = (index, e) => {
+        const inputValue = e.currentTarget.value;
+        setFilters((prevFilters) => ({ ...prevFilters, item: inputValue }));
+        setValue(`Items.${index}.name`, inputValue, { shouldValidate: true });
+        debouncedFetchItemSuggestions(inputValue);
     };
 
     useEffect(() => {
         const subscription = watch((value) => {
-            const calculatedTotal = value.Items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
+            const calculatedTotal = value.Items.reduce(
+                (acc, item) => acc + (item.qty || 0) * (item.rate || 0),
+                0
+            );
             setTotalAmount(calculatedTotal);
             setValue('Amount', calculatedTotal);
         });
@@ -103,48 +90,70 @@ export default function PoForm({ po }) {
         }
     };
 
+    const handleAddVendor = () => {
+        navigate('/add-vendor');
+    };
+
     return (
         <form onSubmit={handleSubmit(submit)} className="flex flex-wrap p-4">
             <div className="w-full">
-                <Input
-                    label="Vendor Name:"
-                    id="vendorName"
-                    placeholder="Vendor Name"
-                    {...register('VendorName', { required: true })}
-                    onChange={handleVendorFilterChange}
+                {/* Vendor Section */}
+                <TextField
+                    label="Vendor Name"
+                    value={filters.vendor}
+                    onChange={handleVendorInputChange}
+                    placeholder="Type to search vendors"
+                    fullWidth
                 />
-                <div className="vendor-suggestions">
-                    {filteredVendors.map((vendor, index) => (
-                        <div key={index} onClick={() => handleVendorSelect(vendor)} className="p-2 hover:bg-gray-200 cursor-pointer">
-                            {vendor.Name}
-                        </div>
-                    ))}
-                </div>
+                <Button type="button" onClick={handleAddVendor} className="mb-4">
+                    Add Vendor
+                </Button>
+                {vendorSuggestions.length > 0 && (
+                    <ul className="absolute bg-white border border-gray-300 w-full z-10">
+                        {vendorSuggestions.map((vendor, index) => (
+                            <li
+                                key={index}
+                                onClick={() => setValue('VendorName', vendor, { shouldValidate: true })}
+                                className="p-2 hover:bg-gray-200 cursor-pointer"
+                            >
+                                {vendor}
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
+                {/* Items Section */}
                 {fields.map((item, index) => (
                     <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
-                        <Input
+                        <TextField
                             label={`Item ${index + 1}`}
-                            id={`item-${index}`}
-                            placeholder="Item name"
-                            {...register(`Items.${index}.name`, { required: true })}
-                            onChange={(e) => handleItemFilterChange(index, e)}
+                            placeholder="Type to search items"
+                            fullWidth
+                            onChange={(e) => handleItemInputChange(index, e)}
                         />
-                        <div className="item-suggestions">
-                            {filteredItems.map((item, idx) => (
-                                <div key={idx} onClick={() => handleItemSelect(index, item)} className="p-2 hover:bg-gray-200 cursor-pointer">
-                                    {item.Item}
-                                </div>
-                            ))}
-                        </div>
-                        <Input
+                        {itemSuggestions.length > 0 && (
+                            <ul className="absolute bg-white border border-gray-300 w-full z-10">
+                                {itemSuggestions.map((itemName, idx) => (
+                                    <li
+                                        key={idx}
+                                        onClick={() => setValue(`Items.${index}.name`, itemName, { shouldValidate: true })}
+                                        className="p-2 hover:bg-gray-200 cursor-pointer"
+                                    >
+                                        {itemName}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <TextField
                             label="Quantity"
                             type="number"
+                            fullWidth
                             {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
                         />
-                        <Input
+                        <TextField
                             label="Rate"
                             type="number"
+                            fullWidth
                             {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
                         />
                         <Button variant="outlined" color="secondary" onClick={() => remove(index)}>

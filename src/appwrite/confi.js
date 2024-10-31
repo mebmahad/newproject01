@@ -1,4 +1,5 @@
-import { Databases } from "appwrite"; // Import the databases object from your config
+import { Databases } from "appwrite";
+import conf from '../conf/conf.js';
 
 const databaseId = conf.appwriteDatabaseId;
 const collectionId = conf.appwriteCollectionIdlocation;

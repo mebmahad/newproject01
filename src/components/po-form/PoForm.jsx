@@ -5,10 +5,10 @@ import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
+const Input = React.forwardRef(({ label, id, ...props }, ref) => (
     <div className="mb-4">
         <label htmlFor={id}>{label}</label>
-        <input ref={ref} id={id} {...props} onInput={onInput} className="border p-2 w-full" />
+        <input ref={ref} id={id} {...props} className="border p-2 w-full" />
     </div>
 ));
 
@@ -28,17 +28,21 @@ export default function PoForm({ po }) {
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
-    const [filters, setFilters] = useState({ Item: '', Name: '' });
+    
+    // Track filters for vendor and item search
+    const [vendorFilter, setVendorFilter] = useState('');
+    const [itemFilter, setItemFilter] = useState('');
 
-    // Fetch vendor and item suggestions based on filters
+    // Fetch vendors and items based on the current filter
     const fetchSuggestions = useCallback(async () => {
         try {
-            const vendorQueries = filters.Name ? [Query.equal("Name", filters.Name)] : [];
-            const itemQueries = filters.Item ? [Query.equal("Item", filters.Item)] : [];
-
+            // Fetch vendors based on vendorFilter
+            const vendorQueries = vendorFilter ? [Query.equal("Name", vendorFilter)] : [];
             const vendorResponse = await service.getVendors(vendorQueries);
             setVendorSuggestions(vendorResponse.documents || []);
 
+            // Fetch items based on itemFilter
+            const itemQueries = itemFilter ? [Query.equal("Item", itemFilter)] : [];
             const itemResponse = await service.getItems(itemQueries);
             setItemSuggestions(itemResponse.documents || []);
         } catch (error) {
@@ -46,36 +50,28 @@ export default function PoForm({ po }) {
             setVendorSuggestions([]);
             setItemSuggestions([]);
         }
-    }, [filters]);
+    }, [vendorFilter, itemFilter]);
 
     useEffect(() => {
         fetchSuggestions();
     }, [fetchSuggestions]);
 
-    // Debounce function
-    const debounce = (func, delay) => {
-        let timeoutId;
-        return (...args) => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => func(...args), delay);
-        };
-    };
-
     const handleVendorInputChange = (e) => {
         const inputValue = e.target.value;
+        setVendorFilter(inputValue); // Set the vendor filter
         setValue('VendorName', inputValue, { shouldValidate: true });
-        setFilters((prev) => ({ ...prev, Name: inputValue }));
     };
 
     const handleItemInputChange = (index) => (e) => {
         const inputValue = e.target.value;
+        setItemFilter(inputValue); // Set the item filter for this index
         setValue(`Items.${index}.name`, inputValue, { shouldValidate: true });
-        setFilters((prev) => ({ ...prev, Item: inputValue }));
     };
 
     const handleItemSuggestionClick = (index, itemName) => {
         setItemSuggestions([]);
         setValue(`Items.${index}.name`, itemName);
+        setItemFilter(''); // Clear filter after selection
     };
 
     // Calculate total amount
@@ -114,7 +110,7 @@ export default function PoForm({ po }) {
                     {...register('VendorName', { required: true })}
                     onInput={handleVendorInputChange}
                 />
-                {vendorSuggestions.length > 0 && (
+                {vendorFilter && vendorSuggestions.length > 0 && (
                     <ul className="absolute bg-white border border-gray-300 w-full z-10">
                         {vendorSuggestions.map((vendor, index) => (
                             <li
@@ -140,7 +136,7 @@ export default function PoForm({ po }) {
                             {...register(`Items.${index}.name`, { required: true })}
                             onInput={handleItemInputChange(index)}
                         />
-                        {itemSuggestions.length > 0 && (
+                        {itemFilter && itemSuggestions.length > 0 && (
                             <ul className="absolute bg-white border border-gray-300 w-full z-10">
                                 {itemSuggestions.map((item, idx) => (
                                     <li

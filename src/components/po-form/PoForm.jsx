@@ -33,19 +33,14 @@ export default function PoForm({ po }) {
     // Fetch vendor and item suggestions based on filters
     const fetchSuggestions = useCallback(async () => {
         try {
-            if (filters.Name) {
-                const vendorResponse = await service.getVendors([Query.equal("Name", filters.Name)]);
-                setVendorSuggestions(vendorResponse.documents || []);
-            } else {
-                setVendorSuggestions([]);
-            }
+            const vendorQueries = filters.Name ? [Query.equal("Name", filters.Name)] : [];
+            const itemQueries = filters.Item ? [Query.equal("Item", filters.Item)] : [];
 
-            if (filters.Item) {
-                const itemResponse = await service.getItems([Query.equal("Item", filters.Item)]);
-                setItemSuggestions(itemResponse.documents || []);
-            } else {
-                setItemSuggestions([]);
-            }
+            const vendorResponse = await service.getVendors(vendorQueries);
+            setVendorSuggestions(vendorResponse.documents || []);
+
+            const itemResponse = await service.getItems(itemQueries);
+            setItemSuggestions(itemResponse.documents || []);
         } catch (error) {
             console.error("Error fetching suggestions:", error);
             setVendorSuggestions([]);
@@ -57,7 +52,7 @@ export default function PoForm({ po }) {
         fetchSuggestions();
     }, [fetchSuggestions]);
 
-    // Debounce input changes
+    // Debounce function
     const debounce = (func, delay) => {
         let timeoutId;
         return (...args) => {
@@ -66,17 +61,14 @@ export default function PoForm({ po }) {
         };
     };
 
-    const handleVendorInputChange = debounce((e) => {
+    const handleVendorInputChange = useCallback(debounce((e) => {
         setFilters((prevFilters) => ({ ...prevFilters, Name: e.target.value }));
-    }, 300);
+    }, 300), []);
 
-    const handleItemInputChange = (index, e) => {
-        debounce((inputValue) => {
-            setFilters((prevFilters) => ({ ...prevFilters, Item: inputValue }));
-        }, 300)(e.target.value);
-
+    const handleItemInputChange = useCallback((index) => debounce((e) => {
+        setFilters((prevFilters) => ({ ...prevFilters, Item: e.target.value }));
         setValue(`Items.${index}.name`, e.target.value);
-    };
+    }, 300), [setValue]);
 
     const handleItemSuggestionClick = (index, itemName) => {
         setItemSuggestions([]);
@@ -143,7 +135,7 @@ export default function PoForm({ po }) {
                             id={`item-${index}`}
                             placeholder="Item name"
                             {...register(`Items.${index}.name`, { required: true })}
-                            onInput={(e) => handleItemInputChange(index, e)}
+                            onInput={handleItemInputChange(index)}
                         />
                         {itemSuggestions.length > 0 && (
                             <ul className="absolute bg-white border border-gray-300 w-full z-10">

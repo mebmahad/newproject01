@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
 import {Input, Button} from "../index";
-import { getLocationsByLocation } from "../../appwrite/confi"; // Import the correct function
 
 export default function ItemForm({ item }) {
     const { register, handleSubmit, setValue } = useForm({
@@ -21,18 +20,30 @@ export default function ItemForm({ item }) {
     const [locations, setLocations] = useState([]);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
+    const [filters, setFilters] = useState({ location: ""});
 
     useEffect(() => {
         const fetchLocations = async () => {
             try {
-                const locationData = await getLocationsByLocation(); // Fetch locations correctly
-                setLocations(locationData);
+                const queries = [];
+                if (filters.location) queries.push(Query.equal("location", filters.location));
+
+                const response = await service.getLocations(queries);
+                console.log("Fetched locations response:", response);
+
+                if (response && response.documents) {
+                    setLocations(response.documents);
+                } else {
+                    setLocations([]);
+                }
             } catch (error) {
                 console.error("Error fetching locations:", error);
+                setLocations([]);
             }
         };
+
         fetchLocations();
-    }, []);
+    }, [filters]);
 
     const submit = async (data) => {
         try {
@@ -99,7 +110,7 @@ export default function ItemForm({ item }) {
                     id="location"
                     className="mb-4 border rounded p-2 w-full"
                     {...register("Location", { required: true })}
-                    onChange={(e) => setValue("Location", e.target.value)}
+                    onChange={(e) => setValue("location", e.target.value)}
                 >
                     <option value="">Select a location</option>
                     {locations.map((location, index) => (

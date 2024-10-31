@@ -3,7 +3,9 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
-import {Input, Button} from "../index";
+import { Input, Button } from "../index";
+import service from "../../appwrite/config"; // Import your service correctly
+import { Query } from "appwrite"; // Import Query if using Appwrite SDK
 
 export default function ItemForm({ item }) {
     const { register, handleSubmit, setValue } = useForm({
@@ -20,7 +22,7 @@ export default function ItemForm({ item }) {
     const [locations, setLocations] = useState([]);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
-    const [filters, setFilters] = useState({ location: ""});
+    const [filters, setFilters] = useState({ location: "" });
 
     useEffect(() => {
         const fetchLocations = async () => {
@@ -110,12 +112,12 @@ export default function ItemForm({ item }) {
                     id="location"
                     className="mb-4 border rounded p-2 w-full"
                     {...register("Location", { required: true })}
-                    onChange={(e) => setValue("location", e.target.value)}
+                    onChange={(e) => setValue("Location", e.target.value)}
                 >
                     <option value="">Select a location</option>
-                    {locations.map((location, index) => (
-                        <option key={index} value={location}>
-                            {location}
+                    {locations.map((location) => (
+                        <option key={location.$id} value={location.location}>
+                            {location.location}
                         </option>
                     ))}
                 </select>

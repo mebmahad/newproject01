@@ -32,7 +32,7 @@ export default function PoForm({ po }) {
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
-    const [filters, setFilters] = useState({ Item: "", Name:"" });
+    const [filters, setFilters] = useState({ Item: "", Name: "" });
 
     useEffect(() => {
         const fetchItems = async () => {
@@ -41,13 +41,7 @@ export default function PoForm({ po }) {
                 if (filters.Item) queries.push(Query.equal("Item", filters.Item));
                 
                 const response = await service.getItems(queries);
-                console.log("Fetched Items response:", response);
-
-                if (response && response.documents) {
-                    setItemSuggestions(response.documents);
-                } else {
-                    setItemSuggestions([]);
-                }
+                setItemSuggestions(response.documents || []);
             } catch (error) {
                 console.error("Error fetching items:", error);
                 setItemSuggestions([]);
@@ -60,32 +54,32 @@ export default function PoForm({ po }) {
                 if (filters.Name) queries.push(Query.equal("Name", filters.Name));
                 
                 const response = await service.getVendors(queries);
-                console.log("Fetched Vendors response:", response);
-
-                if (response && response.documents) {
-                    setVendorSuggestions(response.documents);
-                } else {
-                    setVendorSuggestions([]);
-                }
+                setVendorSuggestions(response.documents || []);
             } catch (error) {
                 console.error("Error fetching vendors:", error);
                 setVendorSuggestions([]);
             }
         };
-        fetchVendors();
-        fetchItems();
+
+        if (filters.Name) fetchVendors();
+        if (filters.Item) fetchItems();
     }, [filters]);
 
     const handleVendorInputChange = (e) => {
         const inputValue = e.currentTarget.value;
         setValue('VendorName', inputValue, { shouldValidate: true });
-        fetchVendors(inputValue);
+        setFilters((prevFilters) => ({ ...prevFilters, Name: inputValue }));
+    };
+
+    const handleVendorSuggestionClick = (vendorName) => {
+        setVendorSuggestions([]);
+        setValue('VendorName', vendorName, { shouldValidate: true });
     };
 
     const handleItemInputChange = (index, e) => {
         const inputValue = e.currentTarget.value;
         setValue(`Items.${index}.name`, inputValue, { shouldValidate: true });
-        fetchItems(inputValue);
+        setFilters((prevFilters) => ({ ...prevFilters, Item: inputValue }));
     };
 
     const handleItemSuggestionClick = (index, itemName) => {
@@ -133,10 +127,10 @@ export default function PoForm({ po }) {
                         {vendorSuggestions.map((vendor, index) => (
                             <li
                                 key={index}
-                                onClick={() => setValue('VendorName', vendor, { shouldValidate: true })}
+                                onClick={() => handleVendorSuggestionClick(vendor.Name)}
                                 className="p-2 hover:bg-gray-200 cursor-pointer"
                             >
-                                {vendor}
+                                {vendor.Name}
                             </li>
                         ))}
                     </ul>
@@ -156,13 +150,13 @@ export default function PoForm({ po }) {
                         />
                         {itemSuggestions.length > 0 && (
                             <ul className="absolute bg-white border border-gray-300 w-full z-10">
-                                {itemSuggestions.map((itemName, idx) => (
+                                {itemSuggestions.map((item, idx) => (
                                     <li
                                         key={idx}
-                                        onClick={() => handleItemSuggestionClick(index, itemName)}
+                                        onClick={() => handleItemSuggestionClick(index, item.Item)}
                                         className="p-2 hover:bg-gray-200 cursor-pointer"
                                     >
-                                        {itemName}
+                                        {item.Item}
                                     </li>
                                 ))}
                             </ul>

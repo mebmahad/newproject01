@@ -61,14 +61,17 @@ export default function PoForm({ po }) {
         };
     };
 
-    const handleVendorInputChange = useCallback(debounce((e) => {
-        setFilters((prevFilters) => ({ ...prevFilters, Name: e.target.value }));
-    }, 300), []);
+    const handleVendorInputChange = (e) => {
+        const inputValue = e.target.value;
+        setValue('VendorName', inputValue, { shouldValidate: true });
+        setFilters((prev) => ({ ...prev, Name: inputValue }));
+    };
 
-    const handleItemInputChange = useCallback((index) => debounce((e) => {
-        setFilters((prevFilters) => ({ ...prevFilters, Item: e.target.value }));
-        setValue(`Items.${index}.name`, e.target.value);
-    }, 300), [setValue]);
+    const handleItemInputChange = (index) => (e) => {
+        const inputValue = e.target.value;
+        setValue(`Items.${index}.name`, inputValue, { shouldValidate: true });
+        setFilters((prev) => ({ ...prev, Item: inputValue }));
+    };
 
     const handleItemSuggestionClick = (index, itemName) => {
         setItemSuggestions([]);

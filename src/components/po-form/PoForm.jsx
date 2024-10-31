@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button, TextField } from '@mui/material';
 import service from '../../appwrite/config';
@@ -22,59 +22,66 @@ export default function PoForm({ po }) {
         },
     });
 
-    const { fields, append, remove } = useFieldArray({ control, name: 'Items' });
-    const [vendorSuggestions, setVendorSuggestions] = useState([]);
-    const [itemSuggestions, setItemSuggestions] = useState([]);
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: 'Items',
+    });
+
+    const [vendorList, setVendorList] = useState([]);
+    const [itemList, setItemList] = useState([]);
+    const [filteredVendors, setFilteredVendors] = useState([]);
+    const [filteredItems, setFilteredItems] = useState([]);
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
-    
-    // Track filters for vendor and item search
-    const [vendorFilter, setVendorFilter] = useState('');
-    const [itemFilter, setItemFilter] = useState('');
-
-    // Fetch vendors and items based on the current filter
-    const fetchSuggestions = useCallback(async () => {
-        try {
-            // Fetch vendors based on vendorFilter
-            const vendorQueries = vendorFilter ? [Query.equal("Name", vendorFilter)] : [];
-            const vendorResponse = await service.getVendors(vendorQueries);
-            setVendorSuggestions(vendorResponse.documents || []);
-
-            // Fetch items based on itemFilter
-            const itemQueries = itemFilter ? [Query.equal("Item", itemFilter)] : [];
-            const itemResponse = await service.getItems(itemQueries);
-            setItemSuggestions(itemResponse.documents || []);
-        } catch (error) {
-            console.error("Error fetching suggestions:", error);
-            setVendorSuggestions([]);
-            setItemSuggestions([]);
-        }
-    }, [vendorFilter, itemFilter]);
 
     useEffect(() => {
-        fetchSuggestions();
-    }, [fetchSuggestions]);
+        const fetchVendors = async () => {
+            try {
+                const response = await service.getVendors();
+                setVendorList(response.documents);
+                setFilteredVendors(response.documents);
+            } catch (error) {
+                console.error('Error fetching vendors:', error);
+            }
+        };
 
-    const handleVendorInputChange = (e) => {
-        const inputValue = e.target.value;
-        setVendorFilter(inputValue); // Set the vendor filter
-        setValue('VendorName', inputValue, { shouldValidate: true });
+        const fetchItems = async () => {
+            try {
+                const response = await service.getItems();
+                setItemList(response.documents);
+                setFilteredItems(response.documents);
+            } catch (error) {
+                console.error('Error fetching items:', error);
+            }
+        };
+
+        fetchVendors();
+        fetchItems();
+    }, []);
+
+    const handleVendorFilterChange = (e) => {
+        const inputValue = e.target.value.toLowerCase();
+        setFilteredVendors(vendorList.filter(vendor => vendor.Name.toLowerCase().includes(inputValue)));
+        setValue('VendorName', inputValue);
     };
 
-    const handleItemInputChange = (index) => (e) => {
-        const inputValue = e.target.value;
-        setItemFilter(inputValue); // Set the item filter for this index
-        setValue(`Items.${index}.name`, inputValue, { shouldValidate: true });
+    const handleItemFilterChange = (index, e) => {
+        const inputValue = e.target.value.toLowerCase();
+        setFilteredItems(itemList.filter(item => item.Item.toLowerCase().includes(inputValue)));
+        setValue(`Items.${index}.name`, inputValue);
     };
 
-    const handleItemSuggestionClick = (index, itemName) => {
-        setItemSuggestions([]);
-        setValue(`Items.${index}.name`, itemName);
-        setItemFilter(''); // Clear filter after selection
+    const handleVendorSelect = (vendor) => {
+        setValue('VendorName', vendor.Name);
+        setFilteredVendors([]); // Clear suggestions
     };
 
-    // Calculate total amount
+    const handleItemSelect = (index, item) => {
+        setValue(`Items.${index}.name`, item.Item);
+        setFilteredItems([]); // Clear suggestions
+    };
+
     useEffect(() => {
         const subscription = watch((value) => {
             const calculatedTotal = value.Items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
@@ -84,20 +91,16 @@ export default function PoForm({ po }) {
         return () => subscription.unsubscribe();
     }, [watch, setValue]);
 
-    // Handle form submission
     const submit = async (data) => {
         try {
             const dbPo = po
                 ? await service.updatePo(po.$id, data)
                 : await service.createPo({ ...data, userId: userData?.$id });
+
             if (dbPo) navigate(`/po/${dbPo.$id}`);
         } catch (error) {
-            console.error("Error submitting form:", error);
+            console.error('Error submitting form:', error);
         }
-    };
-
-    const handleAddVendor = () => {
-        navigate('/add-vendor');
     };
 
     return (
@@ -108,24 +111,15 @@ export default function PoForm({ po }) {
                     id="vendorName"
                     placeholder="Vendor Name"
                     {...register('VendorName', { required: true })}
-                    onInput={handleVendorInputChange}
+                    onChange={handleVendorFilterChange}
                 />
-                {vendorFilter && vendorSuggestions.length > 0 && (
-                    <ul className="absolute bg-white border border-gray-300 w-full z-10">
-                        {vendorSuggestions.map((vendor, index) => (
-                            <li
-                                key={index}
-                                onClick={() => setValue('VendorName', vendor.Name)}
-                                className="p-2 hover:bg-gray-200 cursor-pointer"
-                            >
-                                {vendor.Name}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                <Button type="button" onClick={handleAddVendor} className="mb-4">
-                    Add Vendor
-                </Button>
+                <div className="vendor-suggestions">
+                    {filteredVendors.map((vendor, index) => (
+                        <div key={index} onClick={() => handleVendorSelect(vendor)} className="p-2 hover:bg-gray-200 cursor-pointer">
+                            {vendor.Name}
+                        </div>
+                    ))}
+                </div>
 
                 {fields.map((item, index) => (
                     <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
@@ -134,21 +128,15 @@ export default function PoForm({ po }) {
                             id={`item-${index}`}
                             placeholder="Item name"
                             {...register(`Items.${index}.name`, { required: true })}
-                            onInput={handleItemInputChange(index)}
+                            onChange={(e) => handleItemFilterChange(index, e)}
                         />
-                        {itemFilter && itemSuggestions.length > 0 && (
-                            <ul className="absolute bg-white border border-gray-300 w-full z-10">
-                                {itemSuggestions.map((item, idx) => (
-                                    <li
-                                        key={idx}
-                                        onClick={() => handleItemSuggestionClick(index, item.Item)}
-                                        className="p-2 hover:bg-gray-200 cursor-pointer"
-                                    >
-                                        {item.Item}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <div className="item-suggestions">
+                            {filteredItems.map((item, idx) => (
+                                <div key={idx} onClick={() => handleItemSelect(index, item)} className="p-2 hover:bg-gray-200 cursor-pointer">
+                                    {item.Item}
+                                </div>
+                            ))}
+                        </div>
                         <Input
                             label="Quantity"
                             type="number"

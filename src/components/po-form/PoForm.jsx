@@ -32,45 +32,60 @@ export default function PoForm({ po }) {
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
+    const [filters, setFilters] = useState({ Item: "", Name:"" });
 
-    const fetchVendorSuggestions = async (input) => {
-        if (!input) {
-            setVendorSuggestions([]);
-            return;
-        }
-        try {
-            const results = await service.searchVendor(input);
-            setVendorSuggestions(results.documents.map((vendor) => vendor.Name));
-        } catch (error) {
-            console.error('Error fetching vendor suggestions:', error);
-            setVendorSuggestions([]);
-        }
-    };
+    useEffect(() => {
+        const fetchItems = async () => {
+            try {
+                const queries = [];
+                if (filters.Item) queries.push(Query.equal("Item", filters.Item));
+                
+                const response = await service.getItems(queries);
+                console.log("Fetched Items response:", response);
 
-    const fetchItemSuggestions = async (input) => {
-        if (!input) {
-            setItemSuggestions([]);
-            return;
-        }
-        try {
-            const results = await service.searchItems(input);
-            setItemSuggestions(results.documents.map((item) => item.Item));
-        } catch (error) {
-            console.error('Error fetching item suggestions:', error);
-            setItemSuggestions([]);
-        }
-    };
+                if (response && response.documents) {
+                    setItemSuggestions(response.documents);
+                } else {
+                    setItemSuggestions([]);
+                }
+            } catch (error) {
+                console.error("Error fetching items:", error);
+                setItemSuggestions([]);
+            }
+        };
+
+        const fetchVendors = async () => {
+            try {
+                const queries = [];
+                if (filters.Name) queries.push(Query.equal("Name", filters.Name));
+                
+                const response = await service.getVendors(queries);
+                console.log("Fetched Vendors response:", response);
+
+                if (response && response.documents) {
+                    setVendorSuggestions(response.documents);
+                } else {
+                    setVendorSuggestions([]);
+                }
+            } catch (error) {
+                console.error("Error fetching vendors:", error);
+                setVendorSuggestions([]);
+            }
+        };
+        fetchVendors();
+        fetchItems();
+    }, [filters]);
 
     const handleVendorInputChange = (e) => {
         const inputValue = e.currentTarget.value;
         setValue('VendorName', inputValue, { shouldValidate: true });
-        fetchVendorSuggestions(inputValue);
+        fetchVendors(inputValue);
     };
 
     const handleItemInputChange = (index, e) => {
         const inputValue = e.currentTarget.value;
         setValue(`Items.${index}.name`, inputValue, { shouldValidate: true });
-        fetchItemSuggestions(inputValue);
+        fetchItems(inputValue);
     };
 
     const handleItemSuggestionClick = (index, itemName) => {

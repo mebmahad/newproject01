@@ -29,7 +29,7 @@ export default function ItemForm({ item }) {
             try {
                 const queries = [];
                 if (filters.location) queries.push(Query.equal("location", filters.location));
-
+                
                 const response = await service.getLocations(queries);
                 console.log("Fetched locations response:", response);
 

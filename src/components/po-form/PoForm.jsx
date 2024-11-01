@@ -1,16 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField } from '@mui/material';
+import { Button, TextField, Box, Grid } from '@mui/material';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
-    <div className="mb-4">
-        <label htmlFor={id}>{label}</label>
-        <input ref={ref} id={id} {...props} onInput={onInput} className="border p-2 w-full" />
-    </div>
-));
+const VendorList = ({ vendors, onSelect }) => (
+    <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
+        {vendors.map((vendor, index) => (
+            <Box key={index} onClick={() => onSelect(vendor.Name)} sx={{ padding: 1, cursor: 'pointer', '&:hover': { backgroundColor: '#f0f0f0' } }}>
+                {vendor.Name}
+            </Box>
+        ))}
+    </Box>
+);
+
+const ItemList = ({ items, onSelect, index }) => (
+    <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
+        {items.map((item, idx) => (
+            <Box key={idx} onClick={() => onSelect(index, item.Item)} sx={{ padding: 1, cursor: 'pointer', '&:hover': { backgroundColor: '#f0f0f0' } }}>
+                {item.Item}
+            </Box>
+        ))}
+    </Box>
+);
 
 export default function PoForm({ po }) {
     const { register, handleSubmit, control, setValue, watch } = useForm({
@@ -41,7 +54,6 @@ export default function PoForm({ po }) {
                 setAllVendors([]);
             }
         };
-
         const fetchItems = async () => {
             try {
                 const response = await service.getItems();
@@ -51,26 +63,9 @@ export default function PoForm({ po }) {
                 setAllItems([]);
             }
         };
-
         fetchVendors();
         fetchItems();
     }, []);
-
-    const filteredVendors = allVendors.filter(vendor =>
-        vendor.Name.toLowerCase().includes(vendorFilter.toLowerCase())
-    );
-
-    const filteredItems = allItems.filter(item =>
-        item.Item.toLowerCase().includes(itemFilter.toLowerCase())
-    );
-
-    const handleVendorSelect = (vendorName) => {
-        setValue('VendorName', vendorName, { shouldValidate: true });
-    };
-
-    const handleItemSelect = (index, itemName) => {
-        setValue(`Items.${index}.name`, itemName, { shouldValidate: true });
-    };
 
     useEffect(() => {
         const subscription = watch((value) => {
@@ -86,37 +81,54 @@ export default function PoForm({ po }) {
             const dbPo = po
                 ? await service.updatePo(po.$id, data)
                 : await service.createPo({ ...data, userId: userData?.$id });
-
             if (dbPo) navigate(`/po/${dbPo.$id}`);
         } catch (error) {
             console.error('Error submitting form:', error);
         }
     };
 
-    return (
-        <form onSubmit={handleSubmit(submit)} className="flex flex-wrap p-4">
-            <div className="w-full">
-                <TextField
-                    label="Vendor Filter"
-                    value={vendorFilter}
-                    onChange={(e) => setVendorFilter(e.target.value)}
-                    fullWidth
-                    className="mb-4"
-                />
-                <ul className="bg-white border border-gray-300 w-full z-10 mb-4">
-                    {filteredVendors.map((vendor, index) => (
-                        <li
-                            key={index}
-                            onClick={() => handleVendorSelect(vendor.Name)}
-                            className="p-2 hover:bg-gray-200 cursor-pointer"
-                        >
-                            {vendor.Name}
-                        </li>
-                    ))}
-                </ul>
+    const handleVendorSelect = (vendorName) => {
+        setValue('VendorName', vendorName, { shouldValidate: true });
+    };
 
-                {fields.map((item, index) => (
-                    <div key={item.id} className="mb-4 p-2 border border-gray-300 rounded">
+    const handleItemSelect = (index, itemName) => {
+        setValue(`Items.${index}.name`, itemName, { shouldValidate: true });
+    };
+
+    const filteredVendors = allVendors.filter(vendor =>
+        vendor.Name.toLowerCase().includes(vendorFilter.toLowerCase())
+    );
+
+    const filteredItems = allItems.filter(item =>
+        item.Item.toLowerCase().includes(itemFilter.toLowerCase())
+    );
+
+    return (
+        <form onSubmit={handleSubmit(submit)} style={{ display: 'flex', flexDirection: 'column' }}>
+            <TextField
+                label="Vendor Filter"
+                value={vendorFilter}
+                onChange={(e) => setVendorFilter(e.target.value)}
+                fullWidth
+                className="mb-4"
+            />
+            <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                    <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                    <TextField
+                        label="Selected Vendor"
+                        value={watch('VendorName')}
+                        disabled
+                        fullWidth
+                        className="mb-4"
+                    />
+                </Grid>
+            </Grid>
+            {fields.map((item, index) => (
+                <Grid container spacing={2} key={item.id} className="mb-4">
+                    <Grid item xs={12} md={6}>
                         <TextField
                             label="Item Filter"
                             value={itemFilter}
@@ -124,18 +136,9 @@ export default function PoForm({ po }) {
                             fullWidth
                             className="mb-4"
                         />
-                        <ul className="bg-white border border-gray-300 w-full z-10 mb-4">
-                            {filteredItems.map((itemObj, idx) => (
-                                <li
-                                    key={idx}
-                                    onClick={() => handleItemSelect(index, itemObj.Item)}
-                                    className="p-2 hover:bg-gray-200 cursor-pointer"
-                                >
-                                    {itemObj.Item}
-                                </li>
-                            ))}
-                        </ul>
-
+                        <ItemList items={filteredItems} onSelect={handleItemSelect} index={index} />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
                         <Input
                             label="Quantity"
                             type="number"
@@ -149,18 +152,16 @@ export default function PoForm({ po }) {
                         <Button variant="outlined" color="secondary" onClick={() => remove(index)}>
                             Remove Item
                         </Button>
-                    </div>
-                ))}
-
-                <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
-                    Add Item
-                </Button>
-
-                <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mb-4" />
-                <Button type="submit" variant="contained" color="primary" fullWidth>
-                    {po ? 'Update PO' : 'Submit PO'}
-                </Button>
-            </div>
+                    </Grid>
+                </Grid>
+            ))}
+            <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
+                Add Item
+            </Button>
+            <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mb-4" />
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+                {po ? 'Update PO' : 'Submit PO'}
+            </Button>
         </form>
     );
 }

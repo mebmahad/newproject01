@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, Box, Grid, Paper, Typography } from '@mui/material';
+import { Button, TextField, Box, Grid, Paper, Typography, IconButton } from '@mui/material';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import CloseIcon from '@mui/icons-material/Close';
 
 // Input component
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
@@ -124,6 +125,57 @@ export default function PoForm({ po }) {
             <Typography variant="h4" gutterBottom>Purchase Order Form</Typography>
             <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
+                    <form onSubmit={handleSubmit(submit)}>
+                        <TextField
+                            label="Vendor Name"
+                            value={watch('VendorName')}
+                            disabled
+                            fullWidth
+                            className="mb-4"
+                        />
+                        {fields.map((item, index) => (
+                            <Box key={item.id} display="flex" alignItems="center" className="mb-4">
+                                <Box flexGrow={1}>
+                                    <TextField
+                                        label="Item Name"
+                                        value={item.name}
+                                        disabled
+                                        fullWidth
+                                    />
+                                </Box>
+                                <Box ml={2}>
+                                    <TextField
+                                        label="Quantity"
+                                        type="number"
+                                        {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
+                                        fullWidth
+                                    />
+                                </Box>
+                                <Box ml={2}>
+                                    <TextField
+                                        label="Rate"
+                                        type="number"
+                                        {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
+                                        fullWidth
+                                    />
+                                </Box>
+                                <Box ml={2}>
+                                    <IconButton onClick={() => remove(index)}>
+                                        <CloseIcon />
+                                    </IconButton>
+                                </Box>
+                            </Box>
+                        ))}
+                        <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
+                            Add Item
+                        </Button>
+                        <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mb-4" />
+                        <Button type="submit" variant="contained" color="primary" fullWidth>
+                            {po ? 'Update PO' : 'Submit PO'}
+                        </Button>
+                    </form>
+                </Grid>
+                <Grid item xs={12} md={6}>
                     <TextField
                         label="Vendor Filter"
                         value={vendorFilter}
@@ -131,8 +183,6 @@ export default function PoForm({ po }) {
                         fullWidth
                     />
                     <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
-                </Grid>
-                <Grid item xs={12} md={6}>
                     <TextField
                         label="Item Filter"
                         value={itemFilter}
@@ -142,45 +192,6 @@ export default function PoForm({ po }) {
                     <ItemList items={filteredItems} onSelect={handleItemSelect} index={0} />
                 </Grid>
             </Grid>
-            <form onSubmit={handleSubmit(submit)} style={{ marginTop: '2rem' }}>
-                <TextField
-                    label="Vendor Name"
-                    value={watch('VendorName')}
-                    disabled
-                    fullWidth
-                    className="mb-4"
-                />
-                {fields.map((item, index) => (
-                    <Grid container spacing={2} key={item.id} className="mb-4">
-                        <Grid item xs={12} md={6}>
-                            <Input
-                                label="Quantity"
-                                type="number"
-                                {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <Input
-                                label="Rate"
-                                type="number"
-                                {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Button variant="outlined" color="secondary" onClick={() => remove(index)}>
-                                Remove Item
-                            </Button>
-                        </Grid>
-                    </Grid>
-                ))}
-                <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
-                    Add Item
-                </Button>
-                <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mb-4" />
-                <Button type="submit" variant="contained" color="primary" fullWidth>
-                    {po ? 'Update PO' : 'Submit PO'}
-                </Button>
-            </form>
         </Box>
     );
 }

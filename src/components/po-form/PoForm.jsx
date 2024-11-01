@@ -114,25 +114,19 @@ export default function PoForm({ po }) {
 
     const handleItemSelect = (itemName) => {
         const newIndex = fields.length - 1; // Get the index of the last added item
-        const qty = watch(`Items.${newIndex}.qty`) || 0;
-        const rate = watch(`Items.${newIndex}.rate`) || 0;
-
         update(newIndex, { ...fields[newIndex], name: itemName });
+        setLockedItems((prevLocked) => [...prevLocked, newIndex]); // Lock the item input after selection
+    };
 
-        // Calculate the new amount for the item
-        const newItemAmount = qty * rate;
-
-        // Update the total amount with the newly selected item amount
-        const updatedTotalAmount = fields.reduce((acc, item, index) => {
+    const handleAddItem = () => {
+        append({ name: '', qty: 0, rate: 0 });
+        // Recalculate total amount after adding a new item
+        const calculatedTotal = fields.reduce((acc, item, index) => {
             const itemQty = watch(`Items.${index}.qty`) || 0;
             const itemRate = watch(`Items.${index}.rate`) || 0;
             return acc + (itemQty * itemRate);
         }, 0);
-
-        setTotalAmount(updatedTotalAmount);
-
-        // Lock the item input after selection
-        setLockedItems((prevLocked) => [...prevLocked, newIndex]);
+        setTotalAmount(calculatedTotal);
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -189,7 +183,7 @@ export default function PoForm({ po }) {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={() => append({ name: '', qty: 0, rate: 0 })}
+                            onClick={handleAddItem} // Updated to use the new handler
                             className="w-full mt-4"
                         >
                             Add Item

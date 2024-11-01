@@ -4,7 +4,7 @@ import { Button, TextField, Box, Grid, Paper, Typography, IconButton } from '@mu
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import CloseIcon from '@mui/icons-material/Close';
+import { CloseIcon } from '@mui/icons-material';
 
 // Input component
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (

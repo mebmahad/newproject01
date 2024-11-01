@@ -22,6 +22,7 @@ import VendorCard from "./VendorCard"
 import AuthLayout from "./AuthLayout";
 import Input from "./Input";
 import DynamicInput from "./DynamicInput";
+import PoCard from "./PoCard";
 export {
     Header,
     Footer,
@@ -40,6 +41,7 @@ export {
     LocationForm,
     LocationCard,
     PostCard,
+    PoCard,
     ProcureCard,
     ItemCard,
     VendorCard,

@@ -209,8 +209,8 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/po/:id", // Changed from slug to id
-        element: <Po />,
+        path: "/pocard/:id", // Changed from slug to id
+        element: <PoCard />,
       },
       {
         path: "/all-locations",

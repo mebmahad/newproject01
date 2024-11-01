@@ -40,9 +40,9 @@ export default function PoForm({ po }) {
         defaultValues: {
             VendorName: po?.VendorName || '',
             Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
-            Amount: po?.Amount || 0,
-            GST: 0,
-            TotalWithGST: 0,
+            totalAmount: po?.totalAmount || 0,
+            gst: 0,
+            totalamountwithgst: 0,
             id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         },
     });
@@ -101,10 +101,17 @@ export default function PoForm({ po }) {
 
     const submit = async (data) => {
         try {
+            // Convert Items array to JSON string
+            const dataToSave = {
+                ...data,
+                Items: JSON.stringify(data.Items),
+            };
+    
             const dbPo = po
-                ? await service.updatePo(po.$id, data)
-                : await service.createPo({ ...data, userId: userData?.$id });
-            if (dbPo) navigate(`/po/${dbPo.$id}`);
+                ? await service.updatePo(po.$id, dataToSave)
+                : await service.createPo({ ...dataToSave, userId: userData?.$id });
+    
+            if (dbPo) navigate(`/pocard/${dbPo.$id}`);
         } catch (error) {
             console.error('Error submitting form:', error);
         }
@@ -134,9 +141,9 @@ export default function PoForm({ po }) {
     // New function to handle GST input change
     const handleGstChange = (e) => {
         const gstPercentage = parseFloat(e.target.value) || 0; // Get the GST value
-        setValue('GST', gstPercentage); // Update GST in the form state
+        setValue('gst', gstPercentage); // Update GST in the form state
         const totalWithGST = totalAmount * (1 + gstPercentage / 100); // Calculate Total with GST
-        setValue('TotalWithGST', totalWithGST); // Update TotalWithGST in the form state
+        setValue('totalamountwithgst', totalWithGST); // Update TotalWithGST in the form state
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -214,7 +221,7 @@ export default function PoForm({ po }) {
                         />
                         <TextField
                             label="Total with GST/Tax"
-                            value={watch('TotalWithGST')}
+                            value={watch('totalamountwithgst')}
                             disabled
                             fullWidth
                             className="mt-4"
@@ -227,7 +234,7 @@ export default function PoForm({ po }) {
                 <Divider orientation="vertical" flexItem />
                 <div className="flex flex-col items-center bg-white rounded-lg p-4 shadow-md">
                     <TextField
-                        label="Vendor Filter"
+                        label="Vendors"
                         value={vendorFilter}
                         onChange={(e) => setVendorFilter(e.target.value)}
                         fullWidth
@@ -235,7 +242,7 @@ export default function PoForm({ po }) {
                     />
                     <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
                     <TextField
-                        label="Item Filter"
+                        label="Items"
                         value={itemFilter}
                         onChange={(e) => setItemFilter(e.target.value)}
                         fullWidth

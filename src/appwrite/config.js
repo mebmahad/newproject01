@@ -457,16 +457,19 @@ class Service {
         }
     }
 
-    async createPo({ vendorname, itemlist, amount, id }) {
+    async createPo({ VendorName, Items, Totalamount, gst, totalamountwithgst, id }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdpo,
+                conf.appwriteCollectionIdpoform,
                 id,
                 {
-                    vendorname,
-                    itemlist,
-                    amount,
+                    VendorName,
+                    Items,
+                    Totalamount,
+                    gst,
+                    totalamountwithgst,
+
                 }
             );
         } catch (error) {
@@ -474,16 +477,18 @@ class Service {
         }
     }
 
-    async updatePo(id, { vendorname, itemlist, amount }) {
+    async updatePo(id, { VendorName, Items, Totalamount, gst, totalamountwithgst }) {
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdpo,
+                conf.appwriteCollectionIdpoform,
                 id,
                 {
-                    vendorname,
-                    itemlist,
-                    amount,
+                    VendorName,
+                    Items,
+                    Totalamount,
+                    gst,
+                    totalamountwithgst,
                 }
             );
         } catch (error) {
@@ -495,7 +500,7 @@ class Service {
         try {
             await this.databases.deleteDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdpo,
+                conf.appwriteCollectionIdpoform,
                 id
             );
             return true;
@@ -523,26 +528,40 @@ class Service {
 
     async getPo(id) {
         try {
-            return await this.databases.getDocument(
+            const document = await this.databases.getDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdpo,
+                conf.appwriteCollectionIdpoform,
                 id
             );
+    
+            // Parse `Items` if it exists
+            return {
+                ...document,
+                Items: document.Items ? JSON.parse(document.Items) : [], // Parse Items if available
+            };
         } catch (error) {
-            console.log("PoService :: Po :: error", error);
+            console.log("PoService :: getPo :: error", error);
             return false;
         }
     }
 
     async getPos(queries = []) {
         try {
-            return await this.databases.listDocuments(
+            const response = await this.databases.listDocuments(
                 conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdpo,
+                conf.appwriteCollectionIdpoform,
                 queries
             );
+    
+            // Parse `Items` for each PO if it exists
+            response.documents = response.documents.map((doc) => ({
+                ...doc,
+                Items: doc.Items ? JSON.parse(doc.Items) : [], // Parse Items if available
+            }));
+    
+            return response;
         } catch (error) {
-            console.log("PoService :: Pos :: error", error);
+            console.log("PoService :: getPos :: error", error);
             return false;
         }
     }

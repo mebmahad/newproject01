@@ -5,6 +5,13 @@ import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
+const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
+    <div className="mb-4">
+        <label htmlFor={id}>{label}</label>
+        <input ref={ref} id={id} {...props} onInput={onInput} className="border p-2 w-full" />
+    </div>
+));
+
 const VendorList = ({ vendors, onSelect }) => (
     <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
         {vendors.map((vendor, index) => (

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, Box, Grid } from '@mui/material';
+import { Button, TextField, Box, Grid, Paper, Typography } from '@mui/material';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
+// Input component
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     <div className="mb-4">
         <label htmlFor={id}>{label}</label>
@@ -12,24 +13,26 @@ const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     </div>
 ));
 
+// VendorList component
 const VendorList = ({ vendors, onSelect }) => (
-    <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
+    <Paper elevation={3} style={{ maxHeight: 200, overflowY: 'auto', marginBottom: '1rem' }}>
         {vendors.map((vendor, index) => (
             <Box key={index} onClick={() => onSelect(vendor.Name)} sx={{ padding: 1, cursor: 'pointer', '&:hover': { backgroundColor: '#f0f0f0' } }}>
                 {vendor.Name}
             </Box>
         ))}
-    </Box>
+    </Paper>
 );
 
+// ItemList component
 const ItemList = ({ items, onSelect, index }) => (
-    <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
+    <Paper elevation={3} style={{ maxHeight: 200, overflowY: 'auto', marginBottom: '1rem' }}>
         {items.map((item, idx) => (
             <Box key={idx} onClick={() => onSelect(index, item.Item)} sx={{ padding: 1, cursor: 'pointer', '&:hover': { backgroundColor: '#f0f0f0' } }}>
                 {item.Item}
             </Box>
         ))}
-    </Box>
+    </Paper>
 );
 
 export default function PoForm({ po }) {
@@ -50,6 +53,8 @@ export default function PoForm({ po }) {
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
+
+    const didMountRef = useRef(false);
 
     useEffect(() => {
         const fetchVendors = async () => {
@@ -75,12 +80,16 @@ export default function PoForm({ po }) {
     }, []);
 
     useEffect(() => {
-        const subscription = watch((value) => {
-            const calculatedTotal = value.Items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
-            setTotalAmount(calculatedTotal);
-            setValue('Amount', calculatedTotal);
-        });
-        return () => subscription.unsubscribe();
+        if (didMountRef.current) {
+            const subscription = watch((value) => {
+                const calculatedTotal = value.Items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
+                setTotalAmount(calculatedTotal);
+                setValue('Amount', calculatedTotal);
+            });
+            return () => subscription.unsubscribe();
+        } else {
+            didMountRef.current = true;
+        }
     }, [watch, setValue]);
 
     const submit = async (data) => {
@@ -111,64 +120,67 @@ export default function PoForm({ po }) {
     );
 
     return (
-        <form onSubmit={handleSubmit(submit)} style={{ display: 'flex', flexDirection: 'column' }}>
-            <TextField
-                label="Vendor Filter"
-                value={vendorFilter}
-                onChange={(e) => setVendorFilter(e.target.value)}
-                fullWidth
-                className="mb-4"
-            />
+        <Box sx={{ padding: '1rem' }}>
+            <Typography variant="h4" gutterBottom>Purchase Order Form</Typography>
             <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
+                    <TextField
+                        label="Vendor Filter"
+                        value={vendorFilter}
+                        onChange={(e) => setVendorFilter(e.target.value)}
+                        fullWidth
+                    />
                     <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
                 </Grid>
                 <Grid item xs={12} md={6}>
                     <TextField
-                        label="Selected Vendor"
-                        value={watch('VendorName')}
-                        disabled
+                        label="Item Filter"
+                        value={itemFilter}
+                        onChange={(e) => setItemFilter(e.target.value)}
                         fullWidth
-                        className="mb-4"
                     />
+                    <ItemList items={filteredItems} onSelect={handleItemSelect} index={0} />
                 </Grid>
             </Grid>
-            {fields.map((item, index) => (
-                <Grid container spacing={2} key={item.id} className="mb-4">
-                    <Grid item xs={12} md={6}>
-                        <TextField
-                            label="Item Filter"
-                            value={itemFilter}
-                            onChange={(e) => setItemFilter(e.target.value)}
-                            fullWidth
-                            className="mb-4"
-                        />
-                        <ItemList items={filteredItems} onSelect={handleItemSelect} index={index} />
+            <form onSubmit={handleSubmit(submit)} style={{ marginTop: '2rem' }}>
+                <TextField
+                    label="Vendor Name"
+                    value={watch('VendorName')}
+                    disabled
+                    fullWidth
+                    className="mb-4"
+                />
+                {fields.map((item, index) => (
+                    <Grid container spacing={2} key={item.id} className="mb-4">
+                        <Grid item xs={12} md={6}>
+                            <Input
+                                label="Quantity"
+                                type="number"
+                                {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Input
+                                label="Rate"
+                                type="number"
+                                {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button variant="outlined" color="secondary" onClick={() => remove(index)}>
+                                Remove Item
+                            </Button>
+                        </Grid>
                     </Grid>
-                    <Grid item xs={12} md={6}>
-                        <Input
-                            label="Quantity"
-                            type="number"
-                            {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
-                        />
-                        <Input
-                            label="Rate"
-                            type="number"
-                            {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
-                        />
-                        <Button variant="outlined" color="secondary" onClick={() => remove(index)}>
-                            Remove Item
-                        </Button>
-                    </Grid>
-                </Grid>
-            ))}
-            <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
-                Add Item
-            </Button>
-            <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mb-4" />
-            <Button type="submit" variant="contained" color="primary" fullWidth>
-                {po ? 'Update PO' : 'Submit PO'}
-            </Button>
-        </form>
+                ))}
+                <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
+                    Add Item
+                </Button>
+                <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mb-4" />
+                <Button type="submit" variant="contained" color="primary" fullWidth>
+                    {po ? 'Update PO' : 'Submit PO'}
+                </Button>
+            </form>
+        </Box>
     );
 }

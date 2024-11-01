@@ -27,7 +27,7 @@ import Vendor from "./pages/Vendor.jsx";
 import AddPo from './pages/AddPo.jsx';
 import EditPo from './pages/EditPo.jsx';
 import AllPos from "./pages/AllPos";
-import Po from "./pages/Po.jsx";
+import PoCard from "./components/PoCard.jsx"
 import EditLocation from './pages/EditLocation.jsx';
 import AllLocations from "./pages/AllLocations";
 import AddLocation from "./pages/AddLocation.jsx";

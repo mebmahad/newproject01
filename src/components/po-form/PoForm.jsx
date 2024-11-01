@@ -41,6 +41,8 @@ export default function PoForm({ po }) {
             VendorName: po?.VendorName || '',
             Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
             Amount: po?.Amount || 0,
+            GST: 0,
+            TotalWithGST: 0,
             id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         },
     });
@@ -90,6 +92,11 @@ export default function PoForm({ po }) {
                 }, 0);
                 setTotalAmount(calculatedTotal);
                 setValue('Amount', calculatedTotal);
+
+                // Calculate Total With GST
+                const gstPercentage = value.GST || 0;
+                const totalWithGST = calculatedTotal * (1 + gstPercentage / 100);
+                setValue('TotalWithGST', totalWithGST);
             });
             return () => subscription.unsubscribe();
         } else {
@@ -116,17 +123,6 @@ export default function PoForm({ po }) {
         const newIndex = fields.length - 1; // Get the index of the last added item
         update(newIndex, { ...fields[newIndex], name: itemName });
         setLockedItems((prevLocked) => [...prevLocked, newIndex]); // Lock the item input after selection
-    };
-
-    const handleAddItem = () => {
-        append({ name: '', qty: 0, rate: 0 });
-        // Recalculate total amount after adding a new item
-        const calculatedTotal = fields.reduce((acc, item, index) => {
-            const itemQty = watch(`Items.${index}.qty`) || 0;
-            const itemRate = watch(`Items.${index}.rate`) || 0;
-            return acc + (itemQty * itemRate);
-        }, 0);
-        setTotalAmount(calculatedTotal);
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -183,7 +179,7 @@ export default function PoForm({ po }) {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={handleAddItem} // Updated to use the new handler
+                            onClick={() => append({ name: '', qty: 0, rate: 0 })}
                             className="w-full mt-4"
                         >
                             Add Item
@@ -196,6 +192,19 @@ export default function PoForm({ po }) {
                                 fullWidth
                             />
                         </div>
+                        <TextField
+                            label="GST/Tax (%)"
+                            type="number"
+                            {...register('GST', { valueAsNumber: true })}
+                            className="mt-4"
+                        />
+                        <TextField
+                            label="Total with GST/Tax"
+                            value={watch('TotalWithGST')}
+                            disabled
+                            fullWidth
+                            className="mt-4"
+                        />
                         <Button type="submit" variant="contained" color="primary" fullWidth>
                             {po ? 'Update PO' : 'Submit PO'}
                         </Button>

@@ -1,38 +1,36 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, Box, Grid, Paper, Typography, IconButton, Divider } from '@mui/material';
+import { Button, TextField, IconButton, Paper, Typography, Divider, Box } from '@mui/material';
+import Close from '@mui/icons-material/Close';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import Close from '@mui/icons-material/Close';
-import './PoForm.css'; // Import CSS for styling
+import './PoForm.css';
 
-// Input component for custom styling if needed
-const Input = React.forwardRef(({ label, id, ...props }, ref) => (
-    <div className="mb-4">
-        <label htmlFor={id}>{label}</label>
-        <input ref={ref} id={id} {...props} className="border p-2 w-full" />
-    </div>
-));
-
-// VendorList component
 const VendorList = ({ vendors, onSelect }) => (
-    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
+    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4 w-full">
         {vendors.map((vendor, index) => (
-            <Box key={index} onClick={() => onSelect(vendor.Name)} className="p-2 cursor-pointer hover:bg-gray-200">
+            <div
+                key={index}
+                onClick={() => onSelect(vendor.Name)}
+                className="p-2 cursor-pointer hover:bg-gray-200 text-center"
+            >
                 {vendor.Name}
-            </Box>
+            </div>
         ))}
     </Paper>
 );
 
-// ItemList component
 const ItemList = ({ items, onSelect }) => (
-    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
-        {items.map((item, index) => (
-            <Box key={index} onClick={() => onSelect(index, item.Item)} className="p-2 cursor-pointer hover:bg-gray-200">
+    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4 w-full">
+        {items.map((item, idx) => (
+            <div
+                key={idx}
+                onClick={() => onSelect(item.Item)}
+                className="p-2 cursor-pointer hover:bg-gray-200 text-center"
+            >
                 {item.Item}
-            </Box>
+            </div>
         ))}
     </Paper>
 );
@@ -42,7 +40,7 @@ export default function PoForm({ po }) {
         defaultValues: {
             VendorName: po?.VendorName || '',
             Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
-            Amount: po?.Amount || '',
+            Amount: po?.Amount || 0,
             id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         },
     });
@@ -55,7 +53,7 @@ export default function PoForm({ po }) {
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
-
+    const [lockedItems, setLockedItems] = useState([]);
     const didMountRef = useRef(false);
 
     useEffect(() => {
@@ -68,6 +66,7 @@ export default function PoForm({ po }) {
                 setAllVendors([]);
             }
         };
+
         const fetchItems = async () => {
             try {
                 const response = await service.getItems();
@@ -77,6 +76,7 @@ export default function PoForm({ po }) {
                 setAllItems([]);
             }
         };
+
         fetchVendors();
         fetchItems();
     }, []);
@@ -109,8 +109,10 @@ export default function PoForm({ po }) {
         setValue('VendorName', vendorName, { shouldValidate: true });
     };
 
-    const handleItemSelect = (index, itemName) => {
-        update(index, { ...fields[index], name: itemName });
+    const handleItemSelect = (itemName) => {
+        const newIndex = fields.length - 1; // Get the index of the last added item
+        update(newIndex, { ...fields[newIndex], name: itemName });
+        setLockedItems((prevLocked) => [...prevLocked, newIndex]); // Lock the item input after selection
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -122,70 +124,71 @@ export default function PoForm({ po }) {
     );
 
     return (
-        <Box className="p-4 po-form">
-            <Typography variant="h4" gutterBottom>Purchase Order Form</Typography>
-            <Grid container spacing={2}>
-                <Grid item xs={12} md={6} lg={6}>
-                    <form onSubmit={handleSubmit(submit)}>
+        <div className="p-4 po-form bg-gray-50 min-h-screen">
+            <Typography variant="h4" className="text-center mb-8">Purchase Order Form</Typography>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg p-4 shadow-md">
+                    <form onSubmit={handleSubmit(submit)} className="space-y-4">
                         <TextField
                             label="Vendor Name"
                             value={watch('VendorName')}
                             disabled
                             fullWidth
-                            className="mb-4"
                         />
                         {fields.map((item, index) => (
-                            <Box key={item.id} className="flex items-center mb-4">
-                                <Box className="flex-grow">
-                                    <TextField
-                                        label="Item Name"
-                                        value={watch(`Items.${index}.name`)}
-                                        disabled
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box ml={2}>
-                                    <TextField
-                                        label="Quantity"
-                                        type="number"
-                                        {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box ml={2}>
-                                    <TextField
-                                        label="Rate"
-                                        type="number"
-                                        {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box ml={2}>
-                                    <TextField
-                                        label="Amount"
-                                        value={(watch(`Items.${index}.qty`) || 0) * (watch(`Items.${index}.rate`) || 0)}
-                                        disabled
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box ml={2}>
-                                    <IconButton onClick={() => remove(index)}>
-                                        <Close />
-                                    </IconButton>
-                                </Box>
-                            </Box>
+                            <div key={item.id} className="flex items-center gap-2">
+                                <TextField
+                                    label="Item Name"
+                                    value={watch(`Items.${index}.name`)}
+                                    disabled={lockedItems.includes(index)} // Disable if the item is locked
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Quantity"
+                                    type="number"
+                                    {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
+                                    className="w-1/4"
+                                />
+                                <TextField
+                                    label="Rate"
+                                    type="number"
+                                    {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
+                                    className="w-1/4"
+                                />
+                                <TextField
+                                    label="Amount"
+                                    value={(watch(`Items.${index}.qty`) || 0) * (watch(`Items.${index}.rate`) || 0)}
+                                    disabled
+                                    className="w-1/4"
+                                />
+                                <IconButton onClick={() => remove(index)} className="ml-2">
+                                    <Close />
+                                </IconButton>
+                            </div>
                         ))}
-                        <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => append({ name: '', qty: 0, rate: 0 })}
+                            className="w-full mt-4"
+                        >
                             Add Item
                         </Button>
-                        <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mb-4" />
+                        <div className="mt-6">
+                            <TextField
+                                label="Total Amount"
+                                value={totalAmount}
+                                disabled
+                                fullWidth
+                            />
+                        </div>
                         <Button type="submit" variant="contained" color="primary" fullWidth>
                             {po ? 'Update PO' : 'Submit PO'}
                         </Button>
                     </form>
-                </Grid>
+                </div>
                 <Divider orientation="vertical" flexItem />
-                <Grid item xs={12} md={5} lg={5} className="flex flex-col items-center">
+                <div className="flex flex-col items-center bg-white rounded-lg p-4 shadow-md">
                     <TextField
                         label="Vendor Filter"
                         value={vendorFilter}
@@ -202,8 +205,8 @@ export default function PoForm({ po }) {
                         className="mb-4"
                     />
                     <ItemList items={filteredItems} onSelect={handleItemSelect} />
-                </Grid>
-            </Grid>
-        </Box>
+                </div>
+            </div>
+        </div>
     );
 }

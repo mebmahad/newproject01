@@ -99,14 +99,6 @@ export default function PoForm({ po }) {
         }
     }, [watch, setValue]);
 
-    // Update Total With GST when GST input changes
-    useEffect(() => {
-        const totalAmount = watch('Amount');
-        const gstPercentage = watch('GST');
-        const totalWithGST = totalAmount * (1 + gstPercentage / 100);
-        setValue('TotalWithGST', totalWithGST);
-    }, [watch('GST'), watch('Amount'), setValue]);
-
     const submit = async (data) => {
         try {
             const dbPo = po
@@ -137,6 +129,14 @@ export default function PoForm({ po }) {
             return acc + (itemQty * itemRate);
         }, 0);
         setTotalAmount(calculatedTotal);
+    };
+
+    // New function to handle GST input change
+    const handleGstChange = (e) => {
+        const gstPercentage = parseFloat(e.target.value) || 0; // Get the GST value
+        setValue('GST', gstPercentage); // Update GST in the form state
+        const totalWithGST = totalAmount * (1 + gstPercentage / 100); // Calculate Total with GST
+        setValue('TotalWithGST', totalWithGST); // Update TotalWithGST in the form state
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -209,9 +209,8 @@ export default function PoForm({ po }) {
                         <TextField
                             label="GST/Tax (%)"
                             type="number"
-                            {...register('GST', { valueAsNumber: true })}
+                            onChange={handleGstChange} // Use the new handler here
                             className="mt-4"
-                            disabled={totalAmount === 0} // Disable if no items are present
                         />
                         <TextField
                             label="Total with GST/Tax"

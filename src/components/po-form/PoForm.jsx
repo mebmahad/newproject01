@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, Box, Grid, Paper, Typography, IconButton } from '@mui/material';
+import { Button, TextField, Box, Grid, Paper, Typography, IconButton, Divider } from '@mui/material';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -138,7 +138,8 @@ export default function PoForm({ po }) {
                                 <Box flexGrow={1}>
                                     <TextField
                                         label="Item Name"
-                                        {...register(`Items.${index}.name`, { required: true })}
+                                        value={watch(`Items.${index}.name`)}
+                                        disabled
                                         fullWidth
                                     />
                                 </Box>
@@ -174,7 +175,8 @@ export default function PoForm({ po }) {
                         </Button>
                     </form>
                 </Grid>
-                <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Divider orientation="vertical" flexItem />
+                <Grid item xs={12} md={5}>
                     <TextField
                         label="Vendor Filter"
                         value={vendorFilter}

@@ -92,17 +92,20 @@ export default function PoForm({ po }) {
                 }, 0);
                 setTotalAmount(calculatedTotal);
                 setValue('Amount', calculatedTotal);
-
-                // Calculate Total With GST
-                const gstPercentage = value.GST || 0;
-                const totalWithGST = calculatedTotal * (1 + gstPercentage / 100);
-                setValue('TotalWithGST', totalWithGST);
             });
             return () => subscription.unsubscribe();
         } else {
             didMountRef.current = true;
         }
     }, [watch, setValue]);
+
+    // Update Total With GST when GST input changes
+    useEffect(() => {
+        const totalAmount = watch('Amount');
+        const gstPercentage = watch('GST');
+        const totalWithGST = totalAmount * (1 + gstPercentage / 100);
+        setValue('TotalWithGST', totalWithGST);
+    }, [watch('GST'), watch('Amount'), setValue]);
 
     const submit = async (data) => {
         try {
@@ -125,14 +128,6 @@ export default function PoForm({ po }) {
         setLockedItems((prevLocked) => [...prevLocked, newIndex]); // Lock the item input after selection
     };
 
-    const filteredVendors = allVendors.filter(vendor =>
-        vendor.Name.toLowerCase().includes(vendorFilter.toLowerCase())
-    );
-
-    const filteredItems = allItems.filter(item =>
-        item.Item.toLowerCase().includes(itemFilter.toLowerCase())
-    );
-
     const handleAddItem = () => {
         append({ name: '', qty: 0, rate: 0 });
         // Recalculate total amount after adding a new item
@@ -143,6 +138,14 @@ export default function PoForm({ po }) {
         }, 0);
         setTotalAmount(calculatedTotal);
     };
+
+    const filteredVendors = allVendors.filter(vendor =>
+        vendor.Name.toLowerCase().includes(vendorFilter.toLowerCase())
+    );
+
+    const filteredItems = allItems.filter(item =>
+        item.Item.toLowerCase().includes(itemFilter.toLowerCase())
+    );
 
     return (
         <div className="p-4 po-form bg-gray-50 min-h-screen">
@@ -208,6 +211,7 @@ export default function PoForm({ po }) {
                             type="number"
                             {...register('GST', { valueAsNumber: true })}
                             className="mt-4"
+                            disabled={totalAmount === 0} // Disable if no items are present
                         />
                         <TextField
                             label="Total with GST/Tax"

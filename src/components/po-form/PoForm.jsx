@@ -5,6 +5,7 @@ import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Close from '@mui/icons-material/Close';
+import './PoForm.css'; // Import CSS for styling
 
 // Input component
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
@@ -121,7 +122,7 @@ export default function PoForm({ po }) {
     );
 
     return (
-        <Box sx={{ padding: '1rem' }}>
+        <Box sx={{ padding: '1rem' }} className="po-form">
             <Typography variant="h4" gutterBottom>Purchase Order Form</Typography>
             <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Divider } from '@mui/material';
-import service from '../../appwrite/config';
+import service from '../appwrite/config';
 
 const POCard = ({ poId }) => {
     const [poData, setPoData] = useState(null);

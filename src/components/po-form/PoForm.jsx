@@ -133,6 +133,17 @@ export default function PoForm({ po }) {
         item.Item.toLowerCase().includes(itemFilter.toLowerCase())
     );
 
+    const handleAddItem = () => {
+        append({ name: '', qty: 0, rate: 0 });
+        // Recalculate total amount after adding a new item
+        const calculatedTotal = fields.reduce((acc, item, index) => {
+            const itemQty = watch(`Items.${index}.qty`) || 0;
+            const itemRate = watch(`Items.${index}.rate`) || 0;
+            return acc + (itemQty * itemRate);
+        }, 0);
+        setTotalAmount(calculatedTotal);
+    };
+
     return (
         <div className="p-4 po-form bg-gray-50 min-h-screen">
             <Typography variant="h4" className="text-center mb-8">Purchase Order Form</Typography>
@@ -179,7 +190,7 @@ export default function PoForm({ po }) {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={() => append({ name: '', qty: 0, rate: 0 })}
+                            onClick={handleAddItem} // Updated to use the new handler
                             className="w-full mt-4"
                         >
                             Add Item

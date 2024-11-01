@@ -1,36 +1,33 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button, TextField, Box, Grid, Paper, Typography, IconButton, Divider } from '@mui/material';
-import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Close from '@mui/icons-material/Close';
-import './PoForm.css'; // Import CSS for styling
+import service from '../../appwrite/config';
+import './PoForm.css'; // Import CSS for additional styling
 
-// Input component
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
-    <div className="mb-4">
+    <div className="input-group">
         <label htmlFor={id}>{label}</label>
-        <input ref={ref} id={id} {...props} onInput={onInput} className="border p-2 w-full" />
+        <input ref={ref} id={id} {...props} onInput={onInput} className="input-field" />
     </div>
 ));
 
-// VendorList component
 const VendorList = ({ vendors, onSelect }) => (
-    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
+    <Paper elevation={2} className="list-container">
         {vendors.map((vendor, index) => (
-            <Box key={index} onClick={() => onSelect(vendor.Name)} className="p-2 cursor-pointer hover:bg-gray-200">
+            <Box key={index} onClick={() => onSelect(vendor.Name)} className="list-item">
                 {vendor.Name}
             </Box>
         ))}
     </Paper>
 );
 
-// ItemList component
 const ItemList = ({ items, onSelect, index }) => (
-    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
+    <Paper elevation={2} className="list-container">
         {items.map((item, idx) => (
-            <Box key={idx} onClick={() => onSelect(index, item.Item)} className="p-2 cursor-pointer hover:bg-gray-200">
+            <Box key={idx} onClick={() => onSelect(index, item.Item)} className="list-item">
                 {item.Item}
             </Box>
         ))}
@@ -122,84 +119,75 @@ export default function PoForm({ po }) {
     );
 
     return (
-        <Box className="p-4 po-form">
+        <Box className="po-form-container">
             <Typography variant="h4" gutterBottom>Purchase Order Form</Typography>
             <Grid container spacing={2}>
-                <Grid item xs={12} md={6} lg={6}>
-                    <form onSubmit={handleSubmit(submit)}>
+                <Grid item xs={12} md={6}>
+                    <form onSubmit={handleSubmit(submit)} className="po-form">
                         <TextField
                             label="Vendor Name"
                             value={watch('VendorName')}
                             disabled
                             fullWidth
-                            className="mb-4"
+                            className="mb-3"
                         />
                         {fields.map((item, index) => (
-                            <Box key={item.id} className="flex items-center mb-4">
-                                <Box className="flex-grow">
-                                    <TextField
-                                        label="Item Name"
-                                        value={watch(`Items.${index}.name`)}
-                                        disabled
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box ml={2}>
-                                    <TextField
-                                        label="Quantity"
-                                        type="number"
-                                        {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box ml={2}>
-                                    <TextField
-                                        label="Rate"
-                                        type="number"
-                                        {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box ml={2}>
-                                    <TextField
-                                        label="Amount"
-                                        value={(watch(`Items.${index}.qty`) || 0) * (watch(`Items.${index}.rate`) || 0)}
-                                        disabled
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box ml={2}>
-                                    <IconButton onClick={() => remove(index)}>
-                                        <Close />
-                                    </IconButton>
-                                </Box>
+                            <Box key={item.id} className="item-row">
+                                <TextField
+                                    label="Item Name"
+                                    value={watch(`Items.${index}.name`)}
+                                    disabled
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Quantity"
+                                    type="number"
+                                    {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Rate"
+                                    type="number"
+                                    {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Amount"
+                                    value={(watch(`Items.${index}.qty`) || 0) * (watch(`Items.${index}.rate`) || 0)}
+                                    disabled
+                                    fullWidth
+                                />
+                                <IconButton onClick={() => remove(index)}>
+                                    <Close />
+                                </IconButton>
                             </Box>
                         ))}
                         <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
                             Add Item
                         </Button>
-                        <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mb-4" />
-                        <Button type="submit" variant="contained" color="primary" fullWidth>
+                        <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mt-3" />
+                        <Button type="submit" variant="contained" color="primary" fullWidth className="mt-3">
                             {po ? 'Update PO' : 'Submit PO'}
                         </Button>
                     </form>
                 </Grid>
-                <Divider orientation="vertical" flexItem />
-                <Grid item xs={12} md={5} lg={5} className="flex flex-col items-center">
+
+                <Grid item xs={12} md={5} className="list-side-panel">
                     <TextField
                         label="Vendor Filter"
                         value={vendorFilter}
                         onChange={(e) => setVendorFilter(e.target.value)}
                         fullWidth
-                        className="mb-4"
+                        className="filter-input"
                     />
                     <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
+                    <Divider className="divider" />
                     <TextField
                         label="Item Filter"
                         value={itemFilter}
                         onChange={(e) => setItemFilter(e.target.value)}
                         fullWidth
-                        className="mb-4"
+                        className="filter-input"
                     />
                     <ItemList items={filteredItems} onSelect={handleItemSelect} index={0} />
                 </Grid>

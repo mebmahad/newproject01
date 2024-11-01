@@ -1,38 +1,39 @@
-/* PoForm.css */
-
+.po-form-container {
+    padding: 20px;
+    max-width: 1000px;
+    margin: auto;
+}
 .po-form {
-    font-size: 1rem;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
 }
-
-@media (max-width: 768px) {
-    .po-form {
-        font-size: 0.8rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .po-form {
-        font-size: 0.7rem;
-    }
-}
-
-.mb-4 {
-    margin-bottom: 1rem;
-}
-
-input {
-    border: 1px solid #ccc;
-    padding: 8px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-input:disabled {
-    background-color: #f9f9f9;
-}
-
-.button-container {
+.item-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.list-side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.list-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border-radius: 8px;
+}
+.list-item {
+    padding: 10px;
+    cursor: pointer;
+}
+.list-item:hover {
+    background-color: #e0e0e0;
+}
+.filter-input {
+    margin-bottom: 10px;
+}
+.divider {
+    margin: 20px 0;
 }

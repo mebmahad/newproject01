@@ -1,11 +1,39 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, Box, Grid, Typography, IconButton, Divider } from '@mui/material';
+import { Button, TextField, Box, Grid, Typography, IconButton, Divider, Paper } from '@mui/material';
 import Close from '@mui/icons-material/Close';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import './PoForm.css';
+
+const VendorList = ({ vendors, onSelect }) => (
+    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
+        {vendors.map((vendor, index) => (
+            <Box
+                key={index}
+                onClick={() => onSelect(vendor.Name)}
+                className="p-2 cursor-pointer hover:bg-gray-200"
+            >
+                {vendor.Name}
+            </Box>
+        ))}
+    </Paper>
+);
+
+const ItemList = ({ items, onSelect }) => (
+    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
+        {items.map((item, idx) => (
+            <Box
+                key={idx}
+                onClick={() => onSelect(item.Item)}
+                className="p-2 cursor-pointer hover:bg-gray-200"
+            >
+                {item.Item}
+            </Box>
+        ))}
+    </Paper>
+);
 
 export default function PoForm({ po }) {
     const { register, handleSubmit, control, setValue, watch } = useForm({
@@ -80,9 +108,10 @@ export default function PoForm({ po }) {
         setValue('VendorName', vendorName, { shouldValidate: true });
     };
 
-    const handleItemSelect = (index, itemName) => {
-        update(index, { ...fields[index], name: itemName });
-        setLockedItems((prevLocked) => [...prevLocked, index]);  // Lock the item selection
+    const handleItemSelect = (itemName) => {
+        const newIndex = fields.length - 1; // Focus on the last field to add the item
+        update(newIndex, { ...fields[newIndex], name: itemName });
+        setLockedItems((prevLocked) => [...prevLocked, newIndex]); // Lock the item selection
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -113,7 +142,6 @@ export default function PoForm({ po }) {
                                         label="Item Name"
                                         value={watch(`Items.${index}.name`)}
                                         disabled={lockedItems.includes(index)} // Lock input if item is added
-                                        onClick={() => setLockedItems((prevLocked) => prevLocked.filter((i) => i !== index))}
                                         fullWidth
                                     />
                                 </Box>
@@ -174,7 +202,7 @@ export default function PoForm({ po }) {
                         fullWidth
                         className="mb-4"
                     />
-                    <ItemList items={filteredItems} onSelect={(itemName) => handleItemSelect(fields.length - 1, itemName)} />
+                    <ItemList items={filteredItems} onSelect={handleItemSelect} />
                 </Grid>
             </Grid>
         </Box>

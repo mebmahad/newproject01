@@ -5,7 +5,37 @@ import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Close from '@mui/icons-material/Close';
-import './PoForm.css';
+import './PoForm.css'; // Import CSS for styling
+
+// Input component for custom styling if needed
+const Input = React.forwardRef(({ label, id, ...props }, ref) => (
+    <div className="mb-4">
+        <label htmlFor={id}>{label}</label>
+        <input ref={ref} id={id} {...props} className="border p-2 w-full" />
+    </div>
+));
+
+// VendorList component
+const VendorList = ({ vendors, onSelect }) => (
+    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
+        {vendors.map((vendor, index) => (
+            <Box key={index} onClick={() => onSelect(vendor.Name)} className="p-2 cursor-pointer hover:bg-gray-200">
+                {vendor.Name}
+            </Box>
+        ))}
+    </Paper>
+);
+
+// ItemList component
+const ItemList = ({ items, onSelect }) => (
+    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
+        {items.map((item, index) => (
+            <Box key={index} onClick={() => onSelect(index, item.Item)} className="p-2 cursor-pointer hover:bg-gray-200">
+                {item.Item}
+            </Box>
+        ))}
+    </Paper>
+);
 
 export default function PoForm({ po }) {
     const { register, handleSubmit, control, setValue, watch } = useForm({
@@ -52,13 +82,16 @@ export default function PoForm({ po }) {
     }, []);
 
     useEffect(() => {
-        // Recalculate total amount whenever Items change
-        const subscription = watch((value) => {
-            const calculatedTotal = value.Items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
-            setTotalAmount(calculatedTotal);
-            setValue('Amount', calculatedTotal);
-        });
-        return () => subscription.unsubscribe();
+        if (didMountRef.current) {
+            const subscription = watch((value) => {
+                const calculatedTotal = value.Items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
+                setTotalAmount(calculatedTotal);
+                setValue('Amount', calculatedTotal);
+            });
+            return () => subscription.unsubscribe();
+        } else {
+            didMountRef.current = true;
+        }
     }, [watch, setValue]);
 
     const submit = async (data) => {
@@ -168,7 +201,7 @@ export default function PoForm({ po }) {
                         fullWidth
                         className="mb-4"
                     />
-                    <ItemList items={filteredItems} onSelect={handleItemSelect} index={0} />
+                    <ItemList items={filteredItems} onSelect={handleItemSelect} />
                 </Grid>
             </Grid>
         </Box>

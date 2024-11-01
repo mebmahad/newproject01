@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, IconButton, Paper, Typography, Divider, Box } from '@mui/material';
+import { Button, TextField, IconButton, Paper, Typography, Divider } from '@mui/material';
 import Close from '@mui/icons-material/Close';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
@@ -53,7 +53,6 @@ export default function PoForm({ po }) {
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
-    const [lockedItems, setLockedItems] = useState([]);
     const didMountRef = useRef(false);
 
     useEffect(() => {
@@ -82,16 +81,16 @@ export default function PoForm({ po }) {
     }, []);
 
     useEffect(() => {
-        if (didMountRef.current) {
-            const subscription = watch((value) => {
-                const calculatedTotal = value.Items.reduce((acc, item) => acc + (item.qty || 0) * (item.rate || 0), 0);
-                setTotalAmount(calculatedTotal);
-                setValue('Amount', calculatedTotal);
-            });
-            return () => subscription.unsubscribe();
-        } else {
-            didMountRef.current = true;
-        }
+        const subscription = watch((value) => {
+            const calculatedTotal = value.Items.reduce((acc, item) => {
+                const itemAmount = (item.qty || 0) * (item.rate || 0);
+                return acc + itemAmount; // Sum amounts of items
+            }, 0);
+            setTotalAmount(calculatedTotal);
+            setValue('Amount', calculatedTotal); // Update the Amount field if needed
+        });
+        
+        return () => subscription.unsubscribe();
     }, [watch, setValue]);
 
     const submit = async (data) => {
@@ -112,7 +111,7 @@ export default function PoForm({ po }) {
     const handleItemSelect = (itemName) => {
         const newIndex = fields.length - 1; // Get the index of the last added item
         update(newIndex, { ...fields[newIndex], name: itemName });
-        setLockedItems((prevLocked) => [...prevLocked, newIndex]); // Lock the item input after selection
+        // No need to lock items for selection; just update the item name
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -140,7 +139,6 @@ export default function PoForm({ po }) {
                                 <TextField
                                     label="Item Name"
                                     value={watch(`Items.${index}.name`)}
-                                    disabled={lockedItems.includes(index)} // Disable if the item is locked
                                     fullWidth
                                 />
                                 <TextField

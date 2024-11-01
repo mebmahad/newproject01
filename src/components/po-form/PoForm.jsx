@@ -47,7 +47,7 @@ export default function PoForm({ po }) {
         },
     });
 
-    const { fields, append, remove } = useFieldArray({ control, name: 'Items' });
+    const { fields, append, remove, update } = useFieldArray({ control, name: 'Items' });
     const [allVendors, setAllVendors] = useState([]);
     const [allItems, setAllItems] = useState([]);
     const [vendorFilter, setVendorFilter] = useState('');
@@ -110,7 +110,7 @@ export default function PoForm({ po }) {
     };
 
     const handleItemSelect = (index, itemName) => {
-        setValue(`Items.${index}.name`, itemName, { shouldValidate: true });
+        update(index, { ...fields[index], name: itemName });
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -122,10 +122,10 @@ export default function PoForm({ po }) {
     );
 
     return (
-        <Box className="p-4">
+        <Box className="p-4 po-form">
             <Typography variant="h4" gutterBottom>Purchase Order Form</Typography>
             <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={6} lg={6}>
                     <form onSubmit={handleSubmit(submit)}>
                         <TextField
                             label="Vendor Name"
@@ -161,6 +161,14 @@ export default function PoForm({ po }) {
                                     />
                                 </Box>
                                 <Box ml={2}>
+                                    <TextField
+                                        label="Amount"
+                                        value={(watch(`Items.${index}.qty`) || 0) * (watch(`Items.${index}.rate`) || 0)}
+                                        disabled
+                                        fullWidth
+                                    />
+                                </Box>
+                                <Box ml={2}>
                                     <IconButton onClick={() => remove(index)}>
                                         <Close />
                                     </IconButton>
@@ -177,7 +185,7 @@ export default function PoForm({ po }) {
                     </form>
                 </Grid>
                 <Divider orientation="vertical" flexItem />
-                <Grid item xs={12} md={5} className="flex flex-col items-center">
+                <Grid item xs={12} md={5} lg={5} className="flex flex-col items-center">
                     <TextField
                         label="Vendor Filter"
                         value={vendorFilter}

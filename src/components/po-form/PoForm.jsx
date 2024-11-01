@@ -122,10 +122,14 @@ export default function PoForm({ po }) {
         // Calculate the new amount for the item
         const newItemAmount = qty * rate;
 
-        // Set the total amount based on all items
-        setTotalAmount((prevTotal) => {
-            return prevTotal - (prevTotal || 0) + newItemAmount;
-        });
+        // Update the total amount with the newly selected item amount
+        const updatedTotalAmount = fields.reduce((acc, item, index) => {
+            const itemQty = watch(`Items.${index}.qty`) || 0;
+            const itemRate = watch(`Items.${index}.rate`) || 0;
+            return acc + (itemQty * itemRate);
+        }, 0);
+
+        setTotalAmount(updatedTotalAmount);
 
         // Lock the item input after selection
         setLockedItems((prevLocked) => [...prevLocked, newIndex]);

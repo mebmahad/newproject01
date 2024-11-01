@@ -1,38 +1,52 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, Box, Grid, Paper, Typography, IconButton, Divider } from '@mui/material';
+import { Button, TextField, Box, Grid, Paper, Typography, IconButton, Divider, InputBase } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Close from '@mui/icons-material/Close';
 import service from '../../appwrite/config';
-import './PoForm.css'; // Import CSS for additional styling
+import './PoForm.css'; // Your custom styles
 
+// Input component with MUI InputBase for custom styling
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
-    <div className="input-group">
-        <label htmlFor={id}>{label}</label>
-        <input ref={ref} id={id} {...props} onInput={onInput} className="input-field" />
+    <div className="mb-4">
+        <label htmlFor={id} className="block mb-1">{label}</label>
+        <InputBase ref={ref} id={id} {...props} onInput={onInput} className="border rounded p-2 w-full" />
     </div>
 ));
 
+// VendorList component with filtering
 const VendorList = ({ vendors, onSelect }) => (
-    <Paper elevation={2} className="list-container">
+    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
         {vendors.map((vendor, index) => (
-            <Box key={index} onClick={() => onSelect(vendor.Name)} className="list-item">
+            <Box
+                key={index}
+                onClick={() => onSelect(vendor.Name)}
+                className="p-2 cursor-pointer hover:bg-gray-200 border-b last:border-none"
+            >
                 {vendor.Name}
             </Box>
         ))}
     </Paper>
 );
 
-const ItemList = ({ items, onSelect, index }) => (
-    <Paper elevation={2} className="list-container">
-        {items.map((item, idx) => (
-            <Box key={idx} onClick={() => onSelect(index, item.Item)} className="list-item">
-                {item.Item}
-            </Box>
-        ))}
-    </Paper>
-);
+// ItemList component with filtering and exclusion of selected items
+const ItemList = ({ items, selectedItems, onSelect, index }) => {
+    const filteredItems = items.filter(item => !selectedItems.includes(item.Item));
+    return (
+        <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
+            {filteredItems.map((item, idx) => (
+                <Box
+                    key={idx}
+                    onClick={() => onSelect(index, item.Item)}
+                    className="p-2 cursor-pointer hover:bg-gray-200 border-b last:border-none"
+                >
+                    {item.Item}
+                </Box>
+            ))}
+        </Paper>
+    );
+};
 
 export default function PoForm({ po }) {
     const { register, handleSubmit, control, setValue, watch } = useForm({
@@ -110,54 +124,58 @@ export default function PoForm({ po }) {
         update(index, { ...fields[index], name: itemName });
     };
 
+    const selectedItems = fields.map(field => field.name);
     const filteredVendors = allVendors.filter(vendor =>
         vendor.Name.toLowerCase().includes(vendorFilter.toLowerCase())
     );
-
     const filteredItems = allItems.filter(item =>
         item.Item.toLowerCase().includes(itemFilter.toLowerCase())
     );
 
     return (
-        <Box className="po-form-container">
-            <Typography variant="h4" gutterBottom>Purchase Order Form</Typography>
-            <Grid container spacing={2}>
+        <Box className="p-4 po-form space-y-6">
+            <Typography variant="h4" className="text-center font-bold">Purchase Order Form</Typography>
+            <Grid container spacing={4}>
                 <Grid item xs={12} md={6}>
-                    <form onSubmit={handleSubmit(submit)} className="po-form">
+                    <form onSubmit={handleSubmit(submit)} className="space-y-4">
                         <TextField
                             label="Vendor Name"
                             value={watch('VendorName')}
                             disabled
                             fullWidth
-                            className="mb-3"
+                            variant="outlined"
                         />
                         {fields.map((item, index) => (
-                            <Box key={item.id} className="item-row">
+                            <Box key={item.id} className="flex items-center gap-4">
                                 <TextField
                                     label="Item Name"
                                     value={watch(`Items.${index}.name`)}
                                     disabled
                                     fullWidth
+                                    variant="outlined"
                                 />
                                 <TextField
                                     label="Quantity"
                                     type="number"
                                     {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
-                                    fullWidth
+                                    variant="outlined"
+                                    className="w-24"
                                 />
                                 <TextField
                                     label="Rate"
                                     type="number"
                                     {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
-                                    fullWidth
+                                    variant="outlined"
+                                    className="w-24"
                                 />
                                 <TextField
                                     label="Amount"
                                     value={(watch(`Items.${index}.qty`) || 0) * (watch(`Items.${index}.rate`) || 0)}
                                     disabled
-                                    fullWidth
+                                    variant="outlined"
+                                    className="w-24"
                                 />
-                                <IconButton onClick={() => remove(index)}>
+                                <IconButton onClick={() => remove(index)} color="error">
                                     <Close />
                                 </IconButton>
                             </Box>
@@ -165,31 +183,32 @@ export default function PoForm({ po }) {
                         <Button variant="contained" color="primary" onClick={() => append({ name: '', qty: 0, rate: 0 })}>
                             Add Item
                         </Button>
-                        <TextField label="Total Amount" value={totalAmount} disabled fullWidth className="mt-3" />
-                        <Button type="submit" variant="contained" color="primary" fullWidth className="mt-3">
+                        <TextField label="Total Amount" value={totalAmount} disabled fullWidth variant="outlined" />
+                        <Button type="submit" variant="contained" color="primary" fullWidth>
                             {po ? 'Update PO' : 'Submit PO'}
                         </Button>
                     </form>
                 </Grid>
-
-                <Grid item xs={12} md={5} className="list-side-panel">
+                <Divider orientation="vertical" flexItem />
+                <Grid item xs={12} md={5} className="flex flex-col items-center">
                     <TextField
                         label="Vendor Filter"
                         value={vendorFilter}
                         onChange={(e) => setVendorFilter(e.target.value)}
                         fullWidth
-                        className="filter-input"
+                        variant="outlined"
+                        className="mb-4"
                     />
                     <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
-                    <Divider className="divider" />
                     <TextField
                         label="Item Filter"
                         value={itemFilter}
                         onChange={(e) => setItemFilter(e.target.value)}
                         fullWidth
-                        className="filter-input"
+                        variant="outlined"
+                        className="mb-4"
                     />
-                    <ItemList items={filteredItems} onSelect={handleItemSelect} index={0} />
+                    <ItemList items={filteredItems} selectedItems={selectedItems} onSelect={handleItemSelect} index={0} />
                 </Grid>
             </Grid>
         </Box>

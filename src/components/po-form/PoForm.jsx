@@ -4,7 +4,7 @@ import { Button, TextField, Box, Grid, Paper, Typography, IconButton } from '@mu
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { CloseIcon } from '@mui/icons-material';
+import Close from '@mui/icons-material/Close';
 
 // Input component
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
@@ -138,8 +138,7 @@ export default function PoForm({ po }) {
                                 <Box flexGrow={1}>
                                     <TextField
                                         label="Item Name"
-                                        value={item.name}
-                                        disabled
+                                        {...register(`Items.${index}.name`, { required: true })}
                                         fullWidth
                                     />
                                 </Box>
@@ -161,7 +160,7 @@ export default function PoForm({ po }) {
                                 </Box>
                                 <Box ml={2}>
                                     <IconButton onClick={() => remove(index)}>
-                                        <CloseIcon />
+                                        <Close />
                                     </IconButton>
                                 </Box>
                             </Box>
@@ -175,12 +174,13 @@ export default function PoForm({ po }) {
                         </Button>
                     </form>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <TextField
                         label="Vendor Filter"
                         value={vendorFilter}
                         onChange={(e) => setVendorFilter(e.target.value)}
                         fullWidth
+                        className="mb-4"
                     />
                     <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
                     <TextField
@@ -188,6 +188,7 @@ export default function PoForm({ po }) {
                         value={itemFilter}
                         onChange={(e) => setItemFilter(e.target.value)}
                         fullWidth
+                        className="mb-4"
                     />
                     <ItemList items={filteredItems} onSelect={handleItemSelect} index={0} />
                 </Grid>

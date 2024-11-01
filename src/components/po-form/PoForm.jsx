@@ -17,9 +17,9 @@ const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
 
 // VendorList component
 const VendorList = ({ vendors, onSelect }) => (
-    <Paper elevation={3} style={{ maxHeight: 200, overflowY: 'auto', marginBottom: '1rem' }}>
+    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
         {vendors.map((vendor, index) => (
-            <Box key={index} onClick={() => onSelect(vendor.Name)} sx={{ padding: 1, cursor: 'pointer', '&:hover': { backgroundColor: '#f0f0f0' } }}>
+            <Box key={index} onClick={() => onSelect(vendor.Name)} className="p-2 cursor-pointer hover:bg-gray-200">
                 {vendor.Name}
             </Box>
         ))}
@@ -28,9 +28,9 @@ const VendorList = ({ vendors, onSelect }) => (
 
 // ItemList component
 const ItemList = ({ items, onSelect, index }) => (
-    <Paper elevation={3} style={{ maxHeight: 200, overflowY: 'auto', marginBottom: '1rem' }}>
+    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4">
         {items.map((item, idx) => (
-            <Box key={idx} onClick={() => onSelect(index, item.Item)} sx={{ padding: 1, cursor: 'pointer', '&:hover': { backgroundColor: '#f0f0f0' } }}>
+            <Box key={idx} onClick={() => onSelect(index, item.Item)} className="p-2 cursor-pointer hover:bg-gray-200">
                 {item.Item}
             </Box>
         ))}
@@ -122,7 +122,7 @@ export default function PoForm({ po }) {
     );
 
     return (
-        <Box sx={{ padding: '1rem' }} className="po-form">
+        <Box className="p-4">
             <Typography variant="h4" gutterBottom>Purchase Order Form</Typography>
             <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
@@ -135,8 +135,8 @@ export default function PoForm({ po }) {
                             className="mb-4"
                         />
                         {fields.map((item, index) => (
-                            <Box key={item.id} display="flex" alignItems="center" className="mb-4">
-                                <Box flexGrow={1}>
+                            <Box key={item.id} className="flex items-center mb-4">
+                                <Box className="flex-grow">
                                     <TextField
                                         label="Item Name"
                                         value={watch(`Items.${index}.name`)}
@@ -177,7 +177,7 @@ export default function PoForm({ po }) {
                     </form>
                 </Grid>
                 <Divider orientation="vertical" flexItem />
-                <Grid item xs={12} md={5}>
+                <Grid item xs={12} md={5} className="flex flex-col items-center">
                     <TextField
                         label="Vendor Filter"
                         value={vendorFilter}

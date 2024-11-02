@@ -33,9 +33,14 @@ const POCard = () => {
 
     if (!poData) return <Typography>Loading...</Typography>;
 
-    const totalAmount = poData.totalAmount || 0; 
-    const gst = poData.gst || 0; 
-    const totalAmountWithGST = poData.totalamountwithgst;
+    // Ensure amounts are valid numbers
+    const totalAmountWithGST = parseFloat(poData.totalamountwithgst) || 0;
+    const gst = parseFloat(poData.gst) || 0; 
+    const totalAmount = gst > 0 ? (totalAmountWithGST / ((gst / 100) + 1)) : totalAmountWithGST;
+
+    const formatCurrency = (amount) => {
+        return isNaN(amount) ? '0.00' : amount.toFixed(2);
+    };
 
     const generatePDF = async () => {
         const element = document.getElementById('pocard');
@@ -50,19 +55,17 @@ const POCard = () => {
         const pdf = await html2pdf().from(element).set(options).toPdf();
         const blob = await pdf.output('blob');
 
-        // Create a FormData object to upload the PDF
         const formData = new FormData();
         formData.append('file', blob, 'PurchaseOrder.pdf');
 
         try {
-            const response = await fetch('YOUR_UPLOAD_URL', { // Replace with your upload URL
+            const response = await fetch('YOUR_UPLOAD_URL', {
                 method: 'POST',
                 body: formData
             });
             const result = await response.json();
 
             if (result.url) {
-                // Open WhatsApp share link
                 const whatsappShareUrl = `https://wa.me/?text=Check out this Purchase Order: ${result.url}`;
                 window.open(whatsappShareUrl, '_blank');
             } else {
@@ -107,7 +110,7 @@ const POCard = () => {
                                 <TableCell>{item.name}</TableCell>
                                 <TableCell align="right">{item.qty}</TableCell>
                                 <TableCell align="right">{item.rate}</TableCell>
-                                <TableCell align="right">{(item.qty * item.rate).toFixed(2)}</TableCell>
+                                <TableCell align="right">{formatCurrency(item.qty * item.rate)}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -119,13 +122,13 @@ const POCard = () => {
             {/* Total Amount and GST */}
             <div className="text-right mt-4">
                 <Typography variant="body1" className="font-semibold">
-                    Total Amount: ₹{totalAmount.toFixed(2)}
+                    Total Amount: ₹{formatCurrency(totalAmount)}
                 </Typography>
                 <Typography variant="body1">
                     GST/Tax: {gst}%
                 </Typography>
                 <Typography variant="h6" className="font-bold mt-2">
-                    Total with GST/Tax: ₹{totalAmountWithGST.toFixed(2)}
+                    Total with GST/Tax: ₹{formatCurrency(totalAmountWithGST)}
                 </Typography>
             </div>
 

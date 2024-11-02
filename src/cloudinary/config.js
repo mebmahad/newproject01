@@ -3,7 +3,7 @@ import axios from 'axios';
 const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET'); // Replace with a preset name if using unsigned uploads
+    formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET); // Replace with a preset name if using unsigned uploads
 
     try {
         const response = await axios.post(

@@ -33,7 +33,7 @@ const POCard = () => {
     if (!poData) return <Typography>Loading...</Typography>;
 
     // Convert and validate amounts
-    const totalAmount = parseFloat((poData.totalamountwithgst*100)/poData.gst) || 0; // Ensure a valid number, fallback to 0
+    const totalAmount = parseFloat(poData.totalamountwithgst-(poData.gst/100)) || 0; // Ensure a valid number, fallback to 0
     const gst = poData.gst || 0; // GST is expected as an integer, default to 0 if undefined
     const totalAmountWithGST = poData.totalamountwithgst;
 

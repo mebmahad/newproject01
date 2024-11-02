@@ -101,11 +101,12 @@ export default function PoForm({ po }) {
 
     const submit = async (data) => {
         try {
+            
             // Convert Items array to JSON string and ensure correct data types
             const dataToSave = {
                 ...data,
                 Items: JSON.stringify(data.Items),
-                totalAmount: String(totalAmount), // Ensure totalAmount is a string
+                totalAmount: String(data.totalAmount), // Ensure totalAmount is a string
                 gst: parseInt(data.gst, 10), // Ensure gst is an integer
                 totalamountwithgst: parseInt(data.totalamountwithgst, 10), // Ensure totalamountwithgst is an integer
             };

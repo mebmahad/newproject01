@@ -91,8 +91,7 @@ export default function PoForm({ po }) {
                     return acc + itemAmount; // Sum amounts of items
                 }, 0);
                 setTotalAmount(calculatedTotal);
-                setValue('totalAmount', calculatedTotal); // Save the total amount in form state
-                console.log('Calculated Total Amount:', calculatedTotal);
+                setValue('totalAmount', Math.round(calculatedTotal)); // Store total amount as integer
             });
             return () => subscription.unsubscribe();
         } else {
@@ -102,16 +101,12 @@ export default function PoForm({ po }) {
 
     const submit = async (data) => {
         try {
-            const totalWithGst = totalAmount * (1 + (watch('gst') || 0) / 100); // Calculate total with GST
-            console.log('Total Amount:', totalAmount);
-            console.log('GST:', watch('gst'));
-            console.log('Total Amount with GST:', totalWithGst);
-
+            // Convert Items array to JSON string
             const dataToSave = {
                 ...data,
+                totalAmount: Math.round(totalAmount), // Ensure totalAmount is stored as an integer
+                totalamountwithgst: Math.round(data.totalamountwithgst), // Ensure totalamountwithgst is also an integer
                 Items: JSON.stringify(data.Items),
-                totalAmount: totalAmount.toFixed(2), // Save as string for Appwrite
-                totalamountwithgst: Math.round(totalWithGst), // Save as integer for Appwrite
             };
 
             const dbPo = po
@@ -150,8 +145,6 @@ export default function PoForm({ po }) {
         setValue('gst', gstPercentage); // Update GST in the form state
         const totalWithGST = totalAmount * (1 + gstPercentage / 100); // Calculate Total with GST
         setValue('totalamountwithgst', totalWithGST); // Update TotalWithGST in the form state
-        console.log('GST Percentage:', gstPercentage);
-        console.log('Total with GST:', totalWithGST);
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -205,52 +198,62 @@ export default function PoForm({ po }) {
                                 </IconButton>
                             </div>
                         ))}
-                        <Button type="button" onClick={handleAddItem} variant="contained">
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleAddItem}
+                            className="w-full mt-4"
+                        >
                             Add Item
                         </Button>
-                        <Divider className="my-4" />
+                        <div className="mt-6">
+                            <TextField
+                                label="Total Amount"
+                                value={totalAmount}
+                                disabled
+                                fullWidth
+                            />
+                        </div>
                         <TextField
                             label="GST/Tax (%)"
                             type="number"
                             onChange={handleGstChange}
-                            fullWidth
-                        />
-                        <TextField
-                            label="Total Amount"
-                            value={totalAmount.toFixed(2) || '0.00'}
-                            disabled
-                            fullWidth
+                            className="mt-4"
                         />
                         <TextField
                             label="Total with GST/Tax"
-                            value={watch('totalamountwithgst').toFixed(2) || '0.00'}
+                            value={watch('totalamountwithgst')}
                             disabled
                             fullWidth
+                            className="mt-4"
                         />
-                        <Button type="submit" variant="contained" color="success" className="w-full mt-6">
-                            {po ? 'Update PO' : 'Create PO'}
+                        <Button type="submit" variant="contained" color="primary" fullWidth>
+                            {po ? 'Update PO' : 'Submit PO'}
                         </Button>
                     </form>
                 </div>
-                <div className="bg-white rounded-lg p-4 shadow-md">
-                    <Typography variant="h6" className="font-semibold mb-2">Select Vendor</Typography>
+                <Divider orientation="vertical" flexItem />
+                <div className="flex flex-col items-center bg-white rounded-lg p-4 shadow-md">
+                    <Typography variant="h6" className="mb-2">Select Vendor</Typography>
                     <TextField
-                        label="Filter Vendor"
+                        label="Search Vendor"
                         value={vendorFilter}
                         onChange={(e) => setVendorFilter(e.target.value)}
                         fullWidth
                     />
-                    <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
-                </div>
-                <div className="bg-white rounded-lg p-4 shadow-md">
-                    <Typography variant="h6" className="font-semibold mb-2">Select Item</Typography>
+                    {filteredVendors.length > 0 && (
+                        <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
+                    )}
+                    <Typography variant="h6" className="mt-4 mb-2">Select Item</Typography>
                     <TextField
-                        label="Filter Item"
+                        label="Search Item"
                         value={itemFilter}
                         onChange={(e) => setItemFilter(e.target.value)}
                         fullWidth
                     />
-                    <ItemList items={filteredItems} onSelect={handleItemSelect} />
+                    {filteredItems.length > 0 && (
+                        <ItemList items={filteredItems} onSelect={handleItemSelect} />
+                    )}
                 </div>
             </div>
         </div>

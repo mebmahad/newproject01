@@ -31,11 +31,6 @@ const POCard = () => {
 
     if (!poData) return <Typography>Loading...</Typography>;
 
-    // Convert and validate amounts
-    const totalAmount = parseFloat(poData.totalAmount) || 0; // Ensure a valid number, fallback to 0
-    const gst = poData.gst || 0; // GST is expected as an integer, default to 0 if undefined
-    const totalAmountWithGST = totalAmount * (1 + gst / 100);
-
     return (
         <Paper elevation={3} className="p-6 po-card bg-gray-50">
             {/* Company Header */}
@@ -65,7 +60,7 @@ const POCard = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {poData.Items.map((item, index) => (
+                        {JSON.parse(poData.Items).map((item, index) => (
                             <TableRow key={index}>
                                 <TableCell>{item.name}</TableCell>
                                 <TableCell align="right">{item.qty}</TableCell>
@@ -81,15 +76,9 @@ const POCard = () => {
 
             {/* Total Amount and GST */}
             <div className="text-right mt-4">
-                <Typography variant="body1" className="font-semibold">
-                    Total Amount: ₹{totalAmount.toFixed(2)}
-                </Typography>
-                <Typography variant="body1">
-                    GST/Tax: {gst}%
-                </Typography>
-                <Typography variant="h6" className="font-bold mt-2">
-                    Total with GST/Tax: ₹{totalAmountWithGST.toFixed(2)}
-                </Typography>
+                <Typography variant="body1" className="font-semibold">Total Amount: ₹{poData.totalAmount?.toFixed(2)}</Typography>
+                <Typography variant="body1">GST/Tax: {poData.GST}%</Typography>
+                <Typography variant="h6" className="font-bold mt-2">Total with GST/Tax: ₹{(poData.totalamountwithgst || 0).toFixed(2)}</Typography>
             </div>
         </Paper>
     );

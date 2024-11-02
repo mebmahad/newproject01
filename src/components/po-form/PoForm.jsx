@@ -40,7 +40,7 @@ export default function PoForm({ po }) {
         defaultValues: {
             VendorName: po?.VendorName || '',
             Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
-            totalAmount: po?.totalAmount || '0',
+            totalAmount: po?.totalAmount || '',
             gst: po?.gst || 0,
             totalamountwithgst: po?.totalamountwithgst || 0,
             id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,

@@ -40,9 +40,9 @@ export default function PoForm({ po }) {
         defaultValues: {
             VendorName: po?.VendorName || '',
             Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
-            totalAmount: po?.totalAmount || '',
-            gst: po?.gst || 0,
-            totalamountwithgst: po?.totalamountwithgst || 0,
+            totalAmount: po?.totalAmount || 0,
+            gst: 0,
+            totalamountwithgst: 0,
             id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         },
     });
@@ -91,7 +91,7 @@ export default function PoForm({ po }) {
                     return acc + itemAmount; // Sum amounts of items
                 }, 0);
                 setTotalAmount(calculatedTotal);
-                setValue('totalAmount', String(calculatedTotal)); // Store `totalAmount` as a string
+                setValue('Amount', calculatedTotal);
             });
             return () => subscription.unsubscribe();
         } else {
@@ -101,20 +101,23 @@ export default function PoForm({ po }) {
 
     const submit = async (data) => {
         try {
-            
-            // Convert Items array to JSON string and ensure correct data types
+            // Ensure totalAmount is a string and totalamountwithgst is an integer
+            const totalAmountString = totalAmount.toFixed(2); // Convert totalAmount to a string with two decimal places
+            const totalWithGstInt = Math.round(watch('totalamountwithgst')); // Convert totalamountwithgst to integer
+            const gstValue = watch('gst'); // Get GST value from form state
+
             const dataToSave = {
                 ...data,
                 Items: JSON.stringify(data.Items),
-                totalAmount: String(data.totalAmount), // Ensure totalAmount is a string
-                gst: parseInt(data.gst, 10), // Ensure gst is an integer
-                totalamountwithgst: parseInt(data.totalamountwithgst, 10), // Ensure totalamountwithgst is an integer
+                totalAmount: totalAmountString, // Save as string for Appwrite
+                totalamountwithgst: totalWithGstInt, // Save as integer for Appwrite
+                gst: gstValue, // Save GST as an integer
             };
-    
+
             const dbPo = po
                 ? await service.updatePo(po.$id, dataToSave)
                 : await service.createPo({ ...dataToSave, userId: userData?.$id });
-    
+
             if (dbPo) navigate(`/pocard/${dbPo.$id}`);
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -142,11 +145,12 @@ export default function PoForm({ po }) {
         setTotalAmount(calculatedTotal);
     };
 
+    // New function to handle GST input change
     const handleGstChange = (e) => {
-        const gstPercentage = parseFloat(e.target.value) || 0;
-        setValue('gst', gstPercentage);
-        const totalWithGST = Math.round(totalAmount * (1 + gstPercentage / 100));
-        setValue('totalamountwithgst', totalWithGST);
+        const gstPercentage = parseFloat(e.target.value) || 0; // Get the GST value
+        setValue('gst', gstPercentage); // Update GST in the form state
+        const totalWithGST = totalAmount * (1 + gstPercentage / 100); // Calculate Total with GST
+        setValue('totalamountwithgst', totalWithGST); // Update TotalWithGST in the form state
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -203,51 +207,54 @@ export default function PoForm({ po }) {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={handleAddItem}
+                            onClick={handleAddItem} // Updated to use the new handler
                             className="w-full mt-4"
                         >
                             Add Item
                         </Button>
-                        <TextField
-                            label="Total Amount"
-                            value={totalAmount}
-                            disabled
-                            fullWidth
-                        />
+                        <div className="mt-6">
+                            <TextField
+                                label="Total Amount"
+                                value={totalAmount.toFixed(2)} // Ensure it shows two decimal places
+                                disabled
+                                fullWidth
+                            />
+                        </div>
                         <TextField
                             label="GST/Tax (%)"
                             type="number"
-                            onChange={handleGstChange}
+                            onChange={handleGstChange} // Use the new handler here
                             className="mt-4"
                         />
                         <TextField
                             label="Total with GST/Tax"
-                            value={watch('totalamountwithgst')}
+                            value={watch('totalamountwithgst').toFixed(2) || '0.00'} // Ensure it shows two decimal places
                             disabled
                             fullWidth
                             className="mt-4"
                         />
-                        <Button type="submit" variant="contained" color="primary" fullWidth>
-                            {po ? 'Update PO' : 'Submit PO'}
+                        <Button type="submit" variant="contained" color="success" className="w-full mt-6">
+                            {po ? 'Update PO' : 'Create PO'}
                         </Button>
                     </form>
                 </div>
-                <Divider orientation="vertical" flexItem />
-                <div className="flex flex-col items-center bg-white rounded-lg p-4 shadow-md">
+                <div className="bg-white rounded-lg p-4 shadow-md">
+                    <Typography variant="h6" className="font-semibold mb-2">Select Vendor</Typography>
                     <TextField
-                        label="Filter Vendors"
+                        label="Filter Vendor"
                         value={vendorFilter}
                         onChange={(e) => setVendorFilter(e.target.value)}
                         fullWidth
-                        className="mb-2"
                     />
                     <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-md">
+                    <Typography variant="h6" className="font-semibold mb-2">Select Item</Typography>
                     <TextField
-                        label="Filter Items"
+                        label="Filter Item"
                         value={itemFilter}
                         onChange={(e) => setItemFilter(e.target.value)}
                         fullWidth
-                        className="mt-4 mb-2"
                     />
                     <ItemList items={filteredItems} onSelect={handleItemSelect} />
                 </div>

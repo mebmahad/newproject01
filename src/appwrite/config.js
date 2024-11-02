@@ -457,7 +457,7 @@ class Service {
         }
     }
 
-    async createPo({ VendorName, Items, Totalamount, gst, totalamountwithgst, id }) {
+    async createPo({ VendorName, Items, totalAmount, gst, totalamountwithgst, id }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
@@ -466,7 +466,7 @@ class Service {
                 {
                     VendorName,
                     Items,
-                    Totalamount,
+                    totalAmount,
                     gst,
                     totalamountwithgst,
 
@@ -477,7 +477,7 @@ class Service {
         }
     }
 
-    async updatePo(id, { VendorName, Items, Totalamount, gst, totalamountwithgst }) {
+    async updatePo(id, { VendorName, Items, totalAmount, gst, totalamountwithgst }) {
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
@@ -486,7 +486,7 @@ class Service {
                 {
                     VendorName,
                     Items,
-                    Totalamount,
+                    totalAmount,
                     gst,
                     totalamountwithgst,
                 }

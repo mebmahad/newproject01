@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Divider } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Divider, Button } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom'; 
 import service from '../appwrite/config';
+import html2pdf from 'html2pdf.js';
 
 const POCard = () => {
-    const { id } = useParams(); // Get poId from the URL
+    const { id } = useParams(); 
+    const navigate = useNavigate(); 
     const [poData, setPoData] = useState(null);
     const [vendorAddress, setVendorAddress] = useState('');
 
@@ -13,14 +15,13 @@ const POCard = () => {
             try {
                 const data = await service.getPo(id);
                 if (data) {
-                    console.log("Fetched PO Data:", data);  // Debugging log
+                    console.log("Fetched PO Data:", data); 
                     setPoData(data);
 
-                    // Fetch vendor address using the vendor name
                     if (data.VendorName) {
                         const vendors = await service.getVendors();
                         const vendor = vendors.documents.find(v => v.Name === data.VendorName);
-                        if (vendor) setVendorAddress(vendor.Address || ''); // Set the address if available
+                        if (vendor) setVendorAddress(vendor.Address || ''); 
                     }
                 }
             } catch (error) {
@@ -32,13 +33,48 @@ const POCard = () => {
 
     if (!poData) return <Typography>Loading...</Typography>;
 
-    // Convert and validate amounts
-    const totalAmount = parseFloat(poData.totalamountwithgst/((poData.gst/100)+1)) || 0; // Ensure a valid number, fallback to 0
-    const gst = poData.gst || 0; // GST is expected as an integer, default to 0 if undefined
+    const totalAmount = poData.totalAmount || 0; 
+    const gst = poData.gst || 0; 
     const totalAmountWithGST = poData.totalamountwithgst;
 
+    const generatePDF = async () => {
+        const element = document.getElementById('pocard');
+        const options = {
+            margin: 1,
+            filename: 'PurchaseOrder.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        const pdf = await html2pdf().from(element).set(options).toPdf();
+        const blob = await pdf.output('blob');
+
+        // Create a FormData object to upload the PDF
+        const formData = new FormData();
+        formData.append('file', blob, 'PurchaseOrder.pdf');
+
+        try {
+            const response = await fetch('YOUR_UPLOAD_URL', { // Replace with your upload URL
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.url) {
+                // Open WhatsApp share link
+                const whatsappShareUrl = `https://wa.me/?text=Check out this Purchase Order: ${result.url}`;
+                window.open(whatsappShareUrl, '_blank');
+            } else {
+                console.error("File upload failed:", result);
+            }
+        } catch (error) {
+            console.error("Error uploading file:", error);
+        }
+    };
+
     return (
-        <Paper elevation={3} className="p-6 po-card bg-gray-50">
+        <Paper elevation={3} className="p-6 po-card bg-gray-50" id="pocard">
             {/* Company Header */}
             <Typography variant="h5" className="text-center font-bold mb-2">Dawat Properties Trust</Typography>
             <Typography className="text-center">Mahad Al Zahra, Pakhti, Galiakot, Rajasthan</Typography>
@@ -92,6 +128,11 @@ const POCard = () => {
                     Total with GST/Tax: ₹{totalAmountWithGST.toFixed(2)}
                 </Typography>
             </div>
+
+            {/* Button to Generate and Share PDF */}
+            <Button variant="contained" color="primary" onClick={generatePDF} className="mt-4">
+                Share as PDF on WhatsApp
+            </Button>
         </Paper>
     );
 };

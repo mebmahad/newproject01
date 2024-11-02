@@ -44,6 +44,11 @@ const POCard = () => {
 
     const generatePDF = async () => {
         const element = document.getElementById('pocard');
+        if (!element) {
+            console.error("Element to convert to PDF not found");
+            return;
+        }
+
         const options = {
             margin: 1,
             filename: 'PurchaseOrder.pdf',
@@ -52,13 +57,12 @@ const POCard = () => {
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        const pdf = await html2pdf().from(element).set(options).toPdf();
-        const blob = await pdf.output('blob');
-
-        const formData = new FormData();
-        formData.append('file', blob, 'PurchaseOrder.pdf');
-
         try {
+            const pdf = await html2pdf().from(element).set(options).output('blob'); // Get PDF as a Blob
+            const formData = new FormData();
+            formData.append('file', pdf, 'PurchaseOrder.pdf');
+
+            // Replace 'YOUR_UPLOAD_URL' with your actual upload endpoint
             const response = await fetch('YOUR_UPLOAD_URL', {
                 method: 'POST',
                 body: formData
@@ -72,7 +76,7 @@ const POCard = () => {
                 console.error("File upload failed:", result);
             }
         } catch (error) {
-            console.error("Error uploading file:", error);
+            console.error("Error generating PDF or uploading:", error);
         }
     };
 

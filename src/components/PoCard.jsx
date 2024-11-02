@@ -27,7 +27,7 @@ const POCard = () => {
             }
         };
         fetchPoData();
-    }, [poId]);
+    }, [id]);
 
     if (!poData) return <Typography>Loading...</Typography>;
 

@@ -33,9 +33,9 @@ const POCard = () => {
     if (!poData) return <Typography>Loading...</Typography>;
 
     // Convert and validate amounts
-    const totalAmount = parseFloat(poData.totalAmount) || 0; // Ensure a valid number, fallback to 0
+    const totalAmount = parseFloat((poData.totalamountwithgst*100)/poData.gst) || 0; // Ensure a valid number, fallback to 0
     const gst = poData.gst || 0; // GST is expected as an integer, default to 0 if undefined
-    const totalAmountWithGST = totalAmount * (1 + gst / 100);
+    const totalAmountWithGST = poData.totalamountwithgst;
 
     return (
         <Paper elevation={3} className="p-6 po-card bg-gray-50">

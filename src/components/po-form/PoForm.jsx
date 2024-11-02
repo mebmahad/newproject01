@@ -40,9 +40,9 @@ export default function PoForm({ po }) {
         defaultValues: {
             VendorName: po?.VendorName || '',
             Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
-            totalAmount: po?.totalAmount || 0,
-            gst: 0,
-            totalamountwithgst: 0,
+            totalAmount: po?.totalAmount || '0',
+            gst: po?.gst || 0,
+            totalamountwithgst: po?.totalamountwithgst || 0,
             id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         },
     });
@@ -91,7 +91,7 @@ export default function PoForm({ po }) {
                     return acc + itemAmount; // Sum amounts of items
                 }, 0);
                 setTotalAmount(calculatedTotal);
-                setValue('Amount', calculatedTotal);
+                setValue('totalAmount', String(calculatedTotal)); // Store `totalAmount` as a string
             });
             return () => subscription.unsubscribe();
         } else {
@@ -101,10 +101,13 @@ export default function PoForm({ po }) {
 
     const submit = async (data) => {
         try {
-            // Convert Items array to JSON string
+            // Convert Items array to JSON string and ensure correct data types
             const dataToSave = {
                 ...data,
                 Items: JSON.stringify(data.Items),
+                totalAmount: String(totalAmount), // Ensure totalAmount is a string
+                gst: parseInt(data.gst, 10), // Ensure gst is an integer
+                totalamountwithgst: parseInt(data.totalamountwithgst, 10), // Ensure totalamountwithgst is an integer
             };
     
             const dbPo = po
@@ -138,12 +141,11 @@ export default function PoForm({ po }) {
         setTotalAmount(calculatedTotal);
     };
 
-    // New function to handle GST input change
     const handleGstChange = (e) => {
-        const gstPercentage = parseFloat(e.target.value) || 0; // Get the GST value
-        setValue('gst', gstPercentage); // Update GST in the form state
-        const totalWithGST = totalAmount * (1 + gstPercentage / 100); // Calculate Total with GST
-        setValue('totalamountwithgst', totalWithGST); // Update TotalWithGST in the form state
+        const gstPercentage = parseFloat(e.target.value) || 0;
+        setValue('gst', gstPercentage);
+        const totalWithGST = Math.round(totalAmount * (1 + gstPercentage / 100));
+        setValue('totalamountwithgst', totalWithGST);
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -200,23 +202,21 @@ export default function PoForm({ po }) {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={handleAddItem} // Updated to use the new handler
+                            onClick={handleAddItem}
                             className="w-full mt-4"
                         >
                             Add Item
                         </Button>
-                        <div className="mt-6">
-                            <TextField
-                                label="Total Amount"
-                                value={totalAmount}
-                                disabled
-                                fullWidth
-                            />
-                        </div>
+                        <TextField
+                            label="Total Amount"
+                            value={totalAmount}
+                            disabled
+                            fullWidth
+                        />
                         <TextField
                             label="GST/Tax (%)"
                             type="number"
-                            onChange={handleGstChange} // Use the new handler here
+                            onChange={handleGstChange}
                             className="mt-4"
                         />
                         <TextField
@@ -234,19 +234,19 @@ export default function PoForm({ po }) {
                 <Divider orientation="vertical" flexItem />
                 <div className="flex flex-col items-center bg-white rounded-lg p-4 shadow-md">
                     <TextField
-                        label="Vendors"
+                        label="Filter Vendors"
                         value={vendorFilter}
                         onChange={(e) => setVendorFilter(e.target.value)}
                         fullWidth
-                        className="mb-4"
+                        className="mb-2"
                     />
                     <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
                     <TextField
-                        label="Items"
+                        label="Filter Items"
                         value={itemFilter}
                         onChange={(e) => setItemFilter(e.target.value)}
                         fullWidth
-                        className="mb-4"
+                        className="mt-4 mb-2"
                     />
                     <ItemList items={filteredItems} onSelect={handleItemSelect} />
                 </div>

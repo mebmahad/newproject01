@@ -4,14 +4,14 @@ import { useParams } from 'react-router-dom';
 import service from '../appwrite/config';
 
 const POCard = () => {
-    const { poId } = useParams(); // Get poId from the URL
+    const { id } = useParams(); // Get poId from the URL
     const [poData, setPoData] = useState(null);
     const [vendorAddress, setVendorAddress] = useState('');
 
     useEffect(() => {
         const fetchPoData = async () => {
             try {
-                const data = await service.getPo(poId);
+                const data = await service.getPo(id);
                 if (data) {
                     setPoData(data);
 

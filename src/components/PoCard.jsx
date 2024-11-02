@@ -1,8 +1,3 @@
-import React, { useEffect, useState } from 'react';
-import { Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Divider } from '@mui/material';
-import { useParams } from 'react-router-dom';
-import service from '../appwrite/config';
-
 const POCard = () => {
     const { id } = useParams(); // Get poId from the URL
     const [poData, setPoData] = useState(null);
@@ -30,6 +25,14 @@ const POCard = () => {
     }, [id]);
 
     if (!poData) return <Typography>Loading...</Typography>;
+
+    // Ensure Items is valid before parsing
+    let items = [];
+    try {
+        items = JSON.parse(poData.Items); // Make sure this is a valid JSON string
+    } catch (e) {
+        console.error('Error parsing items:', e);
+    }
 
     return (
         <Paper elevation={3} className="p-6 po-card bg-gray-50">
@@ -60,7 +63,7 @@ const POCard = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {JSON.parse(poData.Items).map((item, index) => (
+                        {items.map((item, index) => (
                             <TableRow key={index}>
                                 <TableCell>{item.name}</TableCell>
                                 <TableCell align="right">{item.qty}</TableCell>
@@ -77,11 +80,9 @@ const POCard = () => {
             {/* Total Amount and GST */}
             <div className="text-right mt-4">
                 <Typography variant="body1" className="font-semibold">Total Amount: ₹{poData.totalAmount?.toFixed(2)}</Typography>
-                <Typography variant="body1">GST/Tax: {poData.GST}%</Typography>
+                <Typography variant="body1">GST/Tax: {poData.gst}%</Typography>
                 <Typography variant="h6" className="font-bold mt-2">Total with GST/Tax: ₹{(poData.totalamountwithgst || 0).toFixed(2)}</Typography>
             </div>
         </Paper>
     );
 };
-
-export default POCard;

@@ -76,9 +76,15 @@ const POCard = () => {
 
             {/* Total Amount and GST */}
             <div className="text-right mt-4">
-                <Typography variant="body1" className="font-semibold">Total Amount: ₹{poData.Amount?.toFixed(2)}</Typography>
-                <Typography variant="body1">GST/Tax: {poData.GST}%</Typography>
-                <Typography variant="h6" className="font-bold mt-2">Total with GST/Tax: ₹{poData.TotalWithGST?.toFixed(2)}</Typography>
+                <Typography variant="body1" className="font-semibold">
+                    Total Amount: ₹{Number(poData.totalAmount).toFixed(2)}
+                </Typography>
+                <Typography variant="body1">
+                    GST/Tax: {poData.gst}%
+                </Typography>
+                <Typography variant="h6" className="font-bold mt-2">
+                    Total with GST/Tax: ₹{Number(poData.totalAmountWithGST).toFixed(2)}
+                </Typography>
             </div>
         </Paper>
     );

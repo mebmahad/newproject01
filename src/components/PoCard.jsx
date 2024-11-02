@@ -1,23 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Divider } from '@mui/material';
+import { useParams } from 'react-router-dom';
 import service from '../appwrite/config';
 
-const POCard = ({ poId }) => {
+const POCard = () => {
+    const { poId } = useParams(); // Get poId from the URL
     const [poData, setPoData] = useState(null);
     const [vendorAddress, setVendorAddress] = useState('');
 
     useEffect(() => {
         const fetchPoData = async () => {
-            const data = await service.getPo(poId);
-            if (data) {
-                setPoData(data);
+            try {
+                const data = await service.getPo(poId);
+                if (data) {
+                    setPoData(data);
 
-                // Fetch vendor address using the vendor name if necessary
-                if (data.VendorName) {
-                    const vendors = await service.getVendors(); // Assuming getVendors() fetches all vendors
-                    const vendor = vendors.documents.find(v => v.Name === data.VendorName);
-                    if (vendor) setVendorAddress(vendor.Address || ''); // Set the address if available
+                    // Fetch vendor address using the vendor name
+                    if (data.VendorName) {
+                        const vendors = await service.getVendors();
+                        const vendor = vendors.documents.find(v => v.Name === data.VendorName);
+                        if (vendor) setVendorAddress(vendor.Address || ''); // Set the address if available
+                    }
                 }
+            } catch (error) {
+                console.error("Error fetching PO data:", error);
             }
         };
         fetchPoData();
@@ -59,7 +65,7 @@ const POCard = ({ poId }) => {
                                 <TableCell>{item.name}</TableCell>
                                 <TableCell align="right">{item.qty}</TableCell>
                                 <TableCell align="right">{item.rate}</TableCell>
-                                <TableCell align="right">{item.qty * item.rate}</TableCell>
+                                <TableCell align="right">{(item.qty * item.rate).toFixed(2)}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -70,9 +76,9 @@ const POCard = ({ poId }) => {
 
             {/* Total Amount and GST */}
             <div className="text-right mt-4">
-                <Typography variant="body1" className="font-semibold">Total Amount: {poData.totalAmount}</Typography>
-                <Typography variant="body1">GST/Tax: {poData.gst}%</Typography>
-                <Typography variant="h6" className="font-bold mt-2">Total with GST/Tax: {poData.totalamountwithgst}</Typography>
+                <Typography variant="body1" className="font-semibold">Total Amount: ₹{poData.Amount?.toFixed(2)}</Typography>
+                <Typography variant="body1">GST/Tax: {poData.GST}%</Typography>
+                <Typography variant="h6" className="font-bold mt-2">Total with GST/Tax: ₹{poData.TotalWithGST?.toFixed(2)}</Typography>
             </div>
         </Paper>
     );

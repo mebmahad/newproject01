@@ -36,7 +36,7 @@ const POCard = () => {
     // Ensure amounts are valid numbers
     const totalAmountWithGST = parseFloat(poData.totalamountwithgst) || 0;
     const gst = parseFloat(poData.gst) || 0; 
-    const totalAmount = gst > 0 ? (totalAmountWithGST / ((gst / 100) + 1)) : totalAmountWithGST;
+    const totalAmount = parseFloat(poData.totalAmount) || 0;
 
     const formatCurrency = (amount) => {
         return isNaN(amount) ? '0.00' : amount.toFixed(2);

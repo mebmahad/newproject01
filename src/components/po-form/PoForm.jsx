@@ -91,7 +91,8 @@ export default function PoForm({ po }) {
                     return acc + itemAmount; // Sum amounts of items
                 }, 0);
                 setTotalAmount(calculatedTotal);
-                setValue('Amount', calculatedTotal);
+                setValue('totalAmount', calculatedTotal); // Save the total amount in form state
+                console.log('Calculated Total Amount:', calculatedTotal);
             });
             return () => subscription.unsubscribe();
         } else {
@@ -101,17 +102,16 @@ export default function PoForm({ po }) {
 
     const submit = async (data) => {
         try {
-            // Ensure totalAmount is a string and totalamountwithgst is an integer
-            const totalAmountString = totalAmount.toFixed(2); // Convert totalAmount to a string with two decimal places
-            const totalWithGstInt = Math.round(watch('totalamountwithgst')); // Convert totalamountwithgst to integer
-            const gstValue = watch('gst'); // Get GST value from form state
+            const totalWithGst = totalAmount * (1 + (watch('gst') || 0) / 100); // Calculate total with GST
+            console.log('Total Amount:', totalAmount);
+            console.log('GST:', watch('gst'));
+            console.log('Total Amount with GST:', totalWithGst);
 
             const dataToSave = {
                 ...data,
                 Items: JSON.stringify(data.Items),
-                totalAmount: totalAmountString, // Save as string for Appwrite
-                totalamountwithgst: totalWithGstInt, // Save as integer for Appwrite
-                gst: gstValue, // Save GST as an integer
+                totalAmount: totalAmount.toFixed(2), // Save as string for Appwrite
+                totalamountwithgst: Math.round(totalWithGst), // Save as integer for Appwrite
             };
 
             const dbPo = po
@@ -145,12 +145,13 @@ export default function PoForm({ po }) {
         setTotalAmount(calculatedTotal);
     };
 
-    // New function to handle GST input change
     const handleGstChange = (e) => {
         const gstPercentage = parseFloat(e.target.value) || 0; // Get the GST value
         setValue('gst', gstPercentage); // Update GST in the form state
         const totalWithGST = totalAmount * (1 + gstPercentage / 100); // Calculate Total with GST
         setValue('totalamountwithgst', totalWithGST); // Update TotalWithGST in the form state
+        console.log('GST Percentage:', gstPercentage);
+        console.log('Total with GST:', totalWithGST);
     };
 
     const filteredVendors = allVendors.filter(vendor =>
@@ -204,34 +205,27 @@ export default function PoForm({ po }) {
                                 </IconButton>
                             </div>
                         ))}
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleAddItem} // Updated to use the new handler
-                            className="w-full mt-4"
-                        >
+                        <Button type="button" onClick={handleAddItem} variant="contained">
                             Add Item
                         </Button>
-                        <div className="mt-6">
-                            <TextField
-                                label="Total Amount"
-                                value={totalAmount.toFixed(2)} // Ensure it shows two decimal places
-                                disabled
-                                fullWidth
-                            />
-                        </div>
+                        <Divider className="my-4" />
                         <TextField
                             label="GST/Tax (%)"
                             type="number"
-                            onChange={handleGstChange} // Use the new handler here
-                            className="mt-4"
+                            onChange={handleGstChange}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Total Amount"
+                            value={totalAmount.toFixed(2) || '0.00'}
+                            disabled
+                            fullWidth
                         />
                         <TextField
                             label="Total with GST/Tax"
-                            value={watch('totalamountwithgst').toFixed(2) || '0.00'} // Ensure it shows two decimal places
+                            value={watch('totalamountwithgst').toFixed(2) || '0.00'}
                             disabled
                             fullWidth
-                            className="mt-4"
                         />
                         <Button type="submit" variant="contained" color="success" className="w-full mt-6">
                             {po ? 'Update PO' : 'Create PO'}

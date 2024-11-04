@@ -35,6 +35,11 @@ function Header() {
       slug: '/add-post',
       active: true,
     },
+    {
+      name: 'Manage Store',
+      slug: '/store-manage',
+      active: true,
+    },
   ];
 
   return (

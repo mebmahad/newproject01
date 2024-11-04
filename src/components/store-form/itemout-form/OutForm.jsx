@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, TextField, Typography } from '@mui/material';
-import service from '../../appwrite/config';
+import service from '../../../appwrite/config';
 
 export default function OutForm() {
     const { register, handleSubmit, reset } = useForm();

@@ -32,7 +32,8 @@ import EditLocation from './pages/EditLocation.jsx';
 import AllLocations from "./pages/AllLocations";
 import AddLocation from "./pages/AddLocation.jsx";
 import Location from "./pages/Location.jsx";
-import Store from "./pages/Store.jsx";
+import Store from "./pages/StorePage.jsx";
+import StorePage from './pages/StorePage.jsx';
 
 
 const router = createBrowserRouter([
@@ -69,7 +70,7 @@ const router = createBrowserRouter([
       {
         path: "/store-manage",
         element: (
-            <Store />
+            <StorePage />
         ),
       },
       {

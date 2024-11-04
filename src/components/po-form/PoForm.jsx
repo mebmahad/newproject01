@@ -36,6 +36,7 @@ export default function PoForm({ po }) {
     const { fields, append, remove, update } = useFieldArray({ control, name: 'Items' });
     const [allVendors, setAllVendors] = useState([]);
     const [allItems, setAllItems] = useState([]);
+    const [itemFilter, setItemFilter] = useState('');
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
@@ -86,7 +87,6 @@ export default function PoForm({ po }) {
     const submit = async (data) => {
         try {
             const totalWithGst = totalAmount * (1 + (watch('gst') || 0) / 100);
-
             const dataToSave = {
                 ...data,
                 Items: JSON.stringify(data.Items),
@@ -127,37 +127,28 @@ export default function PoForm({ po }) {
         setValue('totalamountwithgst', totalWithGST);
     };
 
-    const navigateToAddVendor = () => {
-        navigate('/add-vendor');
-    };
-
-    const navigateToAddItem = () => {
-        navigate('/add-item');
-    };
+    const filteredItems = allItems.filter(item =>
+        item.Item.toLowerCase().includes(itemFilter.toLowerCase())
+    );
 
     return (
-        <div className="p-4 po-form bg-gray-50 min-h-screen">
-            <Typography variant="h5" className="text-center mb-6">Purchase Order Form</Typography>
+        <div className="p-4 po-form bg-gray-50 min-h-screen text-sm">
+            <Typography variant="h4" className="text-center mb-8">Purchase Order Form</Typography>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white rounded-lg p-4 shadow-md">
-                    <form onSubmit={handleSubmit(submit)} className="space-y-3">
-                        <div className="flex items-center gap-4">
-                            <Select
-                                label="Vendor Name"
-                                {...register('VendorName')}
-                                defaultValue=""
-                                onChange={(e) => setValue('VendorName', e.target.value, { shouldValidate: true })}
-                                fullWidth
-                            >
-                                {allVendors.map((vendor, index) => (
-                                    <MenuItem key={index} value={vendor.Name} style={{ fontSize: '0.875rem' }}>
-                                        {vendor.Name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                            <Button variant="outlined" onClick={navigateToAddVendor} size="small">Add Vendor</Button>
-                        </div>
-
+                    <form onSubmit={handleSubmit(submit)} className="space-y-4">
+                        <Select
+                            label="Vendor Name"
+                            value={watch('VendorName')}
+                            onChange={(e) => setValue('VendorName', e.target.value, { shouldValidate: true })}
+                            fullWidth
+                        >
+                            {allVendors.map((vendor) => (
+                                <MenuItem key={vendor.$id} value={vendor.Name}>
+                                    {vendor.Name}
+                                </MenuItem>
+                            ))}
+                        </Select>
                         {fields.map((item, index) => (
                             <div key={item.id} className="flex items-center gap-2">
                                 <TextField
@@ -165,68 +156,85 @@ export default function PoForm({ po }) {
                                     value={watch(`Items.${index}.name`)}
                                     disabled={lockedItems.includes(index)}
                                     fullWidth
-                                    style={{ fontSize: '0.875rem' }}
                                 />
                                 <TextField
                                     label="Quantity"
                                     type="number"
                                     {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
                                     className="w-1/4"
-                                    style={{ fontSize: '0.875rem' }}
                                 />
                                 <TextField
                                     label="Rate"
                                     type="number"
                                     {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
                                     className="w-1/4"
-                                    style={{ fontSize: '0.875rem' }}
                                 />
                                 <TextField
                                     label="Amount"
                                     value={(watch(`Items.${index}.qty`) || 0) * (watch(`Items.${index}.rate`) || 0)}
                                     disabled
                                     className="w-1/4"
-                                    style={{ fontSize: '0.875rem' }}
                                 />
                                 <IconButton onClick={() => remove(index)} className="ml-2">
-                                    <Close fontSize="small" />
+                                    <Close />
                                 </IconButton>
                             </div>
                         ))}
-                        <div className="flex gap-2">
-                            <Button type="button" onClick={handleAddItem} variant="contained" size="small">
-                                Add Item
-                            </Button>
-                            <Button variant="outlined" onClick={navigateToAddItem} size="small">Add Item</Button>
-                        </div>
-
+                        <Button type="button" onClick={handleAddItem} variant="contained">
+                            Add Item
+                        </Button>
                         <Divider className="my-4" />
                         <TextField
                             label="GST/Tax (%)"
                             type="number"
                             onChange={handleGstChange}
                             fullWidth
-                            style={{ fontSize: '0.875rem' }}
                         />
                         <TextField
                             label="Total Amount"
                             value={totalAmount.toFixed(2) || '0.00'}
                             disabled
                             fullWidth
-                            style={{ fontSize: '0.875rem' }}
                         />
                         <TextField
                             label="Total with GST/Tax"
                             value={watch('totalamountwithgst').toFixed(2) || '0.00'}
                             disabled
                             fullWidth
-                            style={{ fontSize: '0.875rem' }}
                         />
                         <Button type="submit" variant="contained" color="success" className="w-full mt-6">
                             {po ? 'Update PO' : 'Create PO'}
                         </Button>
                     </form>
                 </div>
+                <div className="bg-white rounded-lg p-4 shadow-md">
+                    <Typography variant="h6" className="font-semibold mb-2">Select Item</Typography>
+                    <TextField
+                        label="Filter Item"
+                        value={itemFilter}
+                        onChange={(e) => setItemFilter(e.target.value)}
+                        fullWidth
+                    />
+                    <div className="max-h-52 overflow-y-auto">
+                        {filteredItems.map((item, idx) => (
+                            <div
+                                key={idx}
+                                onClick={() => handleItemSelect(item.Item)}
+                                className="p-2 cursor-pointer hover:bg-gray-200 text-center"
+                            >
+                                {item.Item}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+            <div className="flex justify-between mt-6">
+                <Button variant="outlined" onClick={() => navigate('/add-vendor')} color="primary">
+                    Add Vendor
+                </Button>
+                <Button variant="outlined" onClick={() => navigate('/add-item')} color="primary">
+                    Add Item
+                </Button>
             </div>
         </div>
     );

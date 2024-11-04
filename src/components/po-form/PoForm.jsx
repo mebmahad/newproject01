@@ -1,25 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, IconButton, Paper, Typography, Divider } from '@mui/material';
+import { Button, TextField, IconButton, Paper, Typography, Divider, Select, MenuItem } from '@mui/material';
 import Close from '@mui/icons-material/Close';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import './PoForm.css';
-
-const VendorList = ({ vendors, onSelect }) => (
-    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4 w-full">
-        {vendors.map((vendor, index) => (
-            <div
-                key={index}
-                onClick={() => onSelect(vendor.Name)}
-                className="p-2 cursor-pointer hover:bg-gray-200 text-center"
-            >
-                {vendor.Name}
-            </div>
-        ))}
-    </Paper>
-);
 
 const ItemList = ({ items, onSelect }) => (
     <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4 w-full">
@@ -50,7 +36,6 @@ export default function PoForm({ po }) {
     const { fields, append, remove, update } = useFieldArray({ control, name: 'Items' });
     const [allVendors, setAllVendors] = useState([]);
     const [allItems, setAllItems] = useState([]);
-    const [vendorFilter, setVendorFilter] = useState('');
     const [itemFilter, setItemFilter] = useState('');
     const [totalAmount, setTotalAmount] = useState(0);
     const navigate = useNavigate();
@@ -88,11 +73,10 @@ export default function PoForm({ po }) {
             const subscription = watch((value) => {
                 const calculatedTotal = value.Items.reduce((acc, item) => {
                     const itemAmount = (item.qty || 0) * (item.rate || 0);
-                    return acc + itemAmount; // Sum amounts of items
+                    return acc + itemAmount;
                 }, 0);
                 setTotalAmount(calculatedTotal);
-                setValue('totalAmount', calculatedTotal); // Save the total amount in form state
-                console.log('Calculated Total Amount:', calculatedTotal);
+                setValue('totalAmount', calculatedTotal);
             });
             return () => subscription.unsubscribe();
         } else {
@@ -102,16 +86,12 @@ export default function PoForm({ po }) {
 
     const submit = async (data) => {
         try {
-            const totalWithGst = totalAmount * (1 + (watch('gst') || 0) / 100); // Calculate total with GST
-            console.log('Total Amount:', totalAmount);
-            console.log('GST:', watch('gst'));
-            console.log('Total Amount with GST:', totalWithGst);
-
+            const totalWithGst = totalAmount * (1 + (watch('gst') || 0) / 100);
             const dataToSave = {
                 ...data,
                 Items: JSON.stringify(data.Items),
-                totalAmount: totalAmount.toFixed(2), // Save as string for Appwrite
-                totalamountwithgst: Math.round(totalWithGst), // Save as integer for Appwrite
+                totalAmount: totalAmount.toFixed(2),
+                totalamountwithgst: Math.round(totalWithGst),
             };
 
             const dbPo = po
@@ -124,19 +104,14 @@ export default function PoForm({ po }) {
         }
     };
 
-    const handleVendorSelect = (vendorName) => {
-        setValue('VendorName', vendorName, { shouldValidate: true });
-    };
-
     const handleItemSelect = (itemName) => {
-        const newIndex = fields.length - 1; // Get the index of the last added item
+        const newIndex = fields.length - 1;
         update(newIndex, { ...fields[newIndex], name: itemName });
-        setLockedItems((prevLocked) => [...prevLocked, newIndex]); // Lock the item input after selection
+        setLockedItems((prevLocked) => [...prevLocked, newIndex]);
     };
 
     const handleAddItem = () => {
         append({ name: '', qty: 0, rate: 0 });
-        // Recalculate total amount after adding a new item
         const calculatedTotal = fields.reduce((acc, item, index) => {
             const itemQty = watch(`Items.${index}.qty`) || 0;
             const itemRate = watch(`Items.${index}.rate`) || 0;
@@ -146,17 +121,11 @@ export default function PoForm({ po }) {
     };
 
     const handleGstChange = (e) => {
-        const gstPercentage = parseFloat(e.target.value) || 0; // Get the GST value
-        setValue('gst', gstPercentage); // Update GST in the form state
-        const totalWithGST = totalAmount * (1 + gstPercentage / 100); // Calculate Total with GST
-        setValue('totalamountwithgst', totalWithGST); // Update TotalWithGST in the form state
-        console.log('GST Percentage:', gstPercentage);
-        console.log('Total with GST:', totalWithGST);
+        const gstPercentage = parseFloat(e.target.value) || 0;
+        setValue('gst', gstPercentage);
+        const totalWithGST = totalAmount * (1 + gstPercentage / 100);
+        setValue('totalamountwithgst', totalWithGST);
     };
-
-    const filteredVendors = allVendors.filter(vendor =>
-        vendor.Name.toLowerCase().includes(vendorFilter.toLowerCase())
-    );
 
     const filteredItems = allItems.filter(item =>
         item.Item.toLowerCase().includes(itemFilter.toLowerCase())
@@ -168,18 +137,24 @@ export default function PoForm({ po }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white rounded-lg p-4 shadow-md">
                     <form onSubmit={handleSubmit(submit)} className="space-y-4">
-                        <TextField
+                        <Select
                             label="Vendor Name"
                             value={watch('VendorName')}
-                            disabled
+                            onChange={(e) => setValue('VendorName', e.target.value, { shouldValidate: true })}
                             fullWidth
-                        />
+                        >
+                            {allVendors.map((vendor) => (
+                                <MenuItem key={vendor.$id} value={vendor.Name}>
+                                    {vendor.Name}
+                                </MenuItem>
+                            ))}
+                        </Select>
                         {fields.map((item, index) => (
                             <div key={item.id} className="flex items-center gap-2">
                                 <TextField
                                     label="Item Name"
                                     value={watch(`Items.${index}.name`)}
-                                    disabled={lockedItems.includes(index)} // Disable if the item is locked
+                                    disabled={lockedItems.includes(index)}
                                     fullWidth
                                 />
                                 <TextField
@@ -233,16 +208,6 @@ export default function PoForm({ po }) {
                     </form>
                 </div>
                 <div className="bg-white rounded-lg p-4 shadow-md">
-                    <Typography variant="h6" className="font-semibold mb-2">Select Vendor</Typography>
-                    <TextField
-                        label="Filter Vendor"
-                        value={vendorFilter}
-                        onChange={(e) => setVendorFilter(e.target.value)}
-                        fullWidth
-                    />
-                    <VendorList vendors={filteredVendors} onSelect={handleVendorSelect} />
-                </div>
-                <div className="bg-white rounded-lg p-4 shadow-md">
                     <Typography variant="h6" className="font-semibold mb-2">Select Item</Typography>
                     <TextField
                         label="Filter Item"
@@ -250,8 +215,26 @@ export default function PoForm({ po }) {
                         onChange={(e) => setItemFilter(e.target.value)}
                         fullWidth
                     />
-                    <ItemList items={filteredItems} onSelect={handleItemSelect} />
+                    <div className="max-h-52 overflow-y-auto">
+                        {filteredItems.map((item, idx) => (
+                            <div
+                                key={idx}
+                                onClick={() => handleItemSelect(item.Item)}
+                                className="p-2 cursor-pointer hover:bg-gray-200 text-center"
+                            >
+                                {item.Item}
+                            </div>
+                        ))}
+                    </div>
                 </div>
+            </div>
+            <div className="flex justify-between mt-6">
+                <Button variant="outlined" onClick={() => navigate('/add-vendor')} color="primary">
+                    Add Vendor
+                </Button>
+                <Button variant="outlined" onClick={() => navigate('/add-item')} color="primary">
+                    Add Item
+                </Button>
             </div>
         </div>
     );

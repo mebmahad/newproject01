@@ -81,3 +81,18 @@
     color: #111827; /* Tailwind's gray-900 */
     margin-top: 1rem;
 }
+
+.po-form {
+    font-size: 0.9rem; /* Adjusted for smaller font size */
+}
+
+.po-form input,
+.po-form select,
+.po-form .MuiButtonBase-root {
+    font-size: 0.85rem;
+}
+
+.po-form .MuiTypography-root {
+    font-size: 1rem; /* Larger titles */
+}
+

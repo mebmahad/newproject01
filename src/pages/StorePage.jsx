@@ -1,8 +1,7 @@
 // StorePage.js
 import React, { useState } from 'react';
 import { Button, Typography } from '@mui/material';
-import InForm from '../components';
-import OutForm from '../components';
+import {InForm, OutForm} from '../components';
 
 export default function StorePage() {
     const [showInForm, setShowInForm] = useState(false);

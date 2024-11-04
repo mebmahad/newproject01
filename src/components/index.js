@@ -23,6 +23,8 @@ import AuthLayout from "./AuthLayout";
 import Input from "./Input";
 import DynamicInput from "./DynamicInput";
 import PoCard from "./PoCard";
+import InForm from "./store-form/itemin-form/InForm"
+import OutForm from "./store-form/itemout-form/OutForm"
 export {
     Header,
     Footer,
@@ -49,4 +51,6 @@ export {
     DynamicInput,
     Input,
     Select,
+    InForm,
+    OutForm,
 }

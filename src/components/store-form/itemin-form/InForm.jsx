@@ -1,41 +1,82 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { Button, TextField, Typography } from '@mui/material';
-import service from '../../../appwrite/config';
+import React, { useState } from 'react';
+import { Button, TextField, Paper, Typography } from '@mui/material';
+import service from '../../appwrite/config';
 
 export default function InForm() {
-    const { register, handleSubmit, reset } = useForm();
+    const [items, setItems] = useState([{ itemName: '', quantity: 0 }]);
+    const [sourceLocation, setSourceLocation] = useState('');
+    
+    // Unique timestamp-based ID generation for each entry
+    const generateUniqueId = () => `in-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
-    const onSubmit = async (data) => {
-        const { itemName, qty } = data;
+    const handleAddItem = () => {
+        setItems([...items, { itemName: '', quantity: 0 }]);
+    };
+
+    const handleItemChange = (index, field, value) => {
+        const updatedItems = [...items];
+        updatedItems[index][field] = value;
+        setItems(updatedItems);
+    };
+
+    const handleSubmit = async () => {
         try {
-            const updatedQuantity = await service.updateItemQuantity(itemName, qty);
-            alert(`New quantity for ${itemName} is ${updatedQuantity}`);
-            reset(); // Reset the form after submission
+            const entryId = generateUniqueId();
+            const timestamp = new Date().toISOString();
+            const itemListString = JSON.stringify(items);
+
+            await service.createInForm({
+                Items: itemListString,
+                securelocation: sourceLocation,
+                timestamp,
+                id: entryId
+            });
+
+            // Update the quantity in the store for each item
+            items.forEach(async ({ itemName, quantity }) => {
+                await service.updateItemQuantity(itemName, quantity);
+            });
+
+            // Reset form after submission
+            setItems([{ itemName: '', quantity: 0 }]);
+            setSourceLocation('');
         } catch (error) {
-            alert(error.message); // Show the error message
+            console.error("Error submitting InForm:", error);
         }
     };
 
     return (
-        <div className="p-4">
-            <Typography variant="h5" className="mb-4">Add Items to Stock</Typography>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <TextField
-                    label="Item Name"
-                    {...register("itemName", { required: true })}
-                    fullWidth
-                />
-                <TextField
-                    label="Quantity to Add"
-                    type="number"
-                    {...register("qty", { required: true, valueAsNumber: true })}
-                    fullWidth
-                />
-                <Button type="submit" variant="contained" color="primary">
-                    Add Item
-                </Button>
-            </form>
+        <div className="p-4 bg-gray-50 min-h-screen">
+            <Typography variant="h5" className="mb-4">InForm Entry</Typography>
+            {items.map((item, index) => (
+                <Paper key={index} className="p-3 mb-3">
+                    <TextField
+                        label="Item Name"
+                        value={item.itemName}
+                        onChange={(e) => handleItemChange(index, 'itemName', e.target.value)}
+                        fullWidth
+                    />
+                    <TextField
+                        label="Quantity"
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value))}
+                        fullWidth
+                    />
+                </Paper>
+            ))}
+            <Button onClick={handleAddItem} variant="outlined" color="primary" className="mb-4">
+                Add Another Item
+            </Button>
+            <TextField
+                label="Source Location"
+                value={sourceLocation}
+                onChange={(e) => setSourceLocation(e.target.value)}
+                fullWidth
+            />
+            <Button onClick={handleSubmit} variant="contained" color="success" className="mt-4">
+                Submit InForm Entry
+            </Button>
         </div>
     );
 }

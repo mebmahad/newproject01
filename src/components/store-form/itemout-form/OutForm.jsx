@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, TextField, Paper, Typography } from '@mui/material';
-import service from '../../appwrite/config';
+import service from '../../../appwrite/config';
 
 export default function OutForm() {
     const [items, setItems] = useState([{ itemName: '', quantity: 0 }]);

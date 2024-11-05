@@ -223,32 +223,35 @@ class Service {
             // Fetch the current item data to find the item ID
             const response = await this.databases.listDocuments(conf.appwriteDatabaseId, conf.appwriteCollectionIdstore);
             const item = response.documents.find(doc => doc.Item === itemName);
-
+    
             if (!item) {
                 throw new Error('Item not found');
             }
-
-            // Calculate the new quantity
-            const newQuantity = item.Quantity + qtyChange; // Assuming item.Quantity exists
+    
+            // Convert Quantity to a number and calculate the new quantity
+            const currentQuantity = parseInt(item.Quantity, 10) || 0;
+            const newQuantity = currentQuantity + qtyChange;
+    
             if (newQuantity < 0) {
                 throw new Error('Insufficient quantity');
             }
-
-            // Use the existing updateItem function to update the quantity
+    
+            // Use the existing updateItem function to update the quantity as a string
             await this.updateItem(item.$id, {
-                Item: item.Item, // retain the item name
+                Item: item.Item,        // retain the item name
                 Head: item.Head,
                 Price: item.Price,
-                Quantity: newQuantity,
+                Quantity: newQuantity.toString(), // convert back to string
                 Location: item.Location
             });
-
+    
             return newQuantity; // return the new quantity if needed
         } catch (error) {
             console.error("Error updating item quantity:", error);
             throw error;
         }
     }
+    
 
     async deleteItem(id) {
         try {

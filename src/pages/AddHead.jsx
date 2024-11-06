@@ -1,5 +1,6 @@
 import React from 'react'
-import HeadForm from '../components/head-form/HeadForm'
+import { Container, HeadForm } from '../components'
+
 
 function AddHead() {
   return (

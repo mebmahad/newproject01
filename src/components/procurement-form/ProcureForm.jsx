@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react"; 
-import { useForm, useFieldArray } from "react-hook-form";
+import React, { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "../index";
-import service from "../../appwrite/config";
+import service from "../../appwrite/config"; // Service to fetch heads and items
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -12,33 +12,32 @@ const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     </div>
 ));
 
+const generateUniqueId = () => {
+    return `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+};
+
 export default function ProcureForm({ postId }) {
-    const { register, handleSubmit, watch, setValue, control } = useForm();
-    const { fields, append, remove } = useFieldArray({ control, name: "items" });
+    const { register, handleSubmit, watch, setValue } = useForm({
+        defaultValues: {
+            Item: "",
+            Quantity: "",
+            id: generateUniqueId(),
+        },
+    });
 
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
     const [suggestions, setSuggestions] = useState([]);
     const [budgetAmount, setBudgetAmount] = useState("");
-    const [quantityMessage, setQuantityMessage] = useState("");
-    const [locationMessage, setLocationMessage] = useState("");
-    const [sourceLocation, setSourceLocation] = useState("");
+    const [selectedHead, setSelectedHead] = useState("");
 
     const submit = async (data) => {
         try {
-            const entries = data.items.map(item => ({
-                Item: item.Item,
-                Quantity: item.Quantity,
-                BudgetAmount: item.BudgetAmount,
-            }));
-            const dbProcure = await service.createProcure({
-                Items: entries,
-                securelocation: sourceLocation,
-                timestamp: new Date(),
+            const dbProcure = await service.createProcure({ 
+                ...data, 
                 userId: userData?.$id,
-                postId: postId,
+                postId: postId 
             });
-
             if (dbProcure) {
                 navigate(`/procure/${dbProcure.$id}`);
             }
@@ -47,117 +46,84 @@ export default function ProcureForm({ postId }) {
         }
     };
 
-    const fetchItemDetails = async (item, index) => {
-        if (!item) return;
+    useEffect(() => {
+        const subscription = watch((value, { name }) => {
+            if (name === "Head") {
+                fetchHeadSuggestions(value.Head);
+            }
+        });
+        return () => subscription.unsubscribe();
+    }, [watch]);
 
+    const fetchHeadSuggestions = async (input) => {
+        if (!input) {
+            setSuggestions([]);
+            return;
+        }
         try {
-            const results = await service.searchItems(item);
-            if (results.length > 0) {
-                const { Quantity, Location, Head } = results[0];
-                setQuantityMessage(`Available: ${Quantity}`);
-                setLocationMessage(`Location: ${Location}`);
-                setValue(`items.${index}.Location`, Location);
-
-                // Fetch the budget amount from the associated head
-                const headResults = await service.getHeads([Head]);
-                if (headResults.length > 0) {
-                    const { Budgetamount } = headResults[0];
-                    setValue(`items.${index}.Budgteamount`, Budgetamount);
-                    setBudgetAmount(`Budget: ${Budgetamount}`);
-                }
-            } else {
-                setQuantityMessage("Not Available");
-                setLocationMessage("Not Available");
-            }
+            const heads = await service.searchHead(input);
+            setSuggestions(heads.map(head => ({ name: head.Headname, budget: head.Budgteamount })));
         } catch (error) {
-            console.error("Error fetching item details:", error);
+            console.error("Error fetching head suggestions:", error);
+            setSuggestions([]);
         }
     };
 
-    const handleSuggestionClick = async (item, index) => {
+    const handleHeadSelection = (head) => {
+        setSelectedHead(head.name);
+        setBudgetAmount(head.budget);
         setSuggestions([]);
-        await setValue(`items.${index}.Item`, item, { shouldValidate: true });
-        fetchItemDetails(item, index);
-    };
-
-    const handleInputChange = async (e, index) => {
-        const inputValue = e.currentTarget.value;
-        setValue(`items.${index}.Item`, inputValue, { shouldValidate: true });
-
-        if (inputValue) {
-            const results = await service.searchItems(inputValue);
-            if (results && Array.isArray(results)) {
-                setSuggestions(results.map((result) => result.Item));
-            } else {
-                setSuggestions([]);
-            }
-        }
     };
 
     return (
-        <form onSubmit={handleSubmit(submit)} className="flex flex-col items-center min-h-screen">
-            <div className="w-2/3">
+        <form onSubmit={handleSubmit(submit)} className="flex flex-col justify-center items-center min-h-screen">
+            <div className="flex flex-col">
+                <Input
+                    label="Id:"
+                    id="id"
+                    placeholder="Auto-generated ID"
+                    {...register("id", { required: true })}
+                    disabled
+                />
+                <Input
+                    label="Item:"
+                    id="item"
+                    placeholder="Item"
+                    {...register("Item", { required: true })}
+                />
+                <Input
+                    label="Head:"
+                    id="head"
+                    placeholder="Enter Head"
+                    {...register("Head", { required: true })}
+                    onInput={(e) => fetchHeadSuggestions(e.target.value)}
+                />
+                {suggestions.length > 0 && (
+                    <ul className="absolute bg-white border border-gray-300 w-full z-10">
+                        {suggestions.map((head, index) => (
+                            <li
+                                key={index}
+                                onClick={() => handleHeadSelection(head)}
+                                className="p-2 hover:bg-gray-200 cursor-pointer"
+                            >
+                                {head.name}
+                            </li>
+                        ))}
+                    </ul>
+                )}
                 <div className="mb-4">
-                    <label>Source Location:</label>
-                    <input
-                        type="text"
-                        value={sourceLocation}
-                        onChange={(e) => setSourceLocation(e.target.value)}
-                        placeholder="Enter Source Location"
-                        className="border p-2 w-full"
-                    />
+                    <span>Budget Amount: {budgetAmount || "N/A"}</span>
                 </div>
-
-                {fields.map((item, index) => (
-                    <div key={item.id} className="border p-4 mb-4">
-                        <Input
-                            label="Item:"
-                            id={`item-${index}`}
-                            placeholder="Item"
-                            {...register(`items.${index}.Item`, { required: true })}
-                            onInput={(e) => handleInputChange(e, index)}
-                        />
-                        {suggestions.length > 0 && (
-                            <ul className="absolute bg-white border border-gray-300 w-full z-10">
-                                {suggestions.map((suggestion, i) => (
-                                    <li
-                                        key={i}
-                                        onClick={() => handleSuggestionClick(suggestion, index)}
-                                        className="p-2 hover:bg-gray-200 cursor-pointer"
-                                    >
-                                        {suggestion}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        <div className="mb-4 flex justify-between">
-                            <span>{quantityMessage}</span>
-                            <span>{locationMessage}</span>
-                        </div>
-                        <Input
-                            label="Quantity:"
-                            id={`quantity-${index}`}
-                            placeholder="Quantity"
-                            type="number"
-                            {...register(`items.${index}.Quantity`, { required: true })}
-                        />
-                        <div className="mb-4">
-                            <span>{budgetAmount}</span>
-                        </div>
-                        <Button type="button" onClick={() => remove(index)} className="mt-2 bg-red-500">
-                            Remove Item
-                        </Button>
-                    </div>
-                ))}
-
-                <Button type="button" onClick={() => append({ Item: "", Quantity: "", BudgetAmount: "" })}>
-                    Add Another Item
+                <Input
+                    label="Quantity:"
+                    id="quantity"
+                    placeholder="Enter quantity"
+                    {...register("Quantity", { required: true })}
+                />
+                <Button type="submit" className="w-full bg-green-500 mt-4">
+                    Submit
                 </Button>
             </div>
-            
-            <Button type="submit" className="w-1/3 bg-green-500 mt-4">
-                Submit
-            </Button>
         </form>
     );
 }

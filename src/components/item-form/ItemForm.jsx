@@ -20,6 +20,7 @@ export default function ItemForm({ item }) {
     });
 
     const [locations, setLocations] = useState([]);
+    const [heads, setHeads] = useState([]); // State for heads dropdown
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
     const [filters, setFilters] = useState({ location: "" });
@@ -44,7 +45,24 @@ export default function ItemForm({ item }) {
             }
         };
 
+        const fetchHeads = async () => {
+            try {
+                const response = await service.getHeads();
+                console.log("Fetched heads response:", response);
+
+                if (response && response.documents) {
+                    setHeads(response.documents);
+                } else {
+                    setHeads([]);
+                }
+            } catch (error) {
+                console.error("Error fetching heads:", error);
+                setHeads([]);
+            }
+        };
+
         fetchLocations();
+        fetchHeads();
     }, [filters]);
 
     const submit = async (data) => {
@@ -85,12 +103,23 @@ export default function ItemForm({ item }) {
                     className="mb-4"
                     {...register("Item", { required: true })}
                 />
-                <Input
-                    label="Head:"
-                    placeholder="Head"
-                    className="mb-4"
+                
+                {/* Head Dropdown */}
+                <label htmlFor="head" className="block mb-2">Head:</label>
+                <select
+                    id="head"
+                    className="mb-4 border rounded p-2 w-full"
                     {...register("Head", { required: true })}
-                />
+                    onChange={(e) => setValue("Head", e.target.value)}
+                >
+                    <option value="">Select a head</option>
+                    {heads.map((head) => (
+                        <option key={head.$id} value={head.name}>
+                            {head.name}
+                        </option>
+                    ))}
+                </select>
+
                 <Input
                     label="Price:"
                     placeholder="Price"

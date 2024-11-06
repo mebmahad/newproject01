@@ -492,6 +492,96 @@ class Service {
         }
     }
 
+    async createHead({ Headname, Budgteamount, userId, id }) {
+        try {
+            return await this.databases.createDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdhead,
+                id,
+                {
+                    Headname,
+                    Budgteamount,
+                    userId,
+                }
+            );
+        } catch (error) {
+            console.log("HeadService :: createHead :: error", error);
+        }
+    }
+
+    async updateHead(id, { Headname, Budgteamount }) {
+        try {
+            return await this.databases.updateDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdhead,
+                id,
+                {
+                    Headname,
+                    Budgteamount,
+                }
+            );
+        } catch (error) {
+            console.log("HeadService :: updateHead :: error", error);
+        }
+    }
+
+    async deleteHead(id) {
+        try {
+            await this.databases.deleteDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdhead,
+                id
+            );
+            return true;
+        } catch (error) {
+            console.log("HeadService :: deleteHead :: error", error);
+            return false;
+        }
+    }
+
+    async searchHead(input) {
+        try {
+            const response = await this.getHeads([Query.search("Headname", input)]);
+            console.log("searchVendor response:", response);
+            if (response.documents) {
+                return response.documents;
+            } else {
+                console.warn("No Heads found.");
+                return [];
+            }
+        } catch (error) {
+            console.error("Error in searchHead:", error);
+            return [];
+        }
+    }
+    
+
+    async getHead(id) {
+        try {
+            return await this.databases.getDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdhead,
+                id
+            );
+        } catch (error) {
+            console.log("HeadService :: HeadComplaint :: error", error);
+            return false;
+        }
+    }
+
+    async getHeads(queries = []) {
+        try {
+            return await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdhead,
+                queries
+            );
+        } catch (error) {
+            console.log("HeadService :: HeadComplaints :: error", error);
+            return false;
+        }
+    }
+
     async createPo({ VendorName, Items, totalAmount, gst, totalamountwithgst, id }) {
         try {
             return await this.databases.createDocument(

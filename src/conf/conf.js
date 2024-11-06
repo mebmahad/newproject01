@@ -8,6 +8,7 @@ const conf = {
     appwriteCollectionIdvendor: String(import.meta.env.VITE_APPWRITE_COLLECTION_VENDOR),
     appwriteCollectionIdpoform: String(import.meta.env.VITE_APPWRITE_COLLECTION_POFORM),
     appwriteCollectionIdlocation: String(import.meta.env.VITE_APPWRITE_COLLECTION_LOCATION),
+    appwriteCollectionIdhead: String(import.meta.env.VITE_APPWRITE_COLLECTION_HEAD),
     appwriteCollectionIdinform: String(import.meta.env.VITE_APPWRITE_COLLECTION_INFORM),
     appwriteCollectionIdoutform: String(import.meta.env.VITE_APPWRITE_COLLECTION_OUTFORM),
     appwriteBucketId: String(import.meta.env.VITE_APPWRITE_BUCKET_ID),

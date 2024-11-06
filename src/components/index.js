@@ -27,6 +27,7 @@ import InForm from "./store-form/itemin-form/InForm"
 import OutForm from "./store-form/itemout-form/OutForm"
 import HeadForm from "./head-form/HeadForm";
 import HeadCard from "./HeadCard";
+import HeadBtn from "./Header/HeadBtn";
 export {
     Header,
     Footer,
@@ -35,6 +36,7 @@ export {
     LogoutBtn,
     ProcurementBtn,
     ItemBtn,
+    HeadBtn,
     Signup,
     Login,
     Button,

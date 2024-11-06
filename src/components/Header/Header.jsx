@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import ProcurementBtn from './ProcurementBtn';
+import HeadBtn from './HeadBtn';
 
 function Header() {
   const authStatus = useSelector((state) => state.auth.status);
@@ -73,6 +74,11 @@ function Header() {
             {authStatus && (
               <li className="mr-2 mb-2">
                 <ProcurementBtn />
+              </li>
+            )}
+            {authStatus && (
+              <li className="mr-2 mb-2">
+                <HeadBtn />
               </li>
             )}
             {authStatus && (

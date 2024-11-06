@@ -23,7 +23,7 @@ export default function ItemForm({ item }) {
     const [heads, setHeads] = useState([]); // State for heads dropdown
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
-    const [filters, setFilters] = useState({ location: "", Headname: "" });
+    const [filters, setFilters] = useState({ location: "" });
 
     useEffect(() => {
         const fetchLocations = async () => {
@@ -47,11 +47,8 @@ export default function ItemForm({ item }) {
 
         const fetchHeads = async () => {
             try {
-                const queries = [];
-                if (filters.Headname) queries.push(Query.equal("Headname", filters.Headname));
-                
-                const response = await service.getHeads(queries);
-                console.log("Fetched Heads response:", response);
+                const response = await service.getHeads();
+                console.log("Fetched heads response:", response);
 
                 if (response && response.documents) {
                     setHeads(response.documents);
@@ -59,7 +56,7 @@ export default function ItemForm({ item }) {
                     setHeads([]);
                 }
             } catch (error) {
-                console.error("Error fetching Heads:", error);
+                console.error("Error fetching heads:", error);
                 setHeads([]);
             }
         };
@@ -113,12 +110,12 @@ export default function ItemForm({ item }) {
                     id="head"
                     className="mb-4 border rounded p-2 w-full"
                     {...register("Head", { required: true })}
-                    onChange={(e) => setValue("Headname", e.target.value)}
+                    onChange={(e) => setValue("Head", e.target.value)}
                 >
                     <option value="">Select a head</option>
                     {heads.map((head) => (
-                        <option key={head.$id} value={head.name}>
-                            {head.name}
+                        <option key={head.$id} value={head.Headname}>
+                            {head.Headname}
                         </option>
                     ))}
                 </select>

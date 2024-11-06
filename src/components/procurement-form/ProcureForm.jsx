@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { Button } from "../index"; // Import necessary components
-import service from "../../appwrite/config"; // Adjusted to use your complaintService
+import React, { useCallback, useEffect, useState } from "react"; 
+import { useForm, useFieldArray } from "react-hook-form";
+import { Button } from "../index";
+import service from "../../appwrite/config";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -12,157 +12,152 @@ const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     </div>
 ));
 
-// Function to generate a unique ID
-const generateUniqueId = () => {
-    return `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-};
-
 export default function ProcureForm({ postId }) {
-    const { register, handleSubmit, watch, setValue } = useForm({
-        defaultValues: {
-            Item: "",
-            Quantity: "",
-            id: generateUniqueId(), // Generate a unique id on form initialization
-        },
-    });
+    const { register, handleSubmit, watch, setValue, control } = useForm();
+    const { fields, append, remove } = useFieldArray({ control, name: "items" });
 
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
     const [suggestions, setSuggestions] = useState([]);
-    const [quantityMessage, setQuantityMessage] = useState(""); 
-    const [locationMessage, setLocationMessage] = useState(""); 
+    const [budgetAmount, setBudgetAmount] = useState("");
+    const [quantityMessage, setQuantityMessage] = useState("");
+    const [locationMessage, setLocationMessage] = useState("");
+    const [sourceLocation, setSourceLocation] = useState("");
 
     const submit = async (data) => {
         try {
-            const dbProcure = await service.createProcure({ 
-                ...data, 
+            const entries = data.items.map(item => ({
+                Item: item.Item,
+                Quantity: item.Quantity,
+                BudgetAmount: item.BudgetAmount,
+            }));
+            const dbProcure = await service.createProcure({
+                Items: entries,
+                securelocation: sourceLocation,
+                timestamp: new Date(),
                 userId: userData?.$id,
-                postId: postId // Include postId in the procurement request
+                postId: postId,
             });
 
             if (dbProcure) {
-                navigate(`/procure/${dbProcure.$id}`); 
+                navigate(`/procure/${dbProcure.$id}`);
             }
         } catch (error) {
             console.error("Error submitting form:", error);
         }
     };
 
-    const idTransform = useCallback((value) => {
-        if (value && typeof value === "string") {
-            return value.trim().replace(/[^a-zA-Z\d\s]+/g, "-").replace(/\s/g, "-");
-        }
-        return "";
-    }, []);
-
-    useEffect(() => {
-        const subscription = watch((value, { name }) => {
-            if (name === "Item") {
-                setValue("id", idTransform(value.Item), { shouldValidate: true });
-                fetchSuggestions(value.Item); 
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, [watch, idTransform, setValue]);
-
-    const fetchQuantityAndLocation = async (item) => {
+    const fetchItemDetails = async (item, index) => {
         if (!item) return;
 
         try {
-            const results = await service.searchItems(item); 
+            const results = await service.searchItems(item);
             if (results.length > 0) {
-                const { Quantity, Location } = results[0]; 
+                const { Quantity, Location, Head } = results[0];
                 setQuantityMessage(`Available: ${Quantity}`);
                 setLocationMessage(`Location: ${Location}`);
+                setValue(`items.${index}.Location`, Location);
+
+                // Fetch the budget amount from the associated head
+                const headResults = await service.getHeads([Head]);
+                if (headResults.length > 0) {
+                    const { Budgetamount } = headResults[0];
+                    setValue(`items.${index}.Budgteamount`, Budgetamount);
+                    setBudgetAmount(`Budget: ${Budgetamount}`);
+                }
             } else {
                 setQuantityMessage("Not Available");
                 setLocationMessage("Not Available");
             }
         } catch (error) {
-            console.error("Error fetching item data:", error);
-            setQuantityMessage("Not Available");
-            setLocationMessage("Not Available");
+            console.error("Error fetching item details:", error);
         }
     };
 
-    const fetchSuggestions = async (input) => {
-        if (!input) {
-            setSuggestions([]);
-            return;
-        }
-        try {
-            const results = await service.searchItems(input); 
-            if (Array.isArray(results)) {
-                setSuggestions(results.map(item => item.Item)); 
+    const handleSuggestionClick = async (item, index) => {
+        setSuggestions([]);
+        await setValue(`items.${index}.Item`, item, { shouldValidate: true });
+        fetchItemDetails(item, index);
+    };
+
+    const handleInputChange = async (e, index) => {
+        const inputValue = e.currentTarget.value;
+        setValue(`items.${index}.Item`, inputValue, { shouldValidate: true });
+
+        if (inputValue) {
+            const results = await service.searchItems(inputValue);
+            if (results && Array.isArray(results)) {
+                setSuggestions(results.map((result) => result.Item));
             } else {
                 setSuggestions([]);
             }
-        } catch (error) {
-            console.error("Error fetching suggestions:", error);
-            setSuggestions([]);
         }
     };
 
-    const handleSuggestionClick = async (item) => {
-        setSuggestions([]); // Clear suggestions immediately
-        await setValue("Item", item, { shouldValidate: true }); // Ensure validation and update state
-        fetchQuantityAndLocation(item); // Fetch data for the selected item
-    };
-
-    const handleInputChange = (e) => {
-        const inputValue = e.currentTarget.value;
-        setValue("Item", inputValue, { shouldValidate: true });
-        fetchSuggestions(inputValue); // Fetch suggestions on input change
-    };
-
     return (
-        <form onSubmit={handleSubmit(submit)} className="flex justify-center items-center min-h-screen">
-            <div className="flex flex-col">
-                <Input
-                    label="Id:"
-                    id="id"
-                    placeholder="id"
-                    className="mb-4"
-                    {...register("id", { required: true })}
-                    disabled // Disable the input field for ID
-                />
-                <Input
-                    label="Item:"
-                    id="item"
-                    placeholder="Item"
-                    className="mb-4"
-                    {...register("Item", { required: true })}
-                    onInput={handleInputChange} // Use the new handler
-                />
-                {suggestions.length > 0 && (
-                    <ul className="absolute bg-white border border-gray-300 w-full z-10">
-                        {suggestions.map((item, index) => (
-                            <li
-                                key={index}
-                                onClick={() => handleSuggestionClick(item)} // Fetch correct item on click
-                                className="p-2 hover:bg-gray-200 cursor-pointer"
-                            >
-                                {item}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                <div className="mb-4 flex justify-between">
-                    <span>{quantityMessage}</span>
-                    <span>{locationMessage}</span>
+        <form onSubmit={handleSubmit(submit)} className="flex flex-col items-center min-h-screen">
+            <div className="w-2/3">
+                <div className="mb-4">
+                    <label>Source Location:</label>
+                    <input
+                        type="text"
+                        value={sourceLocation}
+                        onChange={(e) => setSourceLocation(e.target.value)}
+                        placeholder="Enter Source Location"
+                        className="border p-2 w-full"
+                    />
                 </div>
-                <Input
-                    label="Quantity:"
-                    id="quantity"
-                    placeholder="Quantity"
-                    className="mb-4"
-                    {...register("Quantity", { required: true })}
-                />
-                <Button type="submit" className="w-full bg-green-500">
-                    Submit
+
+                {fields.map((item, index) => (
+                    <div key={item.id} className="border p-4 mb-4">
+                        <Input
+                            label="Item:"
+                            id={`item-${index}`}
+                            placeholder="Item"
+                            {...register(`items.${index}.Item`, { required: true })}
+                            onInput={(e) => handleInputChange(e, index)}
+                        />
+                        {suggestions.length > 0 && (
+                            <ul className="absolute bg-white border border-gray-300 w-full z-10">
+                                {suggestions.map((suggestion, i) => (
+                                    <li
+                                        key={i}
+                                        onClick={() => handleSuggestionClick(suggestion, index)}
+                                        className="p-2 hover:bg-gray-200 cursor-pointer"
+                                    >
+                                        {suggestion}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <div className="mb-4 flex justify-between">
+                            <span>{quantityMessage}</span>
+                            <span>{locationMessage}</span>
+                        </div>
+                        <Input
+                            label="Quantity:"
+                            id={`quantity-${index}`}
+                            placeholder="Quantity"
+                            type="number"
+                            {...register(`items.${index}.Quantity`, { required: true })}
+                        />
+                        <div className="mb-4">
+                            <span>{budgetAmount}</span>
+                        </div>
+                        <Button type="button" onClick={() => remove(index)} className="mt-2 bg-red-500">
+                            Remove Item
+                        </Button>
+                    </div>
+                ))}
+
+                <Button type="button" onClick={() => append({ Item: "", Quantity: "", BudgetAmount: "" })}>
+                    Add Another Item
                 </Button>
             </div>
+            
+            <Button type="submit" className="w-1/3 bg-green-500 mt-4">
+                Submit
+            </Button>
         </form>
     );
 }

@@ -25,6 +25,8 @@ import DynamicInput from "./DynamicInput";
 import PoCard from "./PoCard";
 import InForm from "./store-form/itemin-form/InForm"
 import OutForm from "./store-form/itemout-form/OutForm"
+import HeadForm from "./head-form/HeadForm";
+import HeadCard from "./HeadCard";
 export {
     Header,
     Footer,
@@ -53,4 +55,6 @@ export {
     Select,
     InForm,
     OutForm,
+    HeadCard,
+    HeadForm,
 }

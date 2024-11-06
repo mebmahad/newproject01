@@ -33,6 +33,10 @@ import AllLocations from "./pages/AllLocations";
 import AddLocation from "./pages/AddLocation.jsx";
 import Location from "./pages/Location.jsx";
 import StorePage from './pages/StorePage.jsx';
+import EditHead from './pages/EditHead.jsx';
+import AllHeads from './pages/AllHeads.jsx';
+import AddHead from './pages/AddHead.jsx';
+import Head from './pages/Head.jsx';
 
 
 const router = createBrowserRouter([
@@ -93,6 +97,34 @@ const router = createBrowserRouter([
       {
         path: "/post/:id", // Changed from slug to id
         element: <Post />,
+      },
+      {
+        path: "/all-heads",
+        element: (
+            <AllHeads />
+        ),
+      },
+      {
+        path: "/add-head",
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <AddHead />
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/edit-head/:id", // Changed from slug to id
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <EditHead />
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/head/:id", // Changed from slug to id
+        element: <Head />,
       },
       {
         path: "/all-procures",

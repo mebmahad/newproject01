@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { Button } from "../index";
-import service from "../../appwrite/config"; // Service to fetch heads and items
+import { useForm, useFieldArray } from "react-hook-form";
+import { Button } from "../index"; // Import necessary components
+import service from "../../appwrite/config"; // Adjusted to use your service
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -17,27 +17,31 @@ const generateUniqueId = () => {
 };
 
 export default function ProcureForm({ postId }) {
-    const { register, handleSubmit, watch, setValue } = useForm({
+    const { register, handleSubmit, control, watch, setValue } = useForm({
         defaultValues: {
-            Item: "",
-            Quantity: "",
-            id: generateUniqueId(),
+            items: [{ itemName: "", quantity: "", id: generateUniqueId() }]
         },
+    });
+    const { fields, append } = useFieldArray({
+        control,
+        name: "items"
     });
 
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
+    const [budgetAmount, setBudgetAmount] = useState(null);
     const [suggestions, setSuggestions] = useState([]);
-    const [budgetAmount, setBudgetAmount] = useState("");
-    const [selectedHead, setSelectedHead] = useState("");
+    const [quantityMessage, setQuantityMessage] = useState("");
+    const [locationMessage, setLocationMessage] = useState("");
 
     const submit = async (data) => {
         try {
-            const dbProcure = await service.createProcure({ 
-                ...data, 
+            const dbProcure = await service.createProcure({
+                ...data,
                 userId: userData?.$id,
-                postId: postId 
+                postId: postId // Include postId in the procurement request
             });
+
             if (dbProcure) {
                 navigate(`/procure/${dbProcure.$id}`);
             }
@@ -46,81 +50,81 @@ export default function ProcureForm({ postId }) {
         }
     };
 
-    useEffect(() => {
-        const subscription = watch((value, { name }) => {
-            if (name === "Head") {
-                fetchHeadSuggestions(value.Head);
-            }
-        });
-        return () => subscription.unsubscribe();
-    }, [watch]);
-
-    const fetchHeadSuggestions = async (input) => {
-        if (!input) {
-            setSuggestions([]);
-            return;
-        }
+    const fetchQuantityAndLocation = async (itemName) => {
+        if (!itemName) return;
         try {
-            const heads = await service.searchHead(input);
-            setSuggestions(heads.map(head => ({ name: head.Headname, budget: head.Budgteamount })));
+            const results = await service.searchItems(itemName);
+            if (results.length > 0) {
+                const { Quantity, Location, Head } = results[0];
+                setQuantityMessage(`Available: ${Quantity}`);
+                setLocationMessage(`Location: ${Location}`);
+
+                // Fetch the budget amount of the associated Head
+                const headData = await service.searchHead(Head);
+                if (headData.length > 0) {
+                    setBudgetAmount(headData[0].Budgteamount);
+                } else {
+                    setBudgetAmount("Not available");
+                }
+            } else {
+                setQuantityMessage("Not Available");
+                setLocationMessage("Not Available");
+                setBudgetAmount("Not Available");
+            }
         } catch (error) {
-            console.error("Error fetching head suggestions:", error);
-            setSuggestions([]);
+            console.error("Error fetching item data:", error);
+            setQuantityMessage("Not Available");
+            setLocationMessage("Not Available");
+            setBudgetAmount("Not Available");
         }
     };
 
-    const handleHeadSelection = (head) => {
-        setSelectedHead(head.name);
-        setBudgetAmount(head.budget);
-        setSuggestions([]);
+    const handleInputChange = (itemName) => {
+        fetchQuantityAndLocation(itemName);
     };
 
     return (
-        <form onSubmit={handleSubmit(submit)} className="flex flex-col justify-center items-center min-h-screen">
-            <div className="flex flex-col">
-                <Input
-                    label="Id:"
-                    id="id"
-                    placeholder="Auto-generated ID"
-                    {...register("id", { required: true })}
-                    disabled
-                />
-                <Input
-                    label="Item:"
-                    id="item"
-                    placeholder="Item"
-                    {...register("Item", { required: true })}
-                />
-                <Input
-                    label="Head:"
-                    id="head"
-                    placeholder="Enter Head"
-                    {...register("Head", { required: true })}
-                    onInput={(e) => fetchHeadSuggestions(e.target.value)}
-                />
-                {suggestions.length > 0 && (
-                    <ul className="absolute bg-white border border-gray-300 w-full z-10">
-                        {suggestions.map((head, index) => (
-                            <li
-                                key={index}
-                                onClick={() => handleHeadSelection(head)}
-                                className="p-2 hover:bg-gray-200 cursor-pointer"
-                            >
-                                {head.name}
-                            </li>
-                        ))}
-                    </ul>
-                )}
+        <form onSubmit={handleSubmit(submit)} className="flex justify-center items-center min-h-screen">
+            <div className="flex flex-col w-full max-w-lg">
+                <h2 className="text-xl font-semibold mb-4">Procurement Form</h2>
+                
+                {fields.map((field, index) => (
+                    <div key={field.id} className="p-4 mb-4 border rounded shadow-sm">
+                        <Input
+                            label={`Item ${index + 1}:`}
+                            id={`item-${index}`}
+                            placeholder="Enter Item Name"
+                            {...register(`items.${index}.itemName`, {
+                                required: true,
+                                onChange: (e) => handleInputChange(e.target.value)
+                            })}
+                        />
+                        <div className="flex justify-between mb-4">
+                            <span>{quantityMessage}</span>
+                            <span>{locationMessage}</span>
+                        </div>
+                        <div className="mb-4">
+                            <label>Quantity:</label>
+                            <input
+                                type="number"
+                                placeholder="Quantity"
+                                className="border p-2 w-full"
+                                {...register(`items.${index}.quantity`, { required: true })}
+                            />
+                        </div>
+                    </div>
+                ))}
+
                 <div className="mb-4">
-                    <span>Budget Amount: {budgetAmount || "N/A"}</span>
+                    <span className="font-semibold">Budget Amount: </span>
+                    <span>{budgetAmount || "Not available"}</span>
                 </div>
-                <Input
-                    label="Quantity:"
-                    id="quantity"
-                    placeholder="Enter quantity"
-                    {...register("Quantity", { required: true })}
-                />
-                <Button type="submit" className="w-full bg-green-500 mt-4">
+
+                <Button type="button" onClick={() => append({ itemName: "", quantity: "", id: generateUniqueId() })} className="mb-4">
+                    Add Another Item
+                </Button>
+
+                <Button type="submit" className="w-full bg-green-500">
                     Submit
                 </Button>
             </div>

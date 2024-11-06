@@ -23,7 +23,7 @@ export default function ItemForm({ item }) {
     const [heads, setHeads] = useState([]); // State for heads dropdown
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
-    const [filters, setFilters] = useState({ location: "" });
+    const [filters, setFilters] = useState({ location: "", Headname: "" });
 
     useEffect(() => {
         const fetchLocations = async () => {
@@ -47,8 +47,11 @@ export default function ItemForm({ item }) {
 
         const fetchHeads = async () => {
             try {
-                const response = await service.getHeads();
-                console.log("Fetched heads response:", response);
+                const queries = [];
+                if (filters.Headname) queries.push(Query.equal("Headname", filters.Headname));
+                
+                const response = await service.getHeads(queries);
+                console.log("Fetched Heads response:", response);
 
                 if (response && response.documents) {
                     setHeads(response.documents);
@@ -56,7 +59,7 @@ export default function ItemForm({ item }) {
                     setHeads([]);
                 }
             } catch (error) {
-                console.error("Error fetching heads:", error);
+                console.error("Error fetching Heads:", error);
                 setHeads([]);
             }
         };
@@ -110,7 +113,7 @@ export default function ItemForm({ item }) {
                     id="head"
                     className="mb-4 border rounded p-2 w-full"
                     {...register("Head", { required: true })}
-                    onChange={(e) => setValue("Head", e.target.value)}
+                    onChange={(e) => setValue("Headname", e.target.value)}
                 >
                     <option value="">Select a head</option>
                     {heads.map((head) => (

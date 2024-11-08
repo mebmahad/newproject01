@@ -21,7 +21,7 @@ const generateUniqueId = () => {
 export default function ProcureForm({ postId }) {
     const { register, handleSubmit, watch, setValue, resetField } = useForm({
         defaultValues: {
-            Item: "",
+            Items: "",
             Quantity: "",
             id: generateUniqueId(),
         },
@@ -89,7 +89,7 @@ export default function ProcureForm({ postId }) {
                 setLocationMessage(`Location: ${Location}`);
 
                 const headData = await service.searchHead(Head);
-                setBudgetAmount(headData.length > 0 ? headData[0].Budgetamount : "Not available");
+                setBudgetAmount(headData.length > 0 ? headData[0].Budgteamount : "Not available");
             } else {
                 setQuantityMessage("Not Available");
                 setLocationMessage("Not Available");

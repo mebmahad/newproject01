@@ -82,7 +82,7 @@ export default function Post() {
                         )}
                         <br />
                         <div>
-                            <Link to={`/add-procure`}>
+                            <Link to={`/add-procure/${post.$id}`}>
                                 <Button className="bg-green-500 mr-3">Material Required</Button>
                             </Link>
                         </div>

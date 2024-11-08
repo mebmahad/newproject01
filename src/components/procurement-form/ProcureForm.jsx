@@ -18,8 +18,9 @@ const generateUniqueId = () => {
     return `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 };
 
-export default function ProcureForm({ postId }) {
-    const { register, handleSubmit, watch, setValue, resetField } = useForm({
+export default function ProcureForm() {
+    const { postId } = useParams(); // Extract postId from the URL
+    const { register, handleSubmit, setValue, resetField } = useForm({
         defaultValues: {
             Item: "",
             Quantity: "",
@@ -41,8 +42,8 @@ export default function ProcureForm({ postId }) {
             const dbProcure = await service.createProcure({ 
                 ...data, 
                 userId: userData?.$id,
-                postId: postId,
-                Items: itemsString // Store items as JSON string in Appwrite
+                postId: postId, // Use postId from useParams
+                Items: itemsString 
             });
 
             if (dbProcure) {

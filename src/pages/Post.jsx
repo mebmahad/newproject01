@@ -25,9 +25,9 @@ export default function Post() {
                         if (post.createdAt) {
                             const createdDate = new Date(post.createdAt);
                             const currentDate = new Date();
-                            
+
                             // Convert both dates to UTC to avoid timezone issues
-                            const differenceInTime = Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()) 
+                            const differenceInTime = Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate())
                                 - Date.UTC(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate());
 
                             const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24)); // Convert to days
@@ -54,6 +54,25 @@ export default function Post() {
 
         fetchPost();
     }, [id, navigate, userData]);
+
+    const updateStatus = async (newStatus) => {
+        if (!post) return;
+
+        try {
+            await service.updatePost(id, {
+                ...post,
+                status: newStatus,
+            });
+
+            setPost((prevPost) => ({
+                ...prevPost,
+                status: newStatus,
+            }));
+        } catch (error) {
+            console.error("Error updating status:", error);
+        }
+    };
+
 
     const deletePost = async () => {
         const confirmed = window.confirm("Are you sure you want to delete this post?");
@@ -85,6 +104,25 @@ export default function Post() {
                             <Link to={`/add-procure/${post.$id}`}>
                                 <Button className="bg-green-500 mr-3">Material Required</Button>
                             </Link>
+                            {/* Render buttons conditionally based on status */}
+                            {post.status === "active" && (
+                                <button
+                                    onClick={() => updateStatus("approval")}
+                                    className="bg-blue-500 text-white px-4 py-2 mt-4"
+                                >
+                                    Complete
+                                </button>
+                            )}
+
+                            {post.status === "approval" && (
+                                <button
+                                    onClick={() => updateStatus("inactive")}
+                                    className="bg-green-500 text-white px-4 py-2 mt-4"
+                                >
+                                    Approved
+                                </button>
+                            )}
+
                         </div>
                     </div>
                     <div className="browser-css font-bold">

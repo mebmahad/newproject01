@@ -161,9 +161,9 @@ class Service {
             );
     
             // Parse the `items` field if it exists and is in string format
-            if (procure && procure.items) {
+            if (procure && procure.Items) {
                 try {
-                    procure.items = JSON.parse(procure.items); // Parse the string into an array of item objects
+                    procure.items = JSON.parse(procure.Items); // Parse the string into an array of item objects
                 } catch (error) {
                     console.log("ProcureService :: getProcure :: JSON parse error for items:", error);
                     procure.items = []; // Set to an empty array if parsing fails

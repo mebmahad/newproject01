@@ -71,9 +71,9 @@ export default function Procure() {
                             {procure.items && procure.items.length > 0 ? (
                                 procure.items.map((item, index) => (
                                     <li key={index} className="mb-2">
-                                        <span className="font-semibold">Item:</span> {item.name}
-                                        <span className="ml-4 font-semibold">Quantity:</span> {item.quantity}
-                                        <span className="ml-4 font-semibold">Budget:</span> {item.budget}
+                                        <span className="font-semibold">Item:</span> {item.Item}
+                                        <span className="ml-4 font-semibold">Quantity:</span> {item.Quantity}
+                                        <span className="ml-4 font-semibold">Budget:</span> {item.BudgetAmount}
                                     </li>
                                 ))
                             ) : (
@@ -86,10 +86,9 @@ export default function Procure() {
                     {procure.post && (
                         <div className="mt-6 p-4 border-t border-gray-300">
                             <h2 className="text-xl font-semibold">Associated Complaint/Request</h2>
-                            <p><span className="font-semibold">Post ID:</span> {procure.post.$id}</p>
-                            <p><span className="font-semibold">Description:</span> {procure.post.areas}</p>
-                            <p><span className="font-semibold">Description:</span> {procure.post.subarea}</p>
-                            <p><span className="font-semibold">Date:</span> {new Date(procure.post.problem).toLocaleDateString()}</p>
+                            <p><span className="font-semibold">Area:</span> {procure.post.areas}</p>
+                            <p><span className="font-semibold">Sub Area:</span> {procure.post.subarea}</p>
+                            <p><span className="font-semibold">Problem:</span> {(procure.post.problem)}</p>
                         </div>
                     )}
 

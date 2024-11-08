@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react"; 
 import { useForm } from "react-hook-form";
-import { Button } from "../index"; // Import necessary components
-import service from "../../appwrite/config"; // Adjusted to use your complaintService
+import { Button } from "../index"; 
+import service from "../../appwrite/config"; 
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -32,16 +32,17 @@ export default function ProcureForm({ postId }) {
     const [suggestions, setSuggestions] = useState([]);
     const [quantityMessage, setQuantityMessage] = useState("");
     const [locationMessage, setLocationMessage] = useState("");
-    const [budgetAmount, setBudgetAmount] = useState(""); // Store budget amount for each item
-    const [items, setItems] = useState([]); // Store the list of items added by the user
+    const [budgetAmount, setBudgetAmount] = useState(""); 
+    const [items, setItems] = useState([]); 
 
     const submit = async (data) => {
+        const itemsString = JSON.stringify(items); // Convert items list to JSON string
         try {
             const dbProcure = await service.createProcure({ 
                 ...data, 
                 userId: userData?.$id,
                 postId: postId,
-                items // Include the list of items added by the user
+                items: itemsString // Store items as JSON string in Appwrite
             });
 
             if (dbProcure) {
@@ -52,14 +53,12 @@ export default function ProcureForm({ postId }) {
         }
     };
 
-    // Handle input changes and search for matching item
     const handleInputChange = (e) => {
         const inputValue = e.currentTarget.value;
         setValue("Item", inputValue, { shouldValidate: true });
-        fetchSuggestions(inputValue); // Fetch suggestions on input change
+        fetchSuggestions(inputValue); 
     };
 
-    // Fetch suggestions for item names based on user input
     const fetchSuggestions = async (input) => {
         if (!input) {
             setSuggestions([]);
@@ -67,25 +66,19 @@ export default function ProcureForm({ postId }) {
         }
         try {
             const results = await service.searchItems(input);
-            if (Array.isArray(results)) {
-                setSuggestions(results.map(item => item.Item)); 
-            } else {
-                setSuggestions([]);
-            }
+            setSuggestions(Array.isArray(results) ? results.map(item => item.Item) : []);
         } catch (error) {
             console.error("Error fetching suggestions:", error);
             setSuggestions([]);
         }
     };
 
-    // Handle the suggestion click and populate the item input
     const handleSuggestionClick = async (item) => {
-        setSuggestions([]); // Clear suggestions immediately
-        await setValue("Item", item, { shouldValidate: true }); // Ensure validation and update state
-        fetchQuantityAndLocation(item); // Fetch item details and associated head data
+        setSuggestions([]);
+        await setValue("Item", item, { shouldValidate: true }); 
+        fetchQuantityAndLocation(item); 
     };
 
-    // Fetch quantity, location, and budget amount for the selected item
     const fetchQuantityAndLocation = async (itemName) => {
         if (!itemName) return;
         try {
@@ -95,13 +88,8 @@ export default function ProcureForm({ postId }) {
                 setQuantityMessage(`Available: ${Quantity}`);
                 setLocationMessage(`Location: ${Location}`);
 
-                // Fetch the budget amount of the associated Head
                 const headData = await service.searchHead(Head);
-                if (headData.length > 0) {
-                    setBudgetAmount(headData[0].Budgteamount);
-                } else {
-                    setBudgetAmount("Not available");
-                }
+                setBudgetAmount(headData.length > 0 ? headData[0].Budgetamount : "Not available");
             } else {
                 setQuantityMessage("Not Available");
                 setLocationMessage("Not Available");
@@ -115,7 +103,6 @@ export default function ProcureForm({ postId }) {
         }
     };
 
-    // Add item to the list of items
     const addItem = () => {
         const itemData = {
             id: generateUniqueId(),
@@ -123,13 +110,12 @@ export default function ProcureForm({ postId }) {
             Quantity: watch("Quantity"),
             BudgetAmount: budgetAmount,
         };
-        setItems([...items, itemData]); // Add item to the list
+        setItems([...items, itemData]); 
         resetField("Item");
         resetField("Quantity");
-        setBudgetAmount(""); // Reset budget amount for the next item
+        setBudgetAmount(""); 
     };
 
-    // Remove an item from the list
     const removeItem = (id) => {
         setItems(items.filter(item => item.id !== id));
     };
@@ -151,14 +137,14 @@ export default function ProcureForm({ postId }) {
                     placeholder="Item"
                     className="mb-4"
                     {...register("Item", { required: true })}
-                    onInput={handleInputChange} // Use the new handler
+                    onInput={handleInputChange} 
                 />
                 {suggestions.length > 0 && (
                     <ul className="absolute bg-white border border-gray-300 w-full z-10">
                         {suggestions.map((item, index) => (
                             <li
                                 key={index}
-                                onClick={() => handleSuggestionClick(item)} // Fetch correct item on click
+                                onClick={() => handleSuggestionClick(item)} 
                                 className="p-2 hover:bg-gray-200 cursor-pointer"
                             >
                                 {item}
@@ -195,7 +181,7 @@ export default function ProcureForm({ postId }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {items.map((item, index) => (
+                            {items.map((item) => (
                                 <tr key={item.id}>
                                     <td className="px-4 py-2">{item.Item}</td>
                                     <td className="px-4 py-2">{item.Quantity}</td>

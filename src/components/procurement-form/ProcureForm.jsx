@@ -36,18 +36,30 @@ export default function ProcureForm() {
     const [budgetAmount, setBudgetAmount] = useState(""); 
     const [items, setItems] = useState([]); 
 
+    // Submit function
     const submit = async (data) => {
         const itemsString = JSON.stringify(items); // Convert items list to JSON string
+    
         try {
-            const dbProcure = await service.createProcure({ 
-                ...data, 
+            // Create the procurement record
+            const dbProcure = await service.createProcure({
+                ...data,
                 userId: userData?.$id,
                 postId: id, // Use postId from useParams
-                Items: itemsString 
+                Items: itemsString
             });
-
+    
+            // After successfully creating the procurement, update the post status
+            const updatedPost = await service.updatePost(id, {
+                areas: "", // You can keep or update other fields as needed
+                subarea: "", // You can keep or update other fields as needed
+                feild: "", // You can keep or update other fields as needed
+                problem: "", // You can keep or update other fields as needed
+                status: "In Procure" // Update the status to "In Procure"
+            });
+    
             if (dbProcure) {
-                navigate(`/procure/${dbProcure.$id}`); 
+                navigate(`/procure/${dbProcure.$id}`);
             }
         } catch (error) {
             console.error("Error submitting form:", error);

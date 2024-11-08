@@ -69,7 +69,7 @@ export default function Procure() {
                         <h2 className="text-xl font-semibold">Items Required</h2>
                         <ul className="list-disc pl-5">
                             {procure.Items && procure.Items.length > 0 ? (
-                                procure.Items.map((item, index) => (
+                                procure.items.map((item, index) => (
                                     <li key={index} className="mb-2">
                                         <span className="font-semibold">Item:</span> {item.name}
                                         <span className="ml-4 font-semibold">Quantity:</span> {item.quantity}

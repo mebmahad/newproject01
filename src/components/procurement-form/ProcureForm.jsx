@@ -20,7 +20,7 @@ const generateUniqueId = () => {
 
 export default function ProcureForm() {
     const { id } = useParams(); // Extract postId from the URL
-    const { register, handleSubmit, setValue, resetField } = useForm({
+    const { register, handleSubmit, setValue, resetField, watch } = useForm({
         defaultValues: {
             Item: "",
             Quantity: "",

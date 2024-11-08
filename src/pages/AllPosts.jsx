@@ -70,6 +70,9 @@ const AllPosts = () => {
 
                 {/* Filters Section */}
                 <div className="w-full md:w-1/4">
+                    <br />
+                    <br />
+                    <br />
                     <h2 className="text-lg font-bold mb-2">Filters</h2>
                     <DynamicInput
                         label="Areas"

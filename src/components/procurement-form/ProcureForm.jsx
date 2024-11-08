@@ -51,10 +51,6 @@ export default function ProcureForm() {
     
             // After successfully creating the procurement, update the post status
             const updatedPost = await service.updatePost(id, {
-                areas: "", // You can keep or update other fields as needed
-                subarea: "", // You can keep or update other fields as needed
-                feild: "", // You can keep or update other fields as needed
-                problem: "", // You can keep or update other fields as needed
                 status: "In Procure" // Update the status to "In Procure"
             });
     

@@ -55,13 +55,10 @@ const AllPosts = () => {
                         </div>
                         {posts.map((post) => (
                             <div key={post.$id}>
-                                <PostCard {...post} />
-                                {/* Show Material Required button only if status is "active" */}
-                                {post.status === "active" && (
-                                    <Link to={`/add-procure/${post.$id}`}>
-                                        <Button className="bg-blue-500 mt-2">Material Required</Button>
-                                    </Link>
-                                )}
+                                {/* Make each post clickable */}
+                                <Link to={`/post/${post.$id}`}>
+                                    <PostCard {...post} />
+                                </Link>
                             </div>
                         ))}
                     </div>

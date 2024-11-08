@@ -21,7 +21,7 @@ const generateUniqueId = () => {
 export default function ProcureForm({ postId }) {
     const { register, handleSubmit, watch, setValue, resetField } = useForm({
         defaultValues: {
-            Items: "",
+            Item: "",
             Quantity: "",
             id: generateUniqueId(),
         },

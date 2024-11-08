@@ -105,37 +105,35 @@ class Service {
         return this.getPosts([Query.equal("feild", feild)]); // Fetch complaints by field
     }
 
-    async createProcure({ Item, Quantity, userId, postId, id }) {
+    async createProcure({ Items, userId, postId, id }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionIdprocurement,
                 id,
                 {
-                    Item,
-                    Quantity,
+                    Items,
                     userId,
                     postId,
                 }
             );
         } catch (error) {
-            console.log("ComplaintService :: createComplaint :: error", error);
+            console.log("ProcureService :: createProcure :: error", error);
         }
     }
 
-    async updateProcure(id, { Item, Quantity}) {
+    async updateProcure(id, { Items }) {
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionIdprocurement,
                 id,
                 {
-                    Item,
-                    Quantity,
+                    Items,
                 }
             );
         } catch (error) {
-            console.log("ComplaintService :: updateComplaint :: error", error);
+            console.log("ProcureService :: updateProcure :: error", error);
         }
     }
 
@@ -148,7 +146,7 @@ class Service {
             );
             return true;
         } catch (error) {
-            console.log("ComplaintService :: deleteComplaint :: error", error);
+            console.log("ProcureService :: deleteProcure :: error", error);
             return false;
         }
     }
@@ -161,7 +159,7 @@ class Service {
                 id
             );
         } catch (error) {
-            console.log("ComplaintService :: getComplaint :: error", error);
+            console.log("ProcureService :: getProcure :: error", error);
             return false;
         }
     }
@@ -174,7 +172,7 @@ class Service {
                 queries
             );
         } catch (error) {
-            console.log("ComplaintService :: getComplaints :: error", error);
+            console.log("ProcureService :: getProcures :: error", error);
             return false;
         }
     }

@@ -153,16 +153,36 @@ class Service {
 
     async getProcure(id) {
         try {
-            return await this.databases.getDocument(
+            // Fetch the procurement document
+            const procure = await this.databases.getDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionIdprocurement,
                 id
             );
+    
+            // Parse the `items` field if it exists and is in string format
+            if (procure && procure.items) {
+                try {
+                    procure.items = JSON.parse(procure.items); // Parse the string into an array of item objects
+                } catch (error) {
+                    console.log("ProcureService :: getProcure :: JSON parse error for items:", error);
+                    procure.items = []; // Set to an empty array if parsing fails
+                }
+            }
+    
+            // Check if procure has a postId, then fetch the post data
+            if (procure && procure.postId) {
+                const post = await this.getPost(procure.postId); // Pass the actual postId value
+                // Attach the post data to the procure object
+                procure.post = post;
+            }
+    
+            return procure;
         } catch (error) {
             console.log("ProcureService :: getProcure :: error", error);
             return false;
         }
-    }
+    }    
 
     async getProcures(queries = []) {
         try {

@@ -42,18 +42,17 @@ const AllPosts = () => {
                 <div className="w-full md:w-3/4">
                     <h2 className="text-lg font-bold mb-2">Complaints</h2>
                     <div className="space-y-4">
-                        <div className="flex gap-2 mt-4 justify-center">
-                            <div className="overflow-x-auto max-w-32 flex flex-col items-center">
-                                <Button onClick={() => setFilters({ ...filters, status: "active" })}>
-                                    Incomplete
-                                </Button>
-                                <Button onClick={() => setFilters({ ...filters, status: "approval" })}>
-                                    InApproval
-                                </Button>
-                                <Button onClick={() => setFilters({ ...filters, status: "inactive" })}>
-                                    Complete
-                                </Button>
-                            </div>
+                    <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
+                            {/* Buttons for status filters in a horizontal scrollable div */}
+                            <Button onClick={() => setFilters({ ...filters, status: "active" })}>
+                                Incomplete
+                            </Button>
+                            <Button onClick={() => setFilters({ ...filters, status: "approval" })}>
+                                InApproval
+                            </Button>
+                            <Button onClick={() => setFilters({ ...filters, status: "inactive" })}>
+                                Complete
+                            </Button>
                         </div>
                         {posts.map((post) => (
                             <div key={post.$id}>

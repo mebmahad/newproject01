@@ -53,6 +53,9 @@ const AllPosts = () => {
                             <Button onClick={() => setFilters({ ...filters, status: "inactive" })}>
                                 Complete
                             </Button>
+                            <Button onClick={() => setFilters({ ...filters, status: "In Procure" })}>
+                                In Procure
+                            </Button>
                         </div>
                         {posts.map((post) => (
                             <div key={post.$id}>

@@ -19,7 +19,7 @@ const generateUniqueId = () => {
 };
 
 export default function ProcureForm() {
-    const { postId } = useParams(); // Extract postId from the URL
+    const { id } = useParams(); // Extract postId from the URL
     const { register, handleSubmit, setValue, resetField } = useForm({
         defaultValues: {
             Item: "",
@@ -42,7 +42,7 @@ export default function ProcureForm() {
             const dbProcure = await service.createProcure({ 
                 ...data, 
                 userId: userData?.$id,
-                postId: postId, // Use postId from useParams
+                postId: id, // Use postId from useParams
                 Items: itemsString 
             });
 

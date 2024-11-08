@@ -42,7 +42,7 @@ export default function ProcureForm({ postId }) {
                 ...data, 
                 userId: userData?.$id,
                 postId: postId,
-                items: itemsString // Store items as JSON string in Appwrite
+                Items: itemsString // Store items as JSON string in Appwrite
             });
 
             if (dbProcure) {

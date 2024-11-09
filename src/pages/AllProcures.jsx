@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, ProcureCard } from "../components";
 import service from "../appwrite/config";
+import { Query } from "appwrite";
 
 const AllProcures = () => {
     const [procures, setProcures] = useState([]);

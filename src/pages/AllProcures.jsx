@@ -4,39 +4,38 @@ import service from "../appwrite/config";
 
 const AllProcures = () => {
     const [procures, setProcures] = useState([]);
-    const [loading, setLoading] = useState(true); // Add loading state
-    const [error, setError] = useState(null); // Add error state
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchProcures = async () => {
             try {
-                const response = await service.getProcures(); // Remove queries if not defined
-    
-                console.log("Fetched procure response:", response); // Log the response for debugging
-    
+                const response = await service.getProcures();
+                console.log("Fetched procure response:", response);
+
                 if (response && response.documents) {
-                    setProcures(response.documents); // Set procures if response contains documents
+                    setProcures(response.documents);
                 } else {
-                    setProcures([]); // Set to empty array if no documents
+                    setProcures([]);
                 }
             } catch (error) {
                 console.error("Error fetching procures:", error);
-                setError("Failed to fetch procures."); // Set error message
-                setProcures([]); // Fallback to empty array on error
+                setError("Failed to fetch procurements.");
+                setProcures([]);
             } finally {
-                setLoading(false); // Set loading to false regardless of success or error
+                setLoading(false);
             }
         };
-    
+
         fetchProcures();
     }, []);
 
     if (loading) {
-        return <div>Loading...</div>; // Show loading state
+        return <div>Loading...</div>;
     }
 
     if (error) {
-        return <div>{error}</div>; // Show error message
+        return <div>{error}</div>;
     }
 
     return (
@@ -45,11 +44,13 @@ const AllProcures = () => {
                 {/* Procurements Section */}
                 <div className="w-3/4">
                     <h2 className="text-lg font-bold mb-2">Procurements</h2>
-                    <div className="space-y-4">
+                    <div className="space-y-4 overflow-y-auto h-96">
                         {procures.map((procure) => (
                             <div key={procure.$id}>
                                 <ProcureCard 
-                                    {...procure} 
+                                    id={procure.$id}
+                                    items={JSON.parse(procure.Items)} // Parse the items JSON data
+                                    post={procure.postId} // Pass the associated post ID
                                 />
                             </div>
                         ))}

@@ -110,10 +110,10 @@ export default function PoForm({ po }) {
             if (dbPo) {
                 // Update status for procureId and postId
                 const updatedPost = await service.updatePost(postId, {
-                    status: "In Procure" // Update the status to "In Procure"
+                    status: "active" // Update the status to "In Procure"
                 });
                 const updatedProcure = await service.updateProcure(procureId, {
-                    status: "In Procure" // Update the status to "In Procure"
+                    status: "inactive" // Update the status to "In Procure"
                 });
 
                 navigate(`/pocard/${dbPo.$id}`);

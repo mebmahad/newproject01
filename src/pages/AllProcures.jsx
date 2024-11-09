@@ -39,7 +39,7 @@ const AllProcures = () => {
         };
 
         fetchProcures();
-    }, []);
+    }, [filters]);
 
     if (loading) {
         return <div>Loading...</div>;

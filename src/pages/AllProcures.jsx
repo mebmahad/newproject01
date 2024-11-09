@@ -6,6 +6,7 @@ const AllProcures = () => {
     const [procures, setProcures] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [filters, setFilters] = useState({ status: "active" });
 
     useEffect(() => {
         const fetchProcures = async () => {

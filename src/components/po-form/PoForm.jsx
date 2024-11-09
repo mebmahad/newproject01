@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react'; 
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Button, TextField, IconButton, Paper, Typography, Divider, Select, MenuItem } from '@mui/material';
 import Close from '@mui/icons-material/Close';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import './PoForm.css';
 
 const ItemList = ({ items, onSelect }) => (
@@ -25,6 +26,8 @@ export default function PoForm({ po }) {
     const { register, handleSubmit, control, setValue, watch } = useForm({
         defaultValues: {
             VendorName: po?.VendorName || '',
+            procureId: po?.procureId || '',
+            postId: po?.postId || '',
             Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
             totalAmount: po?.totalAmount || 0,
             gst: 0,
@@ -42,6 +45,10 @@ export default function PoForm({ po }) {
     const userData = useSelector((state) => state.auth.userData);
     const [lockedItems, setLockedItems] = useState([]);
     const didMountRef = useRef(false);
+    const location = useLocation();
+    const params = new URLSearchParams(location.search);
+    const procureId = params.get('procureId');
+    const postId = params.get('postId');
 
     useEffect(() => {
         const fetchVendors = async () => {
@@ -92,13 +99,21 @@ export default function PoForm({ po }) {
                 Items: JSON.stringify(data.Items),
                 totalAmount: totalAmount.toFixed(2),
                 totalamountwithgst: Math.round(totalWithGst),
+                procureId: procureId,
+                postId: postId,
             };
 
             const dbPo = po
                 ? await service.updatePo(po.$id, dataToSave)
                 : await service.createPo({ ...dataToSave, userId: userData?.$id });
 
-            if (dbPo) navigate(`/pocard/${dbPo.$id}`);
+            if (dbPo) {
+                // Update status for procureId and postId
+                await service.updateProcureStatus(procureId, 'inactive');
+                await service.updatePostStatus(postId, 'active');
+
+                navigate(`/pocard/${dbPo.$id}`);
+            }
         } catch (error) {
             console.error('Error submitting form:', error);
         }
@@ -216,25 +231,9 @@ export default function PoForm({ po }) {
                         fullWidth
                     />
                     <div className="max-h-52 overflow-y-auto">
-                        {filteredItems.map((item, idx) => (
-                            <div
-                                key={idx}
-                                onClick={() => handleItemSelect(item.Item)}
-                                className="p-2 cursor-pointer hover:bg-gray-200 text-center"
-                            >
-                                {item.Item}
-                            </div>
-                        ))}
+                        <ItemList items={filteredItems} onSelect={handleItemSelect} />
                     </div>
                 </div>
-            </div>
-            <div className="flex justify-between mt-6">
-                <Button variant="outlined" onClick={() => navigate('/add-vendor')} color="primary">
-                    Add Vendor
-                </Button>
-                <Button variant="outlined" onClick={() => navigate('/add-item')} color="primary">
-                    Add Item
-                </Button>
             </div>
         </div>
     );

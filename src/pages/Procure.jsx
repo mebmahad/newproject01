@@ -94,7 +94,7 @@ export default function Procure() {
 
                     {/* Make PO Button */}
                     <div className="mt-6">
-                        <Link to={`/add-po`}>
+                        <Link to={`/add-po?procureId=${procure.$id}&postId=${procure.postId}`}>
                             <Button className="bg-blue-500">Create Purchase Order</Button>
                         </Link>
                     </div>

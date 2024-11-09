@@ -610,7 +610,7 @@ class Service {
         }
     }
 
-    async createPo({ VendorName, Items, totalAmount, gst, totalamountwithgst, id }) {
+    async createPo({ VendorName, Items, totalAmount, gst, totalamountwithgst, postId, procureId, id }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
@@ -622,7 +622,8 @@ class Service {
                     totalAmount,
                     gst,
                     totalamountwithgst,
-
+                    procureId,
+                    postId,
                 }
             );
         } catch (error) {

@@ -11,15 +11,15 @@ const AllProcures = () => {
 
     useEffect(() => {
         const fetchProcures = async () => {
+            setLoading(true); // Set loading state at the start of fetch
             try {
-                const queries = [];
-                if (filters.status) queries.push(Query.equal("status", filters.status));    
+                // Add filter query if a status filter is applied
+                const queries = filters.status ? [Query.equal("status", filters.status)] : [];
 
-                const response = await service.getProcures();
-                console.log("Fetched procure response:", response);
+                // Pass queries to service.getProcures
+                const response = await service.getProcures(queries); // Ensure getProcures accepts queries
 
                 if (response && response.documents) {
-                    // Parse each procure's Items field if it's in JSON format
                     const parsedProcures = response.documents.map((procure) => ({
                         ...procure,
                         Items: procure.Items ? JSON.parse(procure.Items) : [],
@@ -51,11 +51,9 @@ const AllProcures = () => {
     return (
         <Container>
             <div className="flex gap-4">
-                {/* Procurements Section */}
                 <div className="w-3/4">
                     <h2 className="text-lg font-bold mb-2">Procurements</h2>
                     <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
-                        {/* Buttons for status filters in a horizontal scrollable div */}
                         <Button onClick={() => setFilters({ status: "active" })}>
                             Active
                         </Button>
@@ -68,8 +66,8 @@ const AllProcures = () => {
                             <div key={procure.$id}>
                                 <ProcureCard 
                                     id={procure.$id}
-                                    items={procure.Items} // Pass the parsed items data
-                                    post={procure.postId} // Pass the associated post ID
+                                    items={procure.Items} 
+                                    post={procure.postId} 
                                 />
                             </div>
                         ))}

@@ -14,7 +14,12 @@ const AllProcures = () => {
                 console.log("Fetched procure response:", response);
 
                 if (response && response.documents) {
-                    setProcures(response.documents);
+                    // Parse each procure's Items field if it's in JSON format
+                    const parsedProcures = response.documents.map((procure) => ({
+                        ...procure,
+                        Items: procure.Items ? JSON.parse(procure.Items) : [],
+                    }));
+                    setProcures(parsedProcures);
                 } else {
                     setProcures([]);
                 }
@@ -49,7 +54,7 @@ const AllProcures = () => {
                             <div key={procure.$id}>
                                 <ProcureCard 
                                     id={procure.$id}
-                                    items={JSON.parse(procure.Items)} // Parse the items JSON data
+                                    items={procure.Items} // Pass the parsed items data
                                     post={procure.postId} // Pass the associated post ID
                                 />
                             </div>

@@ -10,6 +10,9 @@ const AllProcures = () => {
     useEffect(() => {
         const fetchProcures = async () => {
             try {
+                const queries = [];
+                if (filters.status) queries.push(Query.equal("status", filters.status));    
+
                 const response = await service.getProcures();
                 console.log("Fetched procure response:", response);
 
@@ -49,6 +52,15 @@ const AllProcures = () => {
                 {/* Procurements Section */}
                 <div className="w-3/4">
                     <h2 className="text-lg font-bold mb-2">Procurements</h2>
+                    <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
+                            {/* Buttons for status filters in a horizontal scrollable div */}
+                            <Button onClick={() => setFilters({ ...filters, status: "active" })}>
+                                Active
+                            </Button>
+                            <Button onClick={() => setFilters({ ...filters, status: "inactive" })}>
+                                Inactive
+                            </Button>
+                        </div>
                     <div className="space-y-4 overflow-y-auto h-96">
                         {procures.map((procure) => (
                             <div key={procure.$id}>

@@ -105,7 +105,7 @@ class Service {
         return this.getPosts([Query.equal("feild", feild)]); // Fetch complaints by field
     }
 
-    async createProcure({ Items, userId, postId, id }) {
+    async createProcure({ Items, userId, postId, status, id }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
@@ -115,6 +115,7 @@ class Service {
                     Items,
                     userId,
                     postId,
+                    status,
                 }
             );
         } catch (error) {
@@ -122,7 +123,7 @@ class Service {
         }
     }
 
-    async updateProcure(id, { Items }) {
+    async updateProcure(id, { Items, status }) {
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
@@ -130,6 +131,7 @@ class Service {
                 id,
                 {
                     Items,
+                    status,
                 }
             );
         } catch (error) {
@@ -182,7 +184,15 @@ class Service {
             console.log("ProcureService :: getProcure :: error", error);
             return false;
         }
-    }    
+    }
+    
+    async getActiveProcures() {
+        return this.getProcures([Query.equal("status", "active")]); // Fetch active complaints
+    }
+
+    async getInactiveProcures() {
+        return this.getProcures([Query.equal("status", "inactive")]); // Fetch inactive complaints
+    }
 
     async getProcures(queries = []) {
         try {

@@ -25,6 +25,7 @@ export default function ProcureForm() {
             Item: "",
             Quantity: "",
             id: generateUniqueId(),
+            status: "active",
         },
     });
 
@@ -39,6 +40,7 @@ export default function ProcureForm() {
     // Submit function
     const submit = async (data) => {
         const itemsString = JSON.stringify(items); // Convert items list to JSON string
+        const status = "active"
     
         try {
             // Create the procurement record
@@ -46,7 +48,8 @@ export default function ProcureForm() {
                 ...data,
                 userId: userData?.$id,
                 postId: id, // Use postId from useParams
-                Items: itemsString
+                Items: itemsString,
+                status: status,
             });
     
             // After successfully creating the procurement, update the post status

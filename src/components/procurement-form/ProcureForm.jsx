@@ -4,7 +4,6 @@ import { Button } from "../index";
 import service from "../../appwrite/config"; 
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import Procure from "../../pages/Procure";
 
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     <div className="mb-4">
@@ -59,10 +58,10 @@ export default function ProcureForm({procure}) {
         try {
             let dbProcure;
     
-            if (data.procureId) {
-                console.log("Updating existing procure:", data.procureId);
+            if (procure) {
+                console.log("Updating existing procure:", data.procure);
                 // Update the existing procurement record
-                dbProcure = await service.updateProcure(data.procureId, {
+                dbProcure = await service.updateProcure(data.procure, {
                     ...data,
                     userId: userData?.$id,
                     postId: id, // Use postId from useParams

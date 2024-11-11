@@ -11,6 +11,7 @@ const Input = React.forwardRef(({ label, id, onChange, ...props }, ref) => (
         <input ref={ref} id={id} {...props} onChange={onChange} className="border p-2 w-full" />
     </div>
 ));
+const generateUniqueId = `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`
 
 export default function ProcureForm({ procure }) {
     const { postId } = useParams(); // Extract procureId and postId from the URL
@@ -148,7 +149,7 @@ export default function ProcureForm({ procure }) {
     // Add item to items list
     const addItem = () => {
         const itemData = {
-            id: generateUniqueId(),
+            id: generateUniqueId,
             Item: watch("Item"),
             Quantity: watch("Quantity"),
             BudgetAmount: budgetAmount,
@@ -172,7 +173,7 @@ export default function ProcureForm({ procure }) {
                     id="id"
                     placeholder="id"
                     className="mb-4"
-                    value={id}
+                    value={generateUniqueId}
                     {...register("id", { required: true })}
                     disabled
                 />

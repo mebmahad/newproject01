@@ -123,7 +123,7 @@ class Service {
         }
     }
 
-    async updateProcure(id, { Items, status }) {
+    async updateProcure(id, { Items, userId, postId, status }) {
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
@@ -131,6 +131,8 @@ class Service {
                 id,
                 {
                     Items,
+                    userId,
+                    postId,
                     status,
                 }
             );

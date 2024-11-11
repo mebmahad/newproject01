@@ -4,7 +4,7 @@ import service from '../appwrite/config';
 import { useParams } from 'react-router-dom';
 
 const Po = () => {
-    const { poId } = useParams();
+    const { id } = useParams();
     const [poData, setPoData] = useState(null);
     const [vendorData, setVendorData] = useState(null);
     const [postDetails, setPostDetails] = useState(null);
@@ -13,7 +13,7 @@ const Po = () => {
         const fetchData = async () => {
             try {
                 // Fetch PO Data
-                const po = await service.getPo(poId);
+                const po = await service.getPo(id);
                 setPoData(po);
 
                 // Fetch Vendor Data based on VendorName from PO
@@ -29,7 +29,7 @@ const Po = () => {
         };
 
         fetchData();
-    }, [poId]);
+    }, [id]);
 
     if (!poData || !vendorData) return <div>Loading...</div>;
 

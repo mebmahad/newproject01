@@ -168,6 +168,7 @@ export default function ProcureForm({ procure }) {
                     placeholder="id"
                     className="mb-4"
                     value={generateUniqueId}
+                    {...register("id", { required: true })}
                     disabled
                 />
                 <Input

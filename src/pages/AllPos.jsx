@@ -14,7 +14,7 @@ const AllPos = () => {
             try {
 
                 // Pass queries to service.getProcures
-                const response = await service.getPos(queries); // Ensure getProcures accepts queries
+                const response = await service.getPos(); // Ensure getProcures accepts queries
 
                 if (response && response.documents) {
                     const parsedPos = response.documents.map((pos) => ({

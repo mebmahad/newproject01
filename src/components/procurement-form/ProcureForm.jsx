@@ -17,7 +17,7 @@ const generateUniqueId = () => {
     return `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 };
 
-export default function ProcureForm(procure) {
+export default function ProcureForm({procure}) {
     const { id } = useParams(); // Extract procureId from the URL
     const { register, handleSubmit, setValue, resetField, watch } = useForm();
     const navigate = useNavigate();
@@ -52,6 +52,7 @@ export default function ProcureForm(procure) {
     };
 
     const submit = async (data) => {
+        console.log("Form submitted:", data); // Log the form data to confirm submission
         const itemsString = JSON.stringify(items); // Convert items list to JSON string
         const status = "active";
     

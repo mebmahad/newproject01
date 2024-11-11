@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Container, PoCard, Button } from "../components";
+import { Container, PoCard } from "../components";
 import service from "../appwrite/config";
-import { Query } from "appwrite";
 
 const AllPos = () => {
     const [pos, setPos] = useState([]);
@@ -13,8 +12,6 @@ const AllPos = () => {
         const fetchPos = async () => {
             setLoading(true); // Set loading state at the start of fetch
             try {
-                // Add filter query if a status filter is applied
-                const queries = filters.status ? [Query.equal("status", filters.status)] : [];
 
                 // Pass queries to service.getProcures
                 const response = await service.getPos(queries); // Ensure getProcures accepts queries
@@ -53,14 +50,6 @@ const AllPos = () => {
             <div className="flex gap-4">
                 <div className="w-3/4">
                     <h2 className="text-lg font-bold mb-2">Purchase Orders</h2>
-                    <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
-                        <Button onClick={() => setFilters({ status: "active" })}>
-                            Active
-                        </Button>
-                        <Button onClick={() => setFilters({ status: "inactive" })}>
-                            Invoiced
-                        </Button>
-                    </div>
                     <div className="space-y-4 overflow-y-auto h-96">
                         {pos.map((po) => (
                             <div key={po.$id}>
@@ -68,7 +57,7 @@ const AllPos = () => {
                                     id={po.$id}
                                     items={po.Items} 
                                     post={po.postId} 
-                                    vendorname={po.vendorname}
+                                    vendorname={po.VendorName}
                                 />
                             </div>
                         ))}

@@ -27,7 +27,7 @@ import Vendor from "./pages/Vendor.jsx";
 import AddPo from './pages/AddPo.jsx';
 import EditPo from './pages/EditPo.jsx';
 import AllPos from "./pages/AllPos";
-import PoCard from "./components/PoCard.jsx"
+import Po from "./pages/Po.jsx"
 import EditLocation from './pages/EditLocation.jsx';
 import AllLocations from "./pages/AllLocations";
 import AddLocation from "./pages/AddLocation.jsx";
@@ -248,8 +248,8 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/pocard/:id", // Changed from slug to id
-        element: <PoCard />,
+        path: "/po/:id", // Changed from slug to id
+        element: <Po />,
       },
       {
         path: "/all-locations",

@@ -145,7 +145,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/edit-procure/:postId", // Changed from slug to id
+        path: "/edit-procure/:id", // Changed from slug to id
         element: (
           <AuthLayout authentication>
             {""}

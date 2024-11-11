@@ -5,19 +5,19 @@ import service from "../../appwrite/config";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
+const Input = React.forwardRef(({ label, id, onChange, ...props }, ref) => (
     <div className="mb-4">
         <label htmlFor={id}>{label}</label>
-        <input ref={ref} id={id} {...props} onInput={onInput} className="border p-2 w-full" />
+        <input ref={ref} id={id} {...props} onChange={onChange} className="border p-2 w-full" />
     </div>
 ));
 
 export default function ProcureForm({ procure }) {
-    const { id } = useParams(); // Extract procureId from the URL
+    const { id: postId } = useParams(); // Extract procureId and postId from the URL
     const { register, handleSubmit, setValue, resetField, watch } = useForm({
         defaultValues: {
             Items: procure?.Items || "",
-            postId: procure?.postId || "",
+            postId: procure?.postId || postId || "",  // Use postId from URL if available
             status: procure?.status || "active",
             id: procure?.$id || `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate random unique ID
         },
@@ -58,7 +58,7 @@ export default function ProcureForm({ procure }) {
                 dbProcure = await service.updateProcure(procure.$id, {
                     ...data,
                     userId: userData?.$id,
-                    postId: id,
+                    postId: postId, // Use procureId as postId
                     Items: itemsString,
                     status: status,
                 });
@@ -68,13 +68,13 @@ export default function ProcureForm({ procure }) {
                 dbProcure = await service.createProcure({
                     ...data,
                     userId: userData?.$id,
-                    postId: id,
+                    postId: procureId, // Use procureId as postId
                     Items: itemsString,
                     status: status,
                 });
 
                 // Update the post status after creating procure
-                await service.updatePost(id, { status: "In Procure" });
+                await service.updatePost(postId, { status: "In Procure" });
                 console.log("Post status updated to 'In Procure'");
             }
 
@@ -93,7 +93,7 @@ export default function ProcureForm({ procure }) {
 
     // Handle input change for item search
     const handleInputChange = (e) => {
-        const inputValue = e.currentTarget.value;
+        const inputValue = e.target.value; // Use target to directly get the value
         setValue("Item", inputValue, { shouldValidate: true });
         fetchSuggestions(inputValue);
     };
@@ -168,7 +168,7 @@ export default function ProcureForm({ procure }) {
         <form onSubmit={handleSubmit(submit)} className="flex justify-center items-center min-h-screen">
             <div className="flex flex-col">
                 <Input
-                    label="Id:"
+                    label="Procure Id:"
                     id="id"
                     placeholder="id"
                     className="mb-4"
@@ -182,7 +182,7 @@ export default function ProcureForm({ procure }) {
                     placeholder="Item"
                     className="mb-4"
                     {...register("Item", { required: true })}
-                    onInput={handleInputChange}
+                    onChange={handleInputChange}
                 />
                 {suggestions.length > 0 && (
                     <ul className="absolute bg-white border border-gray-300 w-full z-10">
@@ -222,7 +222,7 @@ export default function ProcureForm({ procure }) {
                                 <th className="px-4 py-2">Item</th>
                                 <th className="px-4 py-2">Quantity</th>
                                 <th className="px-4 py-2">Budget Amount</th>
-                                <th className="px-4 py-2">Actions</th>
+                                <th className="px-4 py-2">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -232,13 +232,13 @@ export default function ProcureForm({ procure }) {
                                     <td className="px-4 py-2">{item.Quantity}</td>
                                     <td className="px-4 py-2">{item.BudgetAmount}</td>
                                     <td className="px-4 py-2">
-                                        <button
+                                        <Button
                                             type="button"
+                                            className="bg-red-500"
                                             onClick={() => removeItem(item.id)}
-                                            className="text-red-500"
                                         >
                                             Remove
-                                        </button>
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
@@ -246,9 +246,11 @@ export default function ProcureForm({ procure }) {
                     </table>
                 </div>
 
-                <Button type="submit" className="bg-green-500">
-                    {isEditMode ? "Update" : "Submit"}
-                </Button>
+                <div className="mt-4">
+                    <Button type="submit" className="w-full bg-green-500">
+                        {isEditMode ? "Update Procure" : "Create Procure"}
+                    </Button>
+                </div>
             </div>
         </form>
     );

@@ -59,6 +59,7 @@ export default function ProcureForm(procure) {
             let dbProcure;
     
             if (data.procureId) {
+                console.log("Updating existing procure:", data.procureId);
                 // Update the existing procurement record
                 dbProcure = await service.updateProcure(data.procureId, {
                     ...data,
@@ -68,6 +69,7 @@ export default function ProcureForm(procure) {
                     status: status,
                 });
             } else {
+                console.log("Creating new procure");
                 // Create a new procurement record
                 dbProcure = await service.createProcure({
                     ...data,
@@ -76,23 +78,24 @@ export default function ProcureForm(procure) {
                     Items: itemsString,
                     status: status,
                 });
+    
+                // Update the post status if it's a new procure
+                await service.updatePost(id, { status: "In Procure" });
+                console.log("Post status updated to 'In Procure'");
             }
     
-            // Update the post status if it's a new procure
-            if (!data.procureId) {
-                await service.updatePost(id, {
-                    status: "In Procure", // Update the status to "In Procure"
-                });
-            }
+            console.log("Database response:", dbProcure);
     
             // Navigate to the updated procure page
             if (dbProcure) {
                 navigate(`/procure/${dbProcure.$id}`);
+            } else {
+                console.error("No response from database on submit");
             }
         } catch (error) {
             console.error("Error submitting form:", error);
         }
-    };
+    };    
 
     const handleInputChange = (e) => {
         const inputValue = e.currentTarget.value;

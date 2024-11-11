@@ -29,27 +29,6 @@ export default function ProcureForm({procure}) {
     const [items, setItems] = useState([]); 
     const [isEditMode, setIsEditMode] = useState(false);
 
-    useEffect(() => {
-        if (id) {
-            fetchProcureData(id);
-        }
-    }, [id]);
-
-    const fetchProcureData = async (procure) => {
-        try {
-            const procureData = await service.getProcure(procure); // Fetch the procure data from Appwrite
-            if (procureData) {
-                setIsEditMode(true);
-                setValue("Item", ""); // Clear individual fields
-                setValue("Quantity", "");
-                setValue("status", procureData.status || "active");
-                setItems(JSON.parse(procureData.Items)); // Populate the items list with existing items
-            }
-        } catch (error) {
-            console.error("Error fetching procure data:", error);
-        }
-    };
-
     const submit = async (data) => {
         console.log("Form submitted:", data); // Log the form data to confirm submission
         const itemsString = JSON.stringify(items); // Convert items list to JSON string
@@ -57,10 +36,10 @@ export default function ProcureForm({procure}) {
     
         try {
             let dbProcure;
-    
             if (procure) {
-                console.log("Updating existing procure:", data.procure);
-                // Update the existing procurement record
+                if (!procure.$id) {
+                    throw new Error("Post ID is not available");
+                }
                 dbProcure = await service.updateProcure(data.procure, {
                     ...data,
                     userId: userData?.$id,

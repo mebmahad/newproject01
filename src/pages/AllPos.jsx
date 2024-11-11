@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, PoCard } from "../components";
 import service from "../appwrite/config";
+import { Query } from "appwrite";
 
 const AllPos = () => {
     const [pos, setPos] = useState([]);
@@ -13,8 +14,9 @@ const AllPos = () => {
             setLoading(true); // Set loading state at the start of fetch
             try {
 
+                const queries =  [];
                 // Pass queries to service.getProcures
-                const response = await service.getPos(); // Ensure getProcures accepts queries
+                const response = await service.getPos(queries); // Ensure getProcures accepts queries
 
                 if (response && response.documents) {
                     const parsedPos = response.documents.map((pos) => ({

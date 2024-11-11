@@ -13,9 +13,10 @@ function PoCard({ id, items, vendorname }) {
           {items && items.length > 0 ? (
             items.map((item, index) => (
               <li key={index} className="mt-2">
-                <p>Quantity: <span className="font-bold">{item.Quantity}</span></p>
-                <p>Rate: <span className="font-bold">{item.Rate}</span></p>
-                <p>Amount: <span className="font-bold">{item.Amount}</span></p>
+                <p>Name: <span className="font-bold">{item.name || 'N/A'}</span></p>
+                <p>Quantity: <span className="font-bold">{item.qty || 'N/A'}</span></p>
+                <p>Rate: <span className="font-bold">{item.rate || 'N/A'}</span></p>
+                <p>Amount: <span className="font-bold">{item.qty && item.rate ? item.qty * item.rate : 'N/A'}</span></p>
               </li>
             ))
           ) : (

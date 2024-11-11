@@ -51,28 +51,42 @@ export default function ProcureForm() {
     };
 
     const submit = async (data) => {
-        const itemsString = JSON.stringify(items);
-
+        const itemsString = JSON.stringify(items); // Convert items list to JSON string
+        const status = "active";
+    
         try {
-            if (isEditMode) {
-                // Update the existing procure entry
-                await service.updateProcure(id, {
-                    ...data,
-                    Items: itemsString,
-                });
-            } else {
-                // Create a new procure entry
-                const dbProcure = await service.createProcure({
+            let dbProcure;
+    
+            if (data.procureId) {
+                // Update the existing procurement record
+                dbProcure = await service.updateProcure(data.procureId, {
                     ...data,
                     userId: userData?.$id,
                     postId: id, // Use postId from useParams
                     Items: itemsString,
-                    status: "active",
+                    status: status,
                 });
-
-                if (dbProcure) {
-                    navigate(`/procure/${dbProcure.$id}`);
-                }
+            } else {
+                // Create a new procurement record
+                dbProcure = await service.createProcure({
+                    ...data,
+                    userId: userData?.$id,
+                    postId: id, // Use postId from useParams
+                    Items: itemsString,
+                    status: status,
+                });
+            }
+    
+            // Update the post status if it's a new procure
+            if (!data.procureId) {
+                await service.updatePost(id, {
+                    status: "In Procure", // Update the status to "In Procure"
+                });
+            }
+    
+            // Navigate to the updated procure page
+            if (dbProcure) {
+                navigate(`/procure/${dbProcure.$id}`);
             }
         } catch (error) {
             console.error("Error submitting form:", error);

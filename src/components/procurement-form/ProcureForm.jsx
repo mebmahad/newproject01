@@ -66,7 +66,6 @@ export default function ProcureForm({ procure }) {
                     postId: id,
                     Items: itemsString,
                     status: status,
-                    id: generateUniqueId,
                 });
     
                 // Update the post status after creating procure
@@ -168,7 +167,7 @@ export default function ProcureForm({ procure }) {
                     id="id"
                     placeholder="id"
                     className="mb-4"
-                    value={id}
+                    value={generateUniqueId}
                     disabled
                 />
                 <Input

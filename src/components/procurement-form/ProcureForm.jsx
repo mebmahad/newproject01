@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Button } from "../index"; 
-import service from "../../appwrite/config"; 
+import { Button } from "../index";
+import service from "../../appwrite/config";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -12,19 +12,24 @@ const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     </div>
 ));
 
-const generateUniqueId = () => `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-
 export default function ProcureForm({ procure }) {
     const { id } = useParams(); // Extract procureId from the URL
-    const { register, handleSubmit, setValue, resetField, watch } = useForm();
+    const { register, handleSubmit, setValue, resetField, watch } = useForm({
+        defaultValues: {
+            Items: procure?.Items || "",
+            postId: procure?.postId || "",
+            status: procure?.status || "active",
+            id: procure?.$id || `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate random unique ID
+        },
+    });
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
 
     const [suggestions, setSuggestions] = useState([]);
     const [quantityMessage, setQuantityMessage] = useState("");
     const [locationMessage, setLocationMessage] = useState("");
-    const [budgetAmount, setBudgetAmount] = useState(""); 
-    const [items, setItems] = useState([]); 
+    const [budgetAmount, setBudgetAmount] = useState("");
+    const [items, setItems] = useState([]);
     const [isEditMode, setIsEditMode] = useState(false);
 
     // Fetch procure data if id exists
@@ -42,7 +47,7 @@ export default function ProcureForm({ procure }) {
         console.log("Form submitted:", data); // Log the form data to confirm submission
         const itemsString = JSON.stringify(items); // Convert items list to JSON string
         const status = "active";
-    
+
         try {
             let dbProcure;
             if (isEditMode) {
@@ -67,14 +72,14 @@ export default function ProcureForm({ procure }) {
                     Items: itemsString,
                     status: status,
                 });
-    
+
                 // Update the post status after creating procure
                 await service.updatePost(id, { status: "In Procure" });
                 console.log("Post status updated to 'In Procure'");
             }
-    
+
             console.log("Database response:", dbProcure);
-    
+
             // Navigate to the updated procure page
             if (dbProcure) {
                 navigate(`/procure/${dbProcure.$id}`);
@@ -167,7 +172,7 @@ export default function ProcureForm({ procure }) {
                     id="id"
                     placeholder="id"
                     className="mb-4"
-                    value={generateUniqueId}
+                    value={id}
                     {...register("id", { required: true })}
                     disabled
                 />
@@ -177,7 +182,7 @@ export default function ProcureForm({ procure }) {
                     placeholder="Item"
                     className="mb-4"
                     {...register("Item", { required: true })}
-                    onInput={handleInputChange} 
+                    onInput={handleInputChange}
                 />
                 {suggestions.length > 0 && (
                     <ul className="absolute bg-white border border-gray-300 w-full z-10">

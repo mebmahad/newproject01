@@ -1,23 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Container, PoCard } from "../components";
 import service from "../appwrite/config";
-import { Query } from "appwrite";
 
 const AllPos = () => {
     const [pos, setPos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filters, setFilters] = useState({ status: "active" });
 
     useEffect(() => {
         const fetchPos = async () => {
-            setLoading(true); // Set loading state at the start of fetch
+            setLoading(true);
             try {
-
-                const queries =  [];
-                // Pass queries to service.getProcures
-                const response = await service.getPos(queries); // Ensure getProcures accepts queries
-
+                // Fetch all purchase orders without "status" filtering
+                const response = await service.getPos();
+                
                 if (response && response.documents) {
                     const parsedPos = response.documents.map((po) => ({
                         ...po,
@@ -29,7 +25,7 @@ const AllPos = () => {
                 }
             } catch (error) {
                 console.error("Error fetching pos:", error);
-                setError("Failed to fetch pos.");
+                setError("Failed to fetch purchase orders.");
                 setPos([]);
             } finally {
                 setLoading(false);
@@ -37,7 +33,7 @@ const AllPos = () => {
         };
 
         fetchPos();
-    }, [filters]);
+    }, []);
 
     if (loading) {
         return <div>Loading...</div>;

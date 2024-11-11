@@ -39,7 +39,9 @@ export default function ProcureForm({ procure }) {
             setIsEditMode(true);
             setValue("Item", procure.Item || "");
             setValue("Quantity", procure.Quantity || "");
-            setItems(procure.Items || []);
+            // Parse Items if it's a JSON string, otherwise default to an empty array
+            const parsedItems = Array.isArray(procure.Items) ? procure.Items : JSON.parse(procure.Items || '[]');
+            setItems(parsedItems);
         }
     }, [procure, setValue]);
 

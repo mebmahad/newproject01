@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Paper, Typography, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
-import service from '../../appwrite/config';
+import service from '../appwrite/config';
 import { useParams } from 'react-router-dom';
 import './POCard.css';
 

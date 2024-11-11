@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "../index"; 
 import service from "../../appwrite/config"; 
@@ -12,11 +12,9 @@ const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     </div>
 ));
 
-const generateUniqueId = () => {
-    return `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-};
+const generateUniqueId = () => `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
-export default function ProcureForm({procure}) {
+export default function ProcureForm({ procure }) {
     const { id } = useParams(); // Extract procureId from the URL
     const { register, handleSubmit, setValue, resetField, watch } = useForm();
     const navigate = useNavigate();
@@ -29,6 +27,17 @@ export default function ProcureForm({procure}) {
     const [items, setItems] = useState([]); 
     const [isEditMode, setIsEditMode] = useState(false);
 
+    // Fetch procure data if id exists
+    useEffect(() => {
+        if (procure) {
+            setIsEditMode(true);
+            setValue("Item", procure.Item || "");
+            setValue("Quantity", procure.Quantity || "");
+            setItems(procure.Items || []);
+        }
+    }, [procure, setValue]);
+
+    // Submit the form for new or updated procure
     const submit = async (data) => {
         console.log("Form submitted:", data); // Log the form data to confirm submission
         const itemsString = JSON.stringify(items); // Convert items list to JSON string
@@ -36,15 +45,15 @@ export default function ProcureForm({procure}) {
     
         try {
             let dbProcure;
-
-            if (procure) {
+            if (isEditMode) {
                 if (!procure.$id) {
-                    throw new Error("Post ID is not available");
+                    throw new Error("Procure ID not available for update");
                 }
+
                 dbProcure = await service.updateProcure(procure.$id, {
                     ...data,
                     userId: userData?.$id,
-                    postId: id, // Use postId from useParams
+                    postId: id,
                     Items: itemsString,
                     status: status,
                 });
@@ -54,12 +63,12 @@ export default function ProcureForm({procure}) {
                 dbProcure = await service.createProcure({
                     ...data,
                     userId: userData?.$id,
-                    postId: id, // Use postId from useParams
+                    postId: id,
                     Items: itemsString,
                     status: status,
                 });
     
-                // Update the post status if it's a new procure
+                // Update the post status after creating procure
                 await service.updatePost(id, { status: "In Procure" });
                 console.log("Post status updated to 'In Procure'");
             }
@@ -75,14 +84,16 @@ export default function ProcureForm({procure}) {
         } catch (error) {
             console.error("Error submitting form:", error);
         }
-    };    
+    };
 
+    // Handle input change for item search
     const handleInputChange = (e) => {
         const inputValue = e.currentTarget.value;
         setValue("Item", inputValue, { shouldValidate: true });
-        fetchSuggestions(inputValue); 
+        fetchSuggestions(inputValue);
     };
 
+    // Fetch suggestions for items from the API
     const fetchSuggestions = async (input) => {
         if (!input) {
             setSuggestions([]);
@@ -97,12 +108,14 @@ export default function ProcureForm({procure}) {
         }
     };
 
+    // Handle item suggestion click
     const handleSuggestionClick = async (item) => {
         setSuggestions([]);
-        await setValue("Item", item, { shouldValidate: true });
-        fetchQuantityAndLocation(item); 
+        setValue("Item", item, { shouldValidate: true });
+        fetchQuantityAndLocation(item);
     };
 
+    // Fetch additional data (Quantity, Location, Budget Amount)
     const fetchQuantityAndLocation = async (itemName) => {
         if (!itemName) return;
         try {
@@ -127,6 +140,7 @@ export default function ProcureForm({procure}) {
         }
     };
 
+    // Add item to items list
     const addItem = () => {
         const itemData = {
             id: generateUniqueId(),
@@ -140,6 +154,7 @@ export default function ProcureForm({procure}) {
         setBudgetAmount("");
     };
 
+    // Remove item from items list
     const removeItem = (id) => {
         setItems(items.filter(item => item.id !== id));
     };
@@ -152,7 +167,6 @@ export default function ProcureForm({procure}) {
                     id="id"
                     placeholder="id"
                     className="mb-4"
-                    {...register("id", { required: true })}
                     value={id}
                     disabled
                 />
@@ -226,8 +240,8 @@ export default function ProcureForm({procure}) {
                     </table>
                 </div>
 
-                <Button type="submit" bgColor={procure ? "bg-green-500" : undefined} className="w-full">
-                {procure ? "Update" : "Submit"}
+                <Button type="submit" className="bg-green-500">
+                    {isEditMode ? "Update" : "Submit"}
                 </Button>
             </div>
         </form>

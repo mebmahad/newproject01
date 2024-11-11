@@ -1,65 +1,74 @@
 import React, { useEffect, useState } from "react";
-import { Container, ItemCard } from "../components";
+import { Container, PoCard, Button } from "../components";
 import service from "../appwrite/config";
-import { useNavigate } from "react-router-dom";
+import { Query } from "appwrite";
 
-const AllItems = () => {
-    const [items, setItems] = useState([]);
-    const [loading, setLoading] = useState(true); // Add loading state
-    const [error, setError] = useState(null); // Add error state
-    const navigate = useNavigate();
+const AllPos = () => {
+    const [pos, setPos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [filters, setFilters] = useState({ status: "active" });
 
-    const handleItemClick = () => {
-        // Define your logic here, for example:
-        navigate('/add-item'); // Redirect to the AddItem page
-    };
     useEffect(() => {
-        const fetchItems = async () => {
+        const fetchPos = async () => {
+            setLoading(true); // Set loading state at the start of fetch
             try {
-                const response = await service.getItems(); // Remove queries if not defined
-    
-                console.log("Fetched item response:", response); // Log the response for debugging
-    
+                // Add filter query if a status filter is applied
+                const queries = filters.status ? [Query.equal("status", filters.status)] : [];
+
+                // Pass queries to service.getProcures
+                const response = await service.getPos(queries); // Ensure getProcures accepts queries
+
                 if (response && response.documents) {
-                    setItems(response.documents); // Set Items if response contains documents
+                    const parsedPos = response.documents.map((pos) => ({
+                        ...po,
+                        Items: po.Items ? JSON.parse(po.Items) : [],
+                    }));
+                    setPos(parsedPos);
                 } else {
-                    setItems([]); // Set to empty array if no documents
+                    setPos([]);
                 }
             } catch (error) {
-                setError("Failed to fetch items."); // Set error message
-                setItems([]); // Fallback to empty array on error
+                console.error("Error fetching pos:", error);
+                setError("Failed to fetch pos.");
+                setPos([]);
             } finally {
-                setLoading(false); // Set loading to false regardless of success or error
+                setLoading(false);
             }
         };
-    
-        fetchItems();
-    }, []);
+
+        fetchPos();
+    }, [filters]);
 
     if (loading) {
-        return <div>Loading...</div>; // Show loading state
+        return <div>Loading...</div>;
     }
 
     if (error) {
-        return <div>{error}</div>; // Show error message
+        return <div>{error}</div>;
     }
 
     return (
         <Container>
             <div className="flex gap-4">
-                {/* Items Section */}
                 <div className="w-3/4">
-                    <h2 className="text-lg font-bold mb-2">Items</h2>
-                    <div>
-                    <button className="bg-green-500" onClick={handleItemClick}>
-                                    Add Item
-                                </button>
+                    <h2 className="text-lg font-bold mb-2">Purchase Orders</h2>
+                    <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
+                        <Button onClick={() => setFilters({ status: "active" })}>
+                            Active
+                        </Button>
+                        <Button onClick={() => setFilters({ status: "inactive" })}>
+                            Invoiced
+                        </Button>
                     </div>
-                    <div className="space-y-4">
-                        {items.map((item) => (
-                            <div key={item.$id}>
-                                <ItemCard 
-                                    {...item} 
+                    <div className="space-y-4 overflow-y-auto h-96">
+                        {pos.map((po) => (
+                            <div key={po.$id}>
+                                <PoCard 
+                                    id={po.$id}
+                                    items={po.Items} 
+                                    post={po.postId} 
+                                    vendorname={po.vendorname}
                                 />
                             </div>
                         ))}
@@ -70,4 +79,4 @@ const AllItems = () => {
     );
 };
 
-export default AllItems;
+export default AllPos;

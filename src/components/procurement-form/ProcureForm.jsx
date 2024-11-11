@@ -37,7 +37,7 @@ export default function ProcureForm() {
 
     const fetchProcureData = async (procureId) => {
         try {
-            const procureData = await service.getProcureById(procureId); // Fetch the procure data from Appwrite
+            const procureData = await service.getProcure(procureId); // Fetch the procure data from Appwrite
             if (procureData) {
                 setIsEditMode(true);
                 setValue("Item", ""); // Clear individual fields

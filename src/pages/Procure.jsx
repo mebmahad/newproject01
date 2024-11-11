@@ -48,23 +48,19 @@ export default function Procure() {
 
     const materialReceived = async () => {
         try {
-            // Update each item's quantity in the store
+            // Loop over each item in the procure list to update its quantity in the store
             for (const item of procure.items) {
-                const storeItem = await service.getItem(item.Item); // Function to get item by name
-                if (storeItem) {
-                    const newQuantity = parseInt(storeItem.Quantity) + parseInt(item.Quantity);
-                    await service.updateItem(storeItem.$id, {
-                        ...storeItem,
-                        Quantity: newQuantity.toString(),
-                    });
+                const qtyChange = parseInt(item.Quantity, 10);
+                if (!isNaN(qtyChange)) {
+                    await service.updateItemQuantity(item.Item, qtyChange);
                 } else {
-                    console.error("Item not found in store:", item.Item);
+                    console.error("Invalid quantity for item:", item.Item);
                 }
             }
-
-            // Optional: Update the procure status to "received" or handle it as needed
-            await service.updateProcure(procure.$id, { status: "received" });
-
+    
+            // Optional: Update the procure status to "received"
+            await service.updateProcure(procure.$id, { status: "inactive" });
+    
             alert("Material received and store updated successfully.");
         } catch (error) {
             console.error("Error updating store:", error);

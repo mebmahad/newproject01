@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react"; 
+import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "../index"; 
 import service from "../../appwrite/config"; 
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-// Helper component for input fields
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     <div className="mb-4">
         <label htmlFor={id}>{label}</label>
@@ -13,52 +12,67 @@ const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     </div>
 ));
 
-// Function to generate a unique ID for items
 const generateUniqueId = () => {
     return `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 };
 
 export default function ProcureForm() {
-    const { id } = useParams(); // Extract postId from the URL
-    const { register, handleSubmit, setValue, resetField, watch } = useForm({
-        defaultValues: {
-            Item: "",
-            Quantity: "",
-            id: generateUniqueId(),
-            status: "active",
-        },
-    });
-
+    const { id } = useParams(); // Extract procureId from the URL
+    const { register, handleSubmit, setValue, resetField, watch } = useForm();
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
+
     const [suggestions, setSuggestions] = useState([]);
     const [quantityMessage, setQuantityMessage] = useState("");
     const [locationMessage, setLocationMessage] = useState("");
     const [budgetAmount, setBudgetAmount] = useState(""); 
     const [items, setItems] = useState([]); 
+    const [isEditMode, setIsEditMode] = useState(false);
 
-    // Submit function
-    const submit = async (data) => {
-        const itemsString = JSON.stringify(items); // Convert items list to JSON string
-        const status = "active"
-    
+    useEffect(() => {
+        if (id) {
+            fetchProcureData(id);
+        }
+    }, [id]);
+
+    const fetchProcureData = async (procureId) => {
         try {
-            // Create the procurement record
-            const dbProcure = await service.createProcure({
-                ...data,
-                userId: userData?.$id,
-                postId: id, // Use postId from useParams
-                Items: itemsString,
-                status: status,
-            });
-    
-            // After successfully creating the procurement, update the post status
-            const updatedPost = await service.updatePost(id, {
-                status: "In Procure" // Update the status to "In Procure"
-            });
-    
-            if (dbProcure) {
-                navigate(`/procure/${dbProcure.$id}`);
+            const procureData = await service.getProcureById(procureId); // Fetch the procure data from Appwrite
+            if (procureData) {
+                setIsEditMode(true);
+                setValue("Item", ""); // Clear individual fields
+                setValue("Quantity", "");
+                setValue("status", procureData.status || "active");
+                setItems(JSON.parse(procureData.Items)); // Populate the items list with existing items
+            }
+        } catch (error) {
+            console.error("Error fetching procure data:", error);
+        }
+    };
+
+    const submit = async (data) => {
+        const itemsString = JSON.stringify(items);
+
+        try {
+            if (isEditMode) {
+                // Update the existing procure entry
+                await service.updateProcure(id, {
+                    ...data,
+                    Items: itemsString,
+                });
+            } else {
+                // Create a new procure entry
+                const dbProcure = await service.createProcure({
+                    ...data,
+                    userId: userData?.$id,
+                    postId: id, // Use postId from useParams
+                    Items: itemsString,
+                    status: "active",
+                });
+
+                if (dbProcure) {
+                    navigate(`/procure/${dbProcure.$id}`);
+                }
             }
         } catch (error) {
             console.error("Error submitting form:", error);
@@ -87,7 +101,7 @@ export default function ProcureForm() {
 
     const handleSuggestionClick = async (item) => {
         setSuggestions([]);
-        await setValue("Item", item, { shouldValidate: true }); 
+        await setValue("Item", item, { shouldValidate: true });
         fetchQuantityAndLocation(item); 
     };
 
@@ -122,10 +136,10 @@ export default function ProcureForm() {
             Quantity: watch("Quantity"),
             BudgetAmount: budgetAmount,
         };
-        setItems([...items, itemData]); 
+        setItems([...items, itemData]);
         resetField("Item");
         resetField("Quantity");
-        setBudgetAmount(""); 
+        setBudgetAmount("");
     };
 
     const removeItem = (id) => {
@@ -141,6 +155,7 @@ export default function ProcureForm() {
                     placeholder="id"
                     className="mb-4"
                     {...register("id", { required: true })}
+                    value={id}
                     disabled
                 />
                 <Input
@@ -156,7 +171,7 @@ export default function ProcureForm() {
                         {suggestions.map((item, index) => (
                             <li
                                 key={index}
-                                onClick={() => handleSuggestionClick(item)} 
+                                onClick={() => handleSuggestionClick(item)}
                                 className="p-2 hover:bg-gray-200 cursor-pointer"
                             >
                                 {item}
@@ -214,7 +229,7 @@ export default function ProcureForm() {
                 </div>
 
                 <Button type="submit" className="w-full bg-green-500 mt-4">
-                    Submit
+                    {isEditMode ? "Update" : "Submit"}
                 </Button>
             </div>
         </form>

@@ -4,6 +4,7 @@ import { Button } from "../index";
 import service from "../../appwrite/config"; 
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Procure from "../../pages/Procure";
 
 const Input = React.forwardRef(({ label, id, onInput, ...props }, ref) => (
     <div className="mb-4">
@@ -16,7 +17,7 @@ const generateUniqueId = () => {
     return `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 };
 
-export default function ProcureForm() {
+export default function ProcureForm(procure) {
     const { id } = useParams(); // Extract procureId from the URL
     const { register, handleSubmit, setValue, resetField, watch } = useForm();
     const navigate = useNavigate();
@@ -242,8 +243,8 @@ export default function ProcureForm() {
                     </table>
                 </div>
 
-                <Button type="submit" className="w-full bg-green-500 mt-4">
-                    {isEditMode ? "Update" : "Submit"}
+                <Button type="submit" bgColor={procure ? "bg-green-500" : undefined} className="w-full">
+                {procure ? "Update" : "Submit"}
                 </Button>
             </div>
         </form>

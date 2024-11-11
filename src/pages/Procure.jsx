@@ -46,6 +46,19 @@ export default function Procure() {
         }
     };
 
+    const markAsReceived = async () => {
+        if (procure) {
+            try {
+                await service.updateProcure(procure.$id, { status: "inactive" });
+                setProcure({ ...procure, status: "inactive" }); // Update status in state
+                alert("Material marked as received.");
+            } catch (error) {
+                console.error("Error updating procure status:", error);
+            }
+        }
+    };
+
+
     return procure ? (
         <div className="py-8">
             <Container>
@@ -98,6 +111,14 @@ export default function Procure() {
                             <Button className="bg-blue-500">Create Purchase Order</Button>
                         </Link>
                     </div>
+                    {/* Material Received Button (appears only if status is "inactive") */}
+                    {procure.status === "inactive" && (
+                        <div className="mt-6">
+                            <Button className="bg-green-500" onClick={markAsReceived}>
+                                Material Received
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </Container>
         </div>

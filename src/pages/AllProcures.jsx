@@ -57,8 +57,11 @@ const AllProcures = () => {
                         <Button onClick={() => setFilters({ status: "active" })}>
                             Active
                         </Button>
+                        <Button onClick={() => setFilters({ status: "podone" })}>
+                            Po Done
+                        </Button>
                         <Button onClick={() => setFilters({ status: "inactive" })}>
-                            Inactive
+                            Material Received
                         </Button>
                     </div>
                     <div className="space-y-4 overflow-y-auto h-96">

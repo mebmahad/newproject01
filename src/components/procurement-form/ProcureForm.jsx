@@ -36,11 +36,12 @@ export default function ProcureForm({procure}) {
     
         try {
             let dbProcure;
+
             if (procure) {
                 if (!procure.$id) {
                     throw new Error("Post ID is not available");
                 }
-                dbProcure = await service.updateProcure(data.procure, {
+                dbProcure = await service.updateProcure(procure.$id, {
                     ...data,
                     userId: userData?.$id,
                     postId: id, // Use postId from useParams

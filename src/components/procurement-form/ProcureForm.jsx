@@ -69,7 +69,7 @@ export default function ProcureForm({ procure }) {
                 dbProcure = await service.createProcure({
                     ...data,
                     userId: userData?.$id,
-                    postId: procureId, // Use procureId as postId
+                    postId: postId, // Use procureId as postId
                     Items: itemsString,
                     status: status,
                 });

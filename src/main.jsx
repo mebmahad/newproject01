@@ -136,7 +136,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/add-procure/:id",
+        path: "/add-procure/:postId",
         element: (
           <AuthLayout authentication>
             {""}

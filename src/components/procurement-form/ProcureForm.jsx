@@ -13,7 +13,7 @@ const Input = React.forwardRef(({ label, id, onChange, ...props }, ref) => (
 ));
 
 export default function ProcureForm({ procure }) {
-    const { id: postId } = useParams(); // Extract procureId and postId from the URL
+    const { postId } = useParams(); // Extract procureId and postId from the URL
     const { register, handleSubmit, setValue, resetField, watch } = useForm({
         defaultValues: {
             Items: procure?.Items || "",

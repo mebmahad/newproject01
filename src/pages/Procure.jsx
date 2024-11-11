@@ -112,7 +112,7 @@ export default function Procure() {
                         </Link>
                     </div>
                     {/* Material Received Button (appears only if status is "inactive") */}
-                    {procure.status === "inactive" && (
+                    {procure.status === "active" && (
                         <div className="mt-6">
                             <Button className="bg-green-500" onClick={markAsReceived}>
                                 Material Received

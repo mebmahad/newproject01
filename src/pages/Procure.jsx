@@ -46,15 +46,29 @@ export default function Procure() {
         }
     };
 
-    const markAsReceived = async () => {
-        if (procure) {
-            try {
-                await service.updateProcure(procure.$id, { status: "inactive" });
-                setProcure({ ...procure, status: "inactive" }); // Update status in state
-                alert("Material marked as received.");
-            } catch (error) {
-                console.error("Error updating procure status:", error);
+    const materialReceived = async () => {
+        try {
+            // Update each item's quantity in the store
+            for (const item of procure.items) {
+                const storeItem = await service.getItem(item.Item); // Function to get item by name
+                if (storeItem) {
+                    const newQuantity = parseInt(storeItem.Quantity) + parseInt(item.Quantity);
+                    await service.updateItem(storeItem.$id, {
+                        ...storeItem,
+                        Quantity: newQuantity.toString(),
+                    });
+                } else {
+                    console.error("Item not found in store:", item.Item);
+                }
             }
+
+            // Optional: Update the procure status to "received" or handle it as needed
+            await service.updateProcure(procure.$id, { status: "received" });
+
+            alert("Material received and store updated successfully.");
+        } catch (error) {
+            console.error("Error updating store:", error);
+            alert("Failed to update store items.");
         }
     };
 
@@ -112,9 +126,9 @@ export default function Procure() {
                         </Link>
                     </div>
                     {/* Material Received Button (appears only if status is "inactive") */}
-                    {procure.status === "active" && (
+                    {procure.status === "podone" && (
                         <div className="mt-6">
-                            <Button className="bg-green-500" onClick={markAsReceived}>
+                            <Button className="bg-green-500" onClick={materialReceived}>
                                 Material Received
                             </Button>
                         </div>

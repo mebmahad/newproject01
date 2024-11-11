@@ -11,13 +11,13 @@ const AllPos = () => {
         const fetchPos = async () => {
             setLoading(true);
             try {
-                // Fetch all purchase orders without "status" filtering
+                // Fetch all purchase orders
                 const response = await service.getPos();
-                
+
                 if (response && response.documents) {
                     const parsedPos = response.documents.map((po) => ({
                         ...po,
-                        Items: po.Items ? JSON.parse(po.Items) : [],
+                        Items: typeof po.Items === "string" ? JSON.parse(po.Items) : po.Items || [],
                     }));
                     setPos(parsedPos);
                 } else {

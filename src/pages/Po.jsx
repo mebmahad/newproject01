@@ -14,14 +14,26 @@ const Po = () => {
             try {
                 // Fetch PO Data
                 const po = await service.getPo(id);
+                if (!po) {
+                    console.error("No PO data found for id:", id);
+                    return;
+                }
                 setPoData(po);
 
                 // Fetch Vendor Data based on VendorName from PO
                 const vendor = await service.getVendor(po.VendorName);
+                if (!vendor) {
+                    console.error("No vendor data found for VendorName:", po.VendorName);
+                    return;
+                }
                 setVendorData(vendor);
 
                 // Fetch Post Details using postId from PO
                 const post = await service.getPost(po.postId);
+                if (!post) {
+                    console.error("No post data found for postId:", po.postId);
+                    return;
+                }
                 setPostDetails(post);
             } catch (error) {
                 console.error("Error fetching PO data:", error);
@@ -31,10 +43,18 @@ const Po = () => {
         fetchData();
     }, [id]);
 
-    if (!poData || !vendorData) return <div>Loading...</div>;
+    // Ensure loading state is handled gracefully
+    if (!poData || !vendorData || !postDetails) {
+        return <div>Loading...</div>;
+    }
 
     const { VendorName, Items, totalAmount, gst, totalamountwithgst, postId } = poData;
-    const itemList = JSON.parse(Items);
+    let itemList = [];
+    try {
+        itemList = JSON.parse(Items);
+    } catch (error) {
+        console.error("Error parsing Items field:", error);
+    }
 
     return (
         <Paper className="p-6 po-card bg-white">
@@ -53,7 +73,7 @@ const Po = () => {
             <div className="flex justify-between mt-4">
                 <div>
                     <Typography variant="h6" className="font-semibold">Vendor Details:</Typography>
-                    <Typography variant="body2">Name: {vendorData?.Name}</Typography>
+                    <Typography variant="body2">Name: {vendorData?.Name || 'N/A'}</Typography>
                     <Typography variant="body2">Address: {vendorData?.Address || 'N/A'}</Typography>
                 </div>
                 <div>
@@ -75,14 +95,20 @@ const Po = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {itemList.map((item, index) => (
-                            <TableRow key={index}>
-                                <TableCell>{item.name}</TableCell>
-                                <TableCell align="right">{item.qty}</TableCell>
-                                <TableCell align="right">{item.rate}</TableCell>
-                                <TableCell align="right">{(item.qty * item.rate).toFixed(2)}</TableCell>
+                        {itemList.length > 0 ? (
+                            itemList.map((item, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>{item.name}</TableCell>
+                                    <TableCell align="right">{item.qty}</TableCell>
+                                    <TableCell align="right">{item.rate}</TableCell>
+                                    <TableCell align="right">{(item.qty * item.rate).toFixed(2)}</TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={4} align="center">No items available</TableCell>
                             </TableRow>
-                        ))}
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -101,7 +127,7 @@ const Po = () => {
                 <div>
                     <Typography variant="h6" className="font-semibold mt-4">Related Post Details:</Typography>
                     <Typography variant="body2">Post ID: {postId}</Typography>
-                    <Typography variant="body2">Description: {post.problem}</Typography>
+                    <Typography variant="body2">Description: {postDetails.problem || 'N/A'}</Typography>
                     {/* Add more post details as needed */}
                 </div>
             )}

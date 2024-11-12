@@ -160,7 +160,7 @@ export default function PoForm({ po }) {
                         <TextField
                             label="Po No"
                             placeholder='Po No'
-                            {...register(`pono`, { required: true,})}
+                            {...register('pono', { required: true,})}
                             className="w-1/4"
                         />
                         <Select

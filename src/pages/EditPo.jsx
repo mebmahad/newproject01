@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import PoForm from '../components/po-form/PoForm';
 
 function EditPo() {
-    const [poData, setpoData] = useState(null);
+    const [poData, setPoData] = useState(null);
     const { id } = useParams();
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
@@ -17,13 +17,13 @@ function EditPo() {
                 try {
                     const fetchedPo = await service.getPo(id);
                     if (fetchedPo) {
-                        setpoData(fetchedPo);
-                    }
-                    else {
-                        navigate('/all-pos'); // Redirect if item not found
+                        setPoData(fetchedPo);
+                    } else {
+                        console.error("No PO data found for ID:", id);
+                        navigate('/all-pos'); // Redirect if PO not found
                     }
                 } catch (error) {
-                    console.error("Failed to fetch po:", error);
+                    console.error("Failed to fetch PO:", error.message);
                     navigate('/all-pos'); // Redirect on error
                 }
             } else {
@@ -34,7 +34,7 @@ function EditPo() {
         fetchPo();
     }, [id, navigate, userData]);
 
-    return item ? (
+    return poData ? (
         <div className="py-8">
             <Container>
                 <PoForm poData={poData} />

@@ -78,7 +78,7 @@ export default function PoForm({ po }) {
 
     useEffect(() => {
         // Only fetch if the `po` prop is an ID, indicating we need to load data from the service
-        if (po && typeof po === 'string') { 
+        if (po && typeof po === 'string') {
             const fetchPo = async () => {
                 try {
                     console.log("po data provided to form:", po);
@@ -96,7 +96,7 @@ export default function PoForm({ po }) {
                         setValue("totalamountwithgst", poData.totalamountwithgst || 0);
                         setValue("pono", poData.pono || '');
                         setValue("id", poData.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`);
-                        
+
                         // Update the calculated total amount
                         setTotalAmount(poData.totalAmount || 0);
                     }
@@ -110,7 +110,7 @@ export default function PoForm({ po }) {
             Object.keys(po).forEach(key => setValue(key, po[key]));
             setTotalAmount(po.totalAmount || 0);
         }
-    }, [po, setValue]);    
+    }, [po, setValue]);
 
     useEffect(() => {
         if (didMountRef.current) {
@@ -134,7 +134,7 @@ export default function PoForm({ po }) {
             const dataToSave = {
                 ...data,
                 Items: JSON.stringify(data.Items),
-                totalAmount: totalAmount,
+                totalAmount: totalAmount.toFixed(2),
                 totalamountwithgst: Math.round(totalWithGst),
                 procureId: procureId,
                 postId: postId,
@@ -196,7 +196,7 @@ export default function PoForm({ po }) {
                         <TextField
                             label="Po No"
                             placeholder='Po No'
-                            {...register('pono', { required: true,})}
+                            {...register('pono', { required: true, })}
                             className="w-1/4"
                         />
                         <Select
@@ -254,16 +254,18 @@ export default function PoForm({ po }) {
                         />
                         <TextField
                             label="Total Amount"
-                            value={totalAmount.toFixed(2) || '0.00'}
+                            value={(typeof totalAmount === 'number' ? totalAmount.toFixed(2) : '0.00')}
                             disabled
                             fullWidth
                         />
+
                         <TextField
                             label="Total with GST/Tax"
-                            value={watch('totalamountwithgst').toFixed(2) || '0.00'}
+                            value={(typeof watch('totalamountwithgst') === 'number' ? watch('totalamountwithgst').toFixed(2) : '0.00')}
                             disabled
                             fullWidth
                         />
+
                         <Button type="submit" variant="contained" color="success" className="w-full mt-6">
                             {po ? 'Update PO' : 'Create PO'}
                         </Button>

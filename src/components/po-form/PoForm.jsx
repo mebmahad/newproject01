@@ -77,12 +77,25 @@ export default function PoForm({ po }) {
     }, []);
 
     useEffect(() => {
-        if (po) {
+        // Only fetch if the `po` prop is an ID, indicating we need to load data from the service
+        if (po && typeof po === 'string') { 
             const fetchPo = async () => {
                 try {
-                    const poData = await service.getPo(po);
+                    // Fetch the full PO data by ID
+                    const poData = await service.getPo(po);  // Assume `po` here is the PO ID
                     if (poData) {
-                        Object.keys(poData).forEach(key => setValue(key, poData[key]));
+                        // Use setValue for each field to ensure the form is populated correctly
+                        setValue("VendorName", poData.VendorName || '');
+                        setValue("procureId", poData.procureId || '');
+                        setValue("postId", poData.postId || '');
+                        setValue("Items", poData.Items ? JSON.parse(poData.Items) : [{ name: '', qty: 0, rate: 0 }]);
+                        setValue("totalAmount", poData.totalAmount || 0);
+                        setValue("gst", poData.gst || 0);
+                        setValue("totalamountwithgst", poData.totalamountwithgst || 0);
+                        setValue("pono", poData.pono || '');
+                        setValue("id", poData.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`);
+                        
+                        // Update the calculated total amount
                         setTotalAmount(poData.totalAmount || 0);
                     }
                 } catch (error) {
@@ -90,8 +103,12 @@ export default function PoForm({ po }) {
                 }
             };
             fetchPo();
+        } else if (po && typeof po === 'object') {
+            // Directly set values if the complete PO data is provided as an object
+            Object.keys(po).forEach(key => setValue(key, po[key]));
+            setTotalAmount(po.totalAmount || 0);
         }
-    }, [po, setValue]);
+    }, [po, setValue]);    
 
     useEffect(() => {
         if (didMountRef.current) {

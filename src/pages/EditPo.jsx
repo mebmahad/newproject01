@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import PoForm from '../components/po-form/PoForm';
 
 function EditPo() {
-    const [poData, setPoData] = useState(null);
+    const [po, setPo] = useState(null);
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -15,7 +15,7 @@ function EditPo() {
                 try {
                     const fetchedPo = await service.getPo(id);
                     if (fetchedPo) {
-                        setPoData(fetchedPo);
+                        setPo(fetchedPo);
                     } else {
                         console.error("No PO data found for ID:", id);
                         navigate('/all-pos'); // Redirect if PO not found
@@ -35,7 +35,7 @@ function EditPo() {
     return poData ? (
         <div className="py-8">
             <Container>
-                <PoForm poData={poData} />
+                <PoForm po={po} />
             </Container>
         </div>
     ) : <div>Loading...</div>;

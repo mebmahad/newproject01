@@ -195,6 +195,7 @@ export default function PoForm({ po }) {
                     <form onSubmit={handleSubmit(submit)} className="space-y-4">
                         <TextField
                             label="Po No"
+                            id="pono"
                             placeholder='Po No'
                             {...register("pono", { required: true, })}
                             className="w-1/4"

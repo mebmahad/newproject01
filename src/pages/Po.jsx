@@ -49,7 +49,7 @@ const Po = () => {
         return <div>Loading...</div>;
     }
 
-    const { VendorName, Items, totalAmount, gst, totalamountwithgst, postId } = poData;
+    const { VendorName, Items, totalAmount, gst, totalamountwithgst, postId, pono} = poData;
     let itemList = [];
 
     try {
@@ -80,6 +80,7 @@ const Po = () => {
                 </div>
                 <div>
                     <Typography variant="body2">Date: {new Date().toLocaleDateString()}</Typography>
+                    <Typography variant="body2">Po No: {pono || 'N/A'}</Typography>
                 </div>
             </div>
 

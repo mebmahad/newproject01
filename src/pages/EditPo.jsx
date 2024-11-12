@@ -3,6 +3,7 @@ import { Container, ItemForm } from '../components';
 import service from "../appwrite/config";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import PoForm from '../components/po-form/PoForm';
 
 function EditItem() {
     const [item, setItem] = useState(null);
@@ -40,7 +41,7 @@ function EditItem() {
     return item ? (
         <div className='py-8'>
             <Container>
-                <ItemForm item={item} />
+                <PoForm item={item} />
             </Container>
         </div>
     ) : null;

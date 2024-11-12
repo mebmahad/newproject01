@@ -26,8 +26,8 @@ export default function PoForm({ po }) {
     const { register, handleSubmit, control, setValue, watch } = useForm({
         defaultValues: {
             VendorName: po?.VendorName || '',
-            procureId: po?.procureId || procureId || "",
-            postId: po?.postId || postId || "",
+            procureId: po?.procureId || "",
+            postId: po?.postId || "",
             Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
             totalAmount: po?.totalAmount || 0,
             gst: 0,

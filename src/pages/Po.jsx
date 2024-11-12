@@ -6,12 +6,14 @@ import { Query } from 'appwrite';
 import { jsPDF } from 'jspdf';
 import html2pdf from 'html2pdf.js';
 import { Edit, Delete } from '@mui/icons-material';
+import { Link, useNavigate } from "react-router-dom";
 
 const Po = () => {
     const { id } = useParams();
     const [poData, setPoData] = useState(null);
     const [vendorData, setVendorData] = useState(null);
     const [postDetails, setPostDetails] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -180,8 +182,10 @@ const Po = () => {
             {/* Buttons for Edit, Delete, and PDF Generation */}
             <div className="flex justify-between mt-6">
                 <div>
-                    <IconButton component="a" href={`/edit-po/${poData.$id}`} color="primary">
-                        <Edit />
+                    <IconButton component="a"  color="primary" > 
+                        <Link to={`/edit-po/${poData.$id}`}>
+                        <Edit/>
+                        </Link>
                     </IconButton>
                     <IconButton className="bg-red-500" onClick={deletePo}>
                         <Delete />

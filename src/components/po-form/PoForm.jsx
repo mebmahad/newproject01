@@ -25,7 +25,6 @@ const ItemList = ({ items, onSelect }) => (
 export default function PoForm({ po }) {
     const { register, handleSubmit, control, setValue, watch } = useForm({
         defaultValues: {
-            pono: po?.pono || '',  // Add the PO number field
             VendorName: po?.VendorName || '',
             procureId: po?.procureId || '',
             postId: po?.postId || '',
@@ -33,6 +32,7 @@ export default function PoForm({ po }) {
             totalAmount: po?.totalAmount || 0,
             gst: 0,
             totalamountwithgst: 0,
+            pono: po?.pono || '',
             id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         },
     });
@@ -109,8 +109,13 @@ export default function PoForm({ po }) {
                 : await service.createPo({ ...dataToSave, userId: userData?.$id });
 
             if (dbPo) {
-                const updatedPost = await service.updatePost(postId, { status: "active" });
-                const updatedProcure = await service.updateProcure(procureId, { status: "podone" });
+                // Update status for procureId and postId
+                const updatedPost = await service.updatePost(postId, {
+                    status: "active" // Update the status to "In Procure"
+                });
+                const updatedProcure = await service.updateProcure(procureId, {
+                    status: "podone" // Update the status to "In Procure"
+                });
 
                 navigate(`/po/${dbPo.$id}`);
             }
@@ -127,6 +132,12 @@ export default function PoForm({ po }) {
 
     const handleAddItem = () => {
         append({ name: '', qty: 0, rate: 0 });
+        const calculatedTotal = fields.reduce((acc, item, index) => {
+            const itemQty = watch(`Items.${index}.qty`) || 0;
+            const itemRate = watch(`Items.${index}.rate`) || 0;
+            return acc + (itemQty * itemRate);
+        }, 0);
+        setTotalAmount(calculatedTotal);
     };
 
     const handleGstChange = (e) => {
@@ -147,9 +158,10 @@ export default function PoForm({ po }) {
                 <div className="bg-white rounded-lg p-4 shadow-md">
                     <form onSubmit={handleSubmit(submit)} className="space-y-4">
                         <TextField
-                            label="PO Number"
-                            {...register('pono')}
-                            fullWidth
+                            label="Po No"
+                            placeholder='Po No'
+                            {...register(`pono`, { required: true,})}
+                            className="w-1/4"
                         />
                         <Select
                             label="Vendor Name"
@@ -168,26 +180,26 @@ export default function PoForm({ po }) {
                                 <TextField
                                     label="Item Name"
                                     value={watch(`Items.${index}.name`)}
-                                    onChange={(e) => setValue(`Items.${index}.name`, e.target.value)}
+                                    disabled={lockedItems.includes(index)}
                                     fullWidth
                                 />
                                 <TextField
                                     label="Quantity"
                                     type="number"
                                     {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
-                                    className="w-1/4 text-xs"
+                                    className="w-1/4"
                                 />
                                 <TextField
                                     label="Rate"
                                     type="number"
                                     {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
-                                    className="w-1/4 text-xs"
+                                    className="w-1/4"
                                 />
                                 <TextField
                                     label="Amount"
                                     value={(watch(`Items.${index}.qty`) || 0) * (watch(`Items.${index}.rate`) || 0)}
                                     disabled
-                                    className="w-1/4 text-xs"
+                                    className="w-1/4"
                                 />
                                 <IconButton onClick={() => remove(index)} className="ml-2">
                                     <Close />
@@ -229,7 +241,7 @@ export default function PoForm({ po }) {
                         onChange={(e) => setItemFilter(e.target.value)}
                         fullWidth
                     />
-                    <div className="overflow-y-auto h-56">
+                    <div className="max-h-52 overflow-y-auto">
                         <ItemList items={filteredItems} onSelect={handleItemSelect} />
                     </div>
                 </div>

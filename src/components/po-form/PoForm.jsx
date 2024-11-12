@@ -77,6 +77,23 @@ export default function PoForm({ po }) {
     }, []);
 
     useEffect(() => {
+        if (po) {
+            const fetchPo = async () => {
+                try {
+                    const poData = await service.getPo(po);
+                    if (poData) {
+                        Object.keys(poData).forEach(key => setValue(key, poData[key]));
+                        setTotalAmount(poData.totalAmount || 0);
+                    }
+                } catch (error) {
+                    console.error("Error fetching PO:", error);
+                }
+            };
+            fetchPo();
+        }
+    }, [po, setValue]);
+
+    useEffect(() => {
         if (didMountRef.current) {
             const subscription = watch((value) => {
                 const calculatedTotal = value.Items.reduce((acc, item) => {

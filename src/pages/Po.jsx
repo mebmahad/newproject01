@@ -28,7 +28,7 @@ const Po = () => {
                     //console.error("No vendor data found for VendorName:", po.VendorName);
                     return vendor.documents;
                 }
-                setVendorData(vendor.documents);
+                setVendorData(vendor);
 
                 // Fetch Post Details using postId from PO
                 const post = await service.getPost(po.postId);

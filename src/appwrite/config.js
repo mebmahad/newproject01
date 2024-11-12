@@ -701,8 +701,17 @@ class Service {
         }
     }
 
-    async getPos(queries = []) {
+    async getPos({ page = 1, limit = 10 } = {}) {
         try {
+            // Calculate offset based on the page and limit
+            const offset = (page - 1) * limit;
+    
+            // Add limit and offset to queries array
+            const queries = [
+                `limit(${limit})`,
+                `offset(${offset})`,
+            ];
+    
             const response = await this.databases.listDocuments(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionIdpoform,

@@ -22,7 +22,7 @@ const AllPos = () => {
                     Items: typeof po.Items === "string" ? JSON.parse(po.Items) : po.Items || [],
                 }));
                 setPos((prevPos) => [...prevPos, ...parsedPos]);
-                setHasMore(response.documents.length === 10);  // Check if we have more data
+                setHasMore(response.documents.length === 10);  // Check if there may be more data
             } else {
                 setHasMore(false);
             }
@@ -38,7 +38,7 @@ const AllPos = () => {
         fetchPos();
     }, [page, fetchPos]);
 
-    // Handle scroll event
+    // Handle scroll event for loading more data
     const handleScroll = (e) => {
         const { scrollTop, clientHeight, scrollHeight } = e.target;
         if (scrollHeight - scrollTop <= clientHeight * 1.5 && !loading && hasMore) {

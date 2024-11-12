@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Paper, Typography, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Paper, Typography, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton } from '@mui/material';
 import service from '../appwrite/config';
 import { useParams } from 'react-router-dom';
 import { Query } from 'appwrite';
+import { jsPDF } from 'jspdf';
+import html2pdf from 'html2pdf.js';
+import { Edit, Delete } from '@mui/icons-material';
 
 const Po = () => {
     const { id } = useParams();
@@ -49,7 +52,7 @@ const Po = () => {
         return <div>Loading...</div>;
     }
 
-    const { VendorName, Items, totalAmount, gst, totalamountwithgst, postId, pono} = poData;
+    const { VendorName, Items, totalAmount, gst, totalamountwithgst, postId, pono } = poData;
     let itemList = [];
 
     try {
@@ -58,82 +61,126 @@ const Po = () => {
         console.error("Error parsing Items field:", error);
     }
 
+    // Function to generate the PDF
+    const generatePDF = () => {
+        const content = document.getElementById("po-content"); // The div containing the content to be converted to PDF
+        if (window.innerWidth <= 768) {
+            // Mobile view - share prompt
+            html2pdf()
+                .from(content)
+                .toPdf()
+                .get('pdf')
+                .then(function (pdf) {
+                    const blob = pdf.output('blob');
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'purchase_order.pdf';
+                    link.click();
+                });
+        } else {
+            // PC view - download PDF
+            const doc = new jsPDF();
+            doc.html(content, {
+                callback: function (doc) {
+                    doc.save('purchase_order.pdf');
+                },
+                margin: [10, 10, 10, 10],
+            });
+        }
+    };
+
     return (
         <Paper className="p-6 po-card bg-white">
-            {/* Organization Header */}
-            <div className="text-center mb-4">
-                <Typography variant="h5" className="font-semibold">
-                    Dawat Properties Trust
-                </Typography>
-                <Typography variant="body2">Mahad al Zahra, Pakhti, Galiakot, Dist-Dungarpur, Rajasthan</Typography>
-                <Typography variant="body2">GST No: 123456789</Typography>
-            </div>
-            
-            <Divider />
-
-            {/* Vendor and Date Information */}
-            <div className="flex justify-between mt-4">
-                <div>
-                    <Typography variant="h6" className="font-semibold">Vendor Details:</Typography>
-                    <Typography variant="body2">Name: {vendorData?.Name || 'N/A'}</Typography>
-                    <Typography variant="body2">Address: {vendorData?.Address || 'N/A'}</Typography>
+            <div id="po-content">
+                {/* Organization Header */}
+                <div className="text-center mb-4">
+                    <Typography variant="h5" className="font-semibold">
+                        Dawat Properties Trust
+                    </Typography>
+                    <Typography variant="body2">Mahad al Zahra, Pakhti, Galiakot, Dist-Dungarpur, Rajasthan</Typography>
+                    <Typography variant="body2">GST No: 123456789</Typography>
                 </div>
-                <div>
-                    <Typography variant="body2">Date: {new Date().toLocaleDateString()}</Typography>
-                    <Typography variant="body2">Po No: {pono || 'N/A'}</Typography>
+
+                <Divider />
+
+                {/* Vendor and Date Information */}
+                <div className="flex justify-between mt-4">
+                    <div>
+                        <Typography variant="h6" className="font-semibold">Vendor Details:</Typography>
+                        <Typography variant="body2">Name: {vendorData?.Name || 'N/A'}</Typography>
+                        <Typography variant="body2">Address: {vendorData?.Address || 'N/A'}</Typography>
+                    </div>
+                    <div>
+                        <Typography variant="body2">Date: {new Date().toLocaleDateString()}</Typography>
+                        <Typography variant="body2">Po No: {pono || 'N/A'}</Typography>
+                    </div>
                 </div>
-            </div>
 
-            <Divider className="my-4" />
+                <Divider className="my-4" />
 
-            {/* Item Table */}
-            <TableContainer>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Item Name</TableCell>
-                            <TableCell align="right">Quantity</TableCell>
-                            <TableCell align="right">Rate</TableCell>
-                            <TableCell align="right">Amount</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {itemList.length > 0 ? (
-                            itemList.map((item, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>{item.name}</TableCell>
-                                    <TableCell align="right">{item.qty}</TableCell>
-                                    <TableCell align="right">{item.rate}</TableCell>
-                                    <TableCell align="right">{(item.qty * item.rate).toFixed(2)}</TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
+                {/* Item Table */}
+                <TableContainer>
+                    <Table>
+                        <TableHead>
                             <TableRow>
-                                <TableCell colSpan={4} align="center">No items available</TableCell>
+                                <TableCell>Item Name</TableCell>
+                                <TableCell align="right">Quantity</TableCell>
+                                <TableCell align="right">Rate</TableCell>
+                                <TableCell align="right">Amount</TableCell>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                            {itemList.length > 0 ? (
+                                itemList.map((item, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{item.name}</TableCell>
+                                        <TableCell align="right">{item.qty}</TableCell>
+                                        <TableCell align="right">{item.rate}</TableCell>
+                                        <TableCell align="right">{(item.qty * item.rate).toFixed(2)}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} align="center">No items available</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
 
-            {/* Summary */}
-            <div className="mt-4">
-                <Typography variant="body2" className="text-right">Total Amount: ₹{parseFloat(totalAmount).toFixed(2)}</Typography>
-                <Typography variant="body2" className="text-right">GST ({gst}%): ₹{(totalAmount * (gst / 100)).toFixed(2)}</Typography>
-                <Typography variant="h6" className="text-right font-semibold">Total with GST: ₹{parseFloat(totalamountwithgst).toFixed(2)}</Typography>
+                {/* Summary */}
+                <div className="mt-4">
+                    <Typography variant="body2" className="text-right">Total Amount: ₹{parseFloat(totalAmount).toFixed(2)}</Typography>
+                    <Typography variant="body2" className="text-right">GST ({gst}%): ₹{(totalAmount * (gst / 100)).toFixed(2)}</Typography>
+                    <Typography variant="h6" className="text-right font-semibold">Total with GST: ₹{parseFloat(totalamountwithgst).toFixed(2)}</Typography>
+                </div>
+
+                <Divider className="my-4" />
+
+                {/* Post Details */}
+                {postDetails && (
+                    <div>
+                        <Typography variant="h6" className="font-semibold mt-4">Related Post Details:</Typography>
+                        <Typography variant="body2">Post ID: {postId}</Typography>
+                        <Typography variant="body2">Description: {postDetails.problem || 'N/A'}</Typography>
+                    </div>
+                )}
             </div>
 
-            <Divider className="my-4" />
-
-            {/* Post Details */}
-            {postDetails && (
+            {/* Buttons for Edit, Delete, and PDF Generation */}
+            <div className="flex justify-between mt-6">
                 <div>
-                    <Typography variant="h6" className="font-semibold mt-4">Related Post Details:</Typography>
-                    <Typography variant="body2">Post ID: {postId}</Typography>
-                    <Typography variant="body2">Description: {postDetails.problem || 'N/A'}</Typography>
-                    {/* Add more post details as needed */}
+                    <IconButton component="a" href={`/edit-po/${id}`} color="primary">
+                        <Edit />
+                    </IconButton>
+                    <IconButton color="secondary">
+                        <Delete />
+                    </IconButton>
                 </div>
-            )}
+                <button onClick={generatePDF} className="bg-blue-500 text-white p-2 rounded">
+                    Print to PDF
+                </button>
+            </div>
         </Paper>
     );
 };

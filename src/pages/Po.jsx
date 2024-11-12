@@ -16,27 +16,26 @@ const Po = () => {
                 // Fetch PO Data
                 const po = await service.getPo(id);
                 if (!po) {
-                    console.log(po.postId)
                     console.error("No PO data found for id:", id);
                     return;
                 }
                 setPoData(po);
 
                 // Fetch Vendor Data based on VendorName from PO
-                const vendor = await service.getVendors([Query.search("Name", po.VendorName)]);
-                if (vendor.documents) {
-                    //console.error("No vendor data found for VendorName:", po.VendorName);
-                    return vendor.documents;
+                const vendorResponse = await service.getVendors([Query.search("Name", po.VendorName)]);
+                if (vendorResponse.documents && vendorResponse.documents.length > 0) {
+                    setVendorData(vendorResponse.documents[0]);
+                } else {
+                    console.error("No vendor data found for VendorName:", po.VendorName);
                 }
-                setVendorData(vendor);
 
                 // Fetch Post Details using postId from PO
                 const post = await service.getPost(po.postId);
                 if (!post) {
                     console.error("No post data found for postId:", po.postId);
-                    return;
+                } else {
+                    setPostDetails(post);
                 }
-                setPostDetails(post);
             } catch (error) {
                 console.error("Error fetching PO data:", error);
             }
@@ -52,9 +51,9 @@ const Po = () => {
 
     const { VendorName, Items, totalAmount, gst, totalamountwithgst, postId } = poData;
     let itemList = [];
+
     try {
-       const itemliststring = JSON.stringify(Items);
-        itemList = JSON.parse(itemliststring);
+        itemList = typeof Items === 'string' ? JSON.parse(Items) : Items;
     } catch (error) {
         console.error("Error parsing Items field:", error);
     }

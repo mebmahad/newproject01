@@ -134,7 +134,7 @@ export default function PoForm({ po }) {
             const dataToSave = {
                 ...data,
                 Items: JSON.stringify(data.Items),
-                totalAmount: totalAmount.toFixed(2),
+                totalAmount: totalAmount,
                 totalamountwithgst: Math.round(totalWithGst),
                 procureId: procureId,
                 postId: postId,

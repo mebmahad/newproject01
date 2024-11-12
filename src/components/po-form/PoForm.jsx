@@ -81,9 +81,11 @@ export default function PoForm({ po }) {
         if (po && typeof po === 'string') { 
             const fetchPo = async () => {
                 try {
+                    console.log("po data provided to form:", po);
                     // Fetch the full PO data by ID
                     const poData = await service.getPo(po);  // Assume `po` here is the PO ID
                     if (poData) {
+                        console.log(poData);
                         // Use setValue for each field to ensure the form is populated correctly
                         setValue("VendorName", poData.VendorName || '');
                         setValue("procureId", poData.procureId || '');

@@ -53,7 +53,8 @@ const Po = () => {
     const { VendorName, Items, totalAmount, gst, totalamountwithgst, postId } = poData;
     let itemList = [];
     try {
-        itemList = JSON.parse(Items);
+       const itemliststring = JSON.stringify(Items);
+        itemList = JSON.parse(itemliststring);
     } catch (error) {
         console.error("Error parsing Items field:", error);
     }

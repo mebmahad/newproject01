@@ -1,50 +1,50 @@
 import React, { useEffect, useState } from 'react';
-import { Container, ItemForm } from '../components';
+import { Container } from '../components';
 import service from "../appwrite/config";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import PoForm from '../components/po-form/PoForm';
 
-function EditItem() {
-    const [item, setItem] = useState(null);
-    const { id } = useParams(); // Changed from $id to id for clarity
+function EditPo() {
+    const [poData, setPoData] = useState(null);
+    const { id } = useParams();
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
 
     useEffect(() => {
-        const fetchItem = async () => {
+        const fetchPo = async () => {
             if (id) {
                 try {
-                    const procure = await service.getItem(id);
-                    if (item) {
+                    const fetchedPo = await service.getPo(id);
+                    if (fetchedPo) {
                         // Check if the user is the author
-                        if (item.userId !== userData.$id) {
+                        if (fetchedPo.userId !== userData.$id) {
                             navigate('/'); // Redirect if not the author
                         } else {
-                            setItem(item);
+                            setPoData(fetchedPo);
                         }
                     } else {
-                        navigate('/all-items'); // Redirect if post not found
+                        navigate('/all-pos'); // Redirect if item not found
                     }
                 } catch (error) {
-                    console.error("Failed to fetch item:", error);
-                    navigate('/all-items'); // Redirect on error
+                    console.error("Failed to fetch po:", error);
+                    navigate('/all-pos'); // Redirect on error
                 }
             } else {
-                navigate('/all-items');
+                navigate('/all-pos');
             }
         };
 
-        fetchItem();
+        fetchPo();
     }, [id, navigate, userData]);
 
     return item ? (
-        <div className='py-8'>
+        <div className="py-8">
             <Container>
-                <PoForm item={item} />
+                <PoForm poData={poData} />
             </Container>
         </div>
-    ) : null;
+    ) : <div>Loading...</div>;
 }
 
-export default EditItem;
+export default EditPo;

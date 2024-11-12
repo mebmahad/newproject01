@@ -64,32 +64,38 @@ const Po = () => {
     }
 
     // Function to generate the PDF
-    const generatePDF = () => {
-        const content = document.getElementById("po-content"); // The div containing the content to be converted to PDF
-        if (window.innerWidth <= 768) {
-            // Mobile view - share prompt
-            html2pdf()
-                .from(content)
-                .toPdf()
-                .get('pdf')
-                .then(function (pdf) {
-                    const blob = pdf.output('blob');
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = 'purchase_order.pdf';
-                    link.click();
-                });
-        } else {
-            // PC view - download PDF
-            const doc = new jsPDF();
-            doc.html(content, {
-                callback: function (doc) {
-                    doc.save('purchase_order.pdf');
-                },
-                margin: [10, 10, 10, 10],
+    // Function to generate the PDF
+const generatePDF = () => {
+    const content = document.getElementById("po-content"); // The div containing the content to be converted to PDF
+    const poNumber = poData?.pono || 'purchase_order'; // Use pono for file name, fallback to 'purchase_order'
+
+    if (window.innerWidth <= 768) {
+        // Mobile view - share prompt
+        html2pdf()
+            .from(content)
+            .toPdf()
+            .get('pdf')
+            .then(function (pdf) {
+                const blob = pdf.output('blob');
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `po-${poNumber}.pdf`; // Dynamic file name for mobile view
+                link.click();
             });
-        }
-    };
+    } else {
+        // PC view - download PDF
+        const options = {
+            margin: [10, 10, 10, 10],
+            filename: `po-${poNumber}.pdf`, // Dynamic file name for PC view
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Use jsPDF with content and specified options for PC download
+        html2pdf().set(options).from(content).save();
+    }
+};
+
 
     const deletePo = async () => {
         const confirmed = window.confirm("Are you sure you want to delete this PO?");

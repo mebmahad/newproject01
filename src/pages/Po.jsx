@@ -89,6 +89,16 @@ const Po = () => {
         }
     };
 
+    const deletePo = async () => {
+        const confirmed = window.confirm("Are you sure you want to delete this PO?");
+        if (confirmed) {
+            const status = await service.deletePo(poData.$id);
+            if (status) {
+                navigate("/");
+            }
+        }
+    };
+
     return (
         <Paper className="p-6 po-card bg-white">
             <div id="po-content">
@@ -170,10 +180,10 @@ const Po = () => {
             {/* Buttons for Edit, Delete, and PDF Generation */}
             <div className="flex justify-between mt-6">
                 <div>
-                    <IconButton component="a" href={`/edit-po/${id}`} color="primary">
+                    <IconButton component="a" href={`/edit-po/${poData.$id}`} color="primary">
                         <Edit />
                     </IconButton>
-                    <IconButton color="secondary">
+                    <IconButton className="bg-red-500" onClick={deletePo}>
                         <Delete />
                     </IconButton>
                 </div>

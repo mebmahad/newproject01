@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Paper, Typography, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import service from '../appwrite/config';
 import { useParams } from 'react-router-dom';
+import { Query } from 'appwrite';
 
 const Po = () => {
     const { id } = useParams();
@@ -22,9 +23,9 @@ const Po = () => {
                 setPoData(po);
 
                 // Fetch Vendor Data based on VendorName from PO
-                const vendor = await service.searchVendor(po.VendorName);
+                const vendor = await service.getVendors([Query.search("Name", po.VendorName)]);
                 if (vendor.documents) {
-                    console.error("No vendor data found for VendorName:", po.VendorName);
+                    //console.error("No vendor data found for VendorName:", po.VendorName);
                     return vendor.documents;
                 }
                 setVendorData(vendor.documents);

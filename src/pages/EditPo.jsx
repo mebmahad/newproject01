@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import PoForm from '../components/po-form/PoForm';
 
 function EditPo() {
-    const [poData, setPoData] = useState(null);
+    const [poData, setpoData] = useState(null);
     const { id } = useParams();
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
@@ -17,13 +17,9 @@ function EditPo() {
                 try {
                     const fetchedPo = await service.getPo(id);
                     if (fetchedPo) {
-                        // Check if the user is the author
-                        if (fetchedPo.userId !== userData.$id) {
-                            navigate('/'); // Redirect if not the author
-                        } else {
-                            setPoData(fetchedPo);
-                        }
-                    } else {
+                        setpoData(fetchedPo);
+                    }
+                    else {
                         navigate('/all-pos'); // Redirect if item not found
                     }
                 } catch (error) {

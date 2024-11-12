@@ -13,6 +13,9 @@ const Po = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+
+                const postId = po.postId
+                const VendorName = po.VendorName
                 // Fetch PO Data
                 const po = await service.getPo(id);
                 if (!po) {
@@ -22,17 +25,17 @@ const Po = () => {
                 setPoData(po);
 
                 // Fetch Vendor Data based on VendorName from PO
-                const vendor = await service.getVendors([Query.search("Name", po.VendorName)]);
+                const vendor = await service.getVendors([Query.search("Name", VendorName)]);
                 if (!vendor) {
-                    console.error("No vendor data found for VendorName:", po.VendorName);
+                    console.error("No vendor data found for VendorName:", VendorName);
                     return;
                 }
                 setVendorData(vendor);
 
                 // Fetch Post Details using postId from PO
-                const post = await service.getPost(po.postId);
+                const post = await service.getPost(postId);
                 if (!post) {
-                    console.error("No post data found for postId:", po.postId);
+                    console.error("No post data found for postId:", postId);
                     return;
                 }
                 setPostDetails(post);

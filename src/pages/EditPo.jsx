@@ -32,7 +32,7 @@ function EditPo() {
         fetchPo();
     }, [id, navigate]);
 
-    return poData ? (
+    return po ? (
         <div className="py-8">
             <Container>
                 <PoForm po={po} />

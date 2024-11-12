@@ -706,10 +706,10 @@ class Service {
             // Calculate offset based on the page and limit
             const offset = (page - 1) * limit;
     
-            // Add limit and offset to queries array
+            // Use Appwrite's Query methods for limit and offset
             const queries = [
-                `limit(${limit})`,
-                `offset(${offset})`,
+                Query.limit(limit),
+                Query.offset(offset),
             ];
     
             const response = await this.databases.listDocuments(

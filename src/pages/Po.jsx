@@ -22,7 +22,7 @@ const Po = () => {
                 setPoData(po);
 
                 // Fetch Vendor Data based on VendorName from PO
-                const vendor = await this.getVendors([Query.search("Name", po.VendorName)]);
+                const vendor = await service.getVendors([Query.search("Name", po.VendorName)]);
                 if (!vendor) {
                     console.error("No vendor data found for VendorName:", po.VendorName);
                     return;

@@ -19,6 +19,7 @@ const Po = () => {
                 // Fetch PO Data
                 const po = await service.getPo(id);
                 if (!po) {
+                    console.log(po.postId)
                     console.error("No PO data found for id:", id);
                     return;
                 }

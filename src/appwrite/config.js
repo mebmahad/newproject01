@@ -612,7 +612,7 @@ class Service {
         }
     }
 
-    async createPo({ VendorName, Items, totalAmount, gst, totalamountwithgst, postId, procureId, id }) {
+    async createPo({ VendorName, Items, totalAmount, gst, totalamountwithgst, postId, procureId, pono, id }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
@@ -626,6 +626,7 @@ class Service {
                     totalamountwithgst,
                     procureId,
                     postId,
+                    pono,
                 }
             );
         } catch (error) {
@@ -633,7 +634,7 @@ class Service {
         }
     }
 
-    async updatePo(id, { VendorName, Items, totalAmount, gst, totalamountwithgst }) {
+    async updatePo(id, { VendorName, Items, totalAmount, gst, totalamountwithgst, pono, postId, procureId }) {
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
@@ -645,6 +646,9 @@ class Service {
                     totalAmount,
                     gst,
                     totalamountwithgst,
+                    procureId,
+                    postId,
+                    pono,
                 }
             );
         } catch (error) {

@@ -227,8 +227,8 @@ export default function PoForm({ po }) {
                         fullWidth
                     >
                         {allVendors.map((vendor) => (
-                            <MenuItem key={vendor.id} value={vendor.VendorName}>
-                                {vendor.VendorName}
+                            <MenuItem key={vendor.id} value={vendor.Name}>
+                                {vendor.Name}
                             </MenuItem>
                         ))}
                     </Select>

@@ -38,7 +38,7 @@ class Service {
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdcomplaint,
+                conf.appwriteCollectionIdbudget,
                 id,
                 {
                     yearlyBudget,

@@ -25,7 +25,7 @@ const BudgetForm = () => {
         const fiscalYear = `${fiscalYearStart.getFullYear()}-${fiscalYearEnd.getFullYear()}`;
 
         // Prepare data for submission
-        const currentmonth = new Date().getFullYear();
+        const currentmonth = String(new Date().getFullYear());
         const budgetData = {
             yearlyBudget,
             monthlyBudget: parseInt(monthlyBudget),

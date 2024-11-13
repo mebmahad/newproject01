@@ -77,16 +77,12 @@ export default function PoForm({ po }) {
     }, []);
 
     useEffect(() => {
-        // Only fetch if the `po` prop is an ID, indicating we need to load data from the service
         if (po && typeof po === 'string') {
             const fetchPo = async () => {
                 try {
                     console.log("po data provided to form:", po);
-                    // Fetch the full PO data by ID
                     const poData = await service.getPo(po);  // Assume `po` here is the PO ID
                     if (poData) {
-                        console.log(poData);
-                        // Use setValue for each field to ensure the form is populated correctly
                         setValue("VendorName", poData.VendorName || '');
                         setValue("procureId", poData.procureId || '');
                         setValue("postId", poData.postId || '');
@@ -97,7 +93,6 @@ export default function PoForm({ po }) {
                         setValue("pono", poData.pono || '');
                         setValue("id", poData.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`);
 
-                        // Update the calculated total amount
                         setTotalAmount(poData.totalAmount || 0);
                     }
                 } catch (error) {
@@ -106,7 +101,6 @@ export default function PoForm({ po }) {
             };
             fetchPo();
         } else if (po && typeof po === 'object') {
-            // Directly set values if the complete PO data is provided as an object
             Object.keys(po).forEach(key => setValue(key, po[key]));
             setTotalAmount(po.totalAmount || 0);
         }
@@ -145,6 +139,9 @@ export default function PoForm({ po }) {
                 : await service.createPo({ ...dataToSave, userId: userData?.$id });
 
             if (dbPo) {
+                // Update the budgets
+                await updateBudgets(dbPo.totalAmount, dbPo.gst);
+
                 // Update status for procureId and postId
                 const updatedPost = await service.updatePost(postId, {
                     status: "active" // Update the status to "In Procure"
@@ -157,6 +154,42 @@ export default function PoForm({ po }) {
             }
         } catch (error) {
             console.error('Error submitting form:', error);
+        }
+    };
+
+    const updateBudgets = async (poTotalAmount, gstPercentage) => {
+        try {
+            // Calculate total with GST
+            const totalWithGst = poTotalAmount * (1 + gstPercentage / 100);
+
+            // Fetch the current year's budget
+            const currentYear = new Date().getFullYear();
+            const budget = await service.getBudget(currentYear);
+
+            if (budget) {
+                const yearlyBudget = budget.yearlyBudget;
+                const monthsPassed = new Date().getMonth() + 1; // Current month (1-based)
+                const monthlyBudget = yearlyBudget / 12; // Default to 12 months
+
+                // Adjust for the number of months in the current year
+                if (monthsPassed < 12) {
+                    // Adjust the monthly budget if fewer months have passed
+                    const adjustedMonthlyBudget = yearlyBudget / monthsPassed;
+
+                    // Subtract from the yearly and monthly budgets
+                    await service.updateBudget(currentYear, {
+                        yearlyBudget: yearlyBudget - totalWithGst,
+                        monthlyBudget: adjustedMonthlyBudget - totalWithGst,
+                    });
+                } else {
+                    // Subtract from the full yearly budget
+                    await service.updateBudget(currentYear, {
+                        yearlyBudget: yearlyBudget - totalWithGst,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error updating budgets:', error);
         }
     };
 
@@ -183,108 +216,85 @@ export default function PoForm({ po }) {
         setValue('totalamountwithgst', totalWithGST);
     };
 
-    const filteredItems = allItems.filter(item =>
-        item.Item.toLowerCase().includes(itemFilter.toLowerCase())
-    );
-
     return (
-        <div className="p-4 po-form bg-gray-50 min-h-screen text-sm">
-            <Typography variant="h4" className="text-center mb-8">Purchase Order Form</Typography>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-4 shadow-md">
-                    <form onSubmit={handleSubmit(submit)} className="space-y-4">
-                        <TextField
-                            label="Po No"
-                            id="pono"
-                            placeholder='Po No'
-                            {...register("pono", { required: true, })}
-                            className="w-1/4"
-                        />
-                        <Select
-                            label="Vendor Name"
-                            value={watch('VendorName')}
-                            onChange={(e) => setValue('VendorName', e.target.value, { shouldValidate: true })}
-                            fullWidth
-                        >
-                            {allVendors.map((vendor) => (
-                                <MenuItem key={vendor.$id} value={vendor.Name}>
-                                    {vendor.Name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                        {fields.map((item, index) => (
-                            <div key={item.id} className="flex items-center gap-2">
-                                <TextField
-                                    label="Item Name"
-                                    value={watch(`Items.${index}.name`)}
-                                    disabled={lockedItems.includes(index)}
-                                    fullWidth
-                                />
-                                <TextField
-                                    label="Quantity"
-                                    type="number"
-                                    {...register(`Items.${index}.qty`, { required: true, valueAsNumber: true })}
-                                    className="w-1/4"
-                                />
-                                <TextField
-                                    label="Rate"
-                                    type="number"
-                                    {...register(`Items.${index}.rate`, { required: true, valueAsNumber: true })}
-                                    className="w-1/4"
-                                />
-                                <TextField
-                                    label="Amount"
-                                    value={(watch(`Items.${index}.qty`) || 0) * (watch(`Items.${index}.rate`) || 0)}
-                                    disabled
-                                    className="w-1/4"
-                                />
-                                <IconButton onClick={() => remove(index)} className="ml-2">
-                                    <Close />
-                                </IconButton>
-                            </div>
+        <div className="p-4">
+            <form onSubmit={handleSubmit(submit)}>
+                <div className="mb-4">
+                    <Typography variant="h6">Vendor</Typography>
+                    <Select
+                        label="Vendor"
+                        {...register('VendorName')}
+                        fullWidth
+                    >
+                        {allVendors.map((vendor) => (
+                            <MenuItem key={vendor.id} value={vendor.VendorName}>
+                                {vendor.VendorName}
+                            </MenuItem>
                         ))}
-                        <Button type="button" onClick={handleAddItem} variant="contained">
-                            Add Item
-                        </Button>
-                        <Divider className="my-4" />
-                        <TextField
-                            label="GST/Tax (%)"
-                            type="number"
-                            onChange={handleGstChange}
-                            fullWidth
-                        />
-                        <TextField
-                            label="Total Amount"
-                            value={(typeof totalAmount === 'number' ? totalAmount.toFixed(2) : '0.00')}
-                            disabled
-                            fullWidth
-                        />
-
-                        <TextField
-                            label="Total with GST/Tax"
-                            value={(typeof watch('totalamountwithgst') === 'number' ? watch('totalamountwithgst').toFixed(2) : '0.00')}
-                            disabled
-                            fullWidth
-                        />
-
-                        <Button type="submit" variant="contained" color="success" className="w-full mt-6">
-                            {po ? 'Update PO' : 'Create PO'}
-                        </Button>
-                    </form>
+                    </Select>
                 </div>
-                <div className="bg-white rounded-lg p-4 shadow-md">
-                    <Typography variant="h6" className="font-semibold mb-2">Select Item</Typography>
+
+                {/* Items Section */}
+                <div className="mb-4">
+                    <Typography variant="h6">Items</Typography>
+                    {fields.map((item, index) => (
+                        <div key={item.id} className="mb-2 flex">
+                            <input
+                                className="mr-2 p-2 border rounded"
+                                {...register(`Items[${index}].name`)}
+                                placeholder="Item"
+                                list="itemList"
+                            />
+                            <TextField
+                                {...register(`Items[${index}].qty`)}
+                                type="number"
+                                placeholder="Quantity"
+                                fullWidth
+                                className="mr-2"
+                            />
+                            <TextField
+                                {...register(`Items[${index}].rate`)}
+                                type="number"
+                                placeholder="Rate"
+                                fullWidth
+                                className="mr-2"
+                            />
+                            <IconButton
+                                onClick={() => remove(index)}
+                                className="self-center"
+                            >
+                                <Close />
+                            </IconButton>
+                        </div>
+                    ))}
+                    <ItemList items={allItems} onSelect={handleItemSelect} />
+                    <Button onClick={handleAddItem}>Add Item</Button>
+                </div>
+
+                {/* GST & Total Calculation */}
+                <div className="mb-4">
                     <TextField
-                        label="Filter Item"
-                        value={itemFilter}
-                        onChange={(e) => setItemFilter(e.target.value)}
+                        {...register('gst')}
+                        label="GST Percentage"
+                        type="number"
+                        onChange={handleGstChange}
                         fullWidth
                     />
-                    <div className="max-h-52 overflow-y-auto">
-                        <ItemList items={filteredItems} onSelect={handleItemSelect} />
+                    <div className="mt-2">
+                        <Typography variant="body1">
+                            Total Amount: {totalAmount}
+                        </Typography>
+                        <Typography variant="body1">
+                            Total Amount with GST: {watch('totalamountwithgst')}
+                        </Typography>
                     </div>
                 </div>
-            </div>
+
+                {/* Submit Button */}
+                <Button variant="contained" color="primary" type="submit">
+                    Submit Purchase Order
+                </Button>
+            </form>
         </div>
     );
 }

@@ -35,7 +35,7 @@ const BudgetForm = () => {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             userId: userData?.$id, // Replace with actual user ID if needed
-            id: 'unique()' // Replace with a unique identifier if required
+            id: new Date().getFullYear(), // Replace with a unique identifier if required
         };
 
         try {

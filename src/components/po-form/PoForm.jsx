@@ -210,7 +210,7 @@ export default function PoForm({ po }) {
     };
 
     const handleGstChange = (e) => {
-        const gstPercentage = parseFloat(e.target.value) || 0;
+        const gstPercentage = parseInt(e.target.value) || 0;
         setValue('gst', gstPercentage);
         const totalWithGST = totalAmount * (1 + gstPercentage / 100);
         setValue('totalamountwithgst', totalWithGST);

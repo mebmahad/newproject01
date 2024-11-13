@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import './PoForm.css';
+import { parseInt } from 'lodash';
 
 const ItemList = ({ items, onSelect }) => (
     <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4 w-full">

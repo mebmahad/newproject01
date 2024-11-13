@@ -125,7 +125,10 @@ export default function PoForm({ po }) {
 
     const submit = async (data) => {
         try {
-            const totalWithGst = totalAmount * (1 + (watch('gst') || 0) / 100);
+            // Ensure gst is an integer before using it
+            const gstValue = parseInt(watch('gst'), 10) || 0;
+    
+            const totalWithGst = totalAmount * (1 + gstValue / 100);
             const dataToSave = {
                 ...data,
                 Items: JSON.stringify(data.Items),
@@ -133,16 +136,17 @@ export default function PoForm({ po }) {
                 totalamountwithgst: Math.round(totalWithGst),
                 procureId: procureId,
                 postId: postId,
+                gst: gstValue,  // Ensure gst is an integer here
             };
-
+    
             const dbPo = po
                 ? await service.updatePo(po.$id, dataToSave)
                 : await service.createPo({ ...dataToSave, userId: userData?.$id });
-
+    
             if (dbPo) {
                 // Update the budgets
                 await updateBudgets(dbPo.totalAmount, dbPo.gst);
-
+    
                 // Update status for procureId and postId
                 const updatedPost = await service.updatePost(postId, {
                     status: "active" // Update the status to "In Procure"
@@ -150,7 +154,7 @@ export default function PoForm({ po }) {
                 const updatedProcure = await service.updateProcure(procureId, {
                     status: "podone" // Update the status to "In Procure"
                 });
-
+    
                 navigate(`/po/${dbPo.$id}`);
             }
         } catch (error) {
@@ -211,9 +215,11 @@ export default function PoForm({ po }) {
     };
 
     const handleGstChange = (e) => {
-        const gstPercentage = parseInt(e.target.value) || 0;
-        setValue('gst', gstPercentage);
-        const totalWithGST = totalAmount * (1 + gstPercentage / 100);
+        const gstPercentage = parseInt(e.target.value, 10); // Use base 10 for integer parsing
+        const validGstPercentage = isNaN(gstPercentage) ? 0 : gstPercentage; // Fallback to 0 if invalid
+        setValue('gst', validGstPercentage);
+    
+        const totalWithGST = totalAmount * (1 + validGstPercentage / 100);
         setValue('totalamountwithgst', totalWithGST);
     };
 

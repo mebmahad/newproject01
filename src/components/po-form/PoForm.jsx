@@ -169,7 +169,7 @@ export default function PoForm({ po }) {
 
             // Fetch the current year's budget
             const currentYear = String(new Date().getFullYear());
-            consolelog(currentYear)
+            console.log(currentYear)
             const budget = await service.getBudget(currentYear);
 
             if (budget) {

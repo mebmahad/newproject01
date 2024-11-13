@@ -25,6 +25,7 @@ const BudgetForm = () => {
         const fiscalYear = `${fiscalYearStart.getFullYear()}-${fiscalYearEnd.getFullYear()}`;
 
         // Prepare data for submission
+        const currentmonth = new Date().getFullYear();
         const budgetData = {
             yearlyBudget,
             monthlyBudget: parseInt(monthlyBudget),
@@ -35,7 +36,7 @@ const BudgetForm = () => {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             userId: userData?.$id, // Replace with actual user ID if needed
-            id: new Date().getFullYear(), // Replace with a unique identifier if required
+            id: currentmonth, // Replace with a unique identifier if required
         };
 
         try {
@@ -47,7 +48,7 @@ const BudgetForm = () => {
             reset();
 
             // Navigate to Budget View Page
-            navigate(`/budget/${budgetData.$id}`);// Replace '/budget-view' with your actual route
+            navigate(`/budget/${budgetData.id}`);// Replace '/budget-view' with your actual route
         } catch (error) {
             console.error("Error creating budget:", error);
             setStatusMessage("Failed to create budget. Please try again.");

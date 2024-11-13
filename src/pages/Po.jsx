@@ -34,12 +34,12 @@ const Po = () => {
                     console.error("No vendor data found for VendorName:", po.VendorName);
                 }
 
-                // Fetch Post Details using postId from PO
-                const post = await service.getPost(po.postId);
-                if (!post) {
-                    console.error("No post data found for postId:", po.postId);
+                // Fetch Post Details using postId from PO if postId is present
+                if (po.postId) {
+                    const post = await service.getPost(po.postId);
+                    setPostDetails(post || "Not Available");
                 } else {
-                    setPostDetails(post);
+                    setPostDetails("Not Available");
                 }
             } catch (error) {
                 console.error("Error fetching PO data:", error);
@@ -50,11 +50,11 @@ const Po = () => {
     }, [id]);
 
     // Ensure loading state is handled gracefully
-    if (!poData || !vendorData || !postDetails) {
+    if (!poData || !vendorData || postDetails === null) {
         return <div>Loading...</div>;
     }
 
-    const { VendorName, Items, totalAmount, gst, totalamountwithgst, postId, pono } = poData;
+    const { VendorName, Items, totalAmount, gst, totalamountwithgst, postId, procureId, pono } = poData;
     let itemList = [];
 
     try {
@@ -64,38 +64,32 @@ const Po = () => {
     }
 
     // Function to generate the PDF
-    // Function to generate the PDF
-const generatePDF = () => {
-    const content = document.getElementById("po-content"); // The div containing the content to be converted to PDF
-    const poNumber = poData?.pono || 'purchase_order'; // Use pono for file name, fallback to 'purchase_order'
+    const generatePDF = () => {
+        const content = document.getElementById("po-content");
+        const poNumber = poData?.pono || 'purchase_order';
 
-    if (window.innerWidth <= 768) {
-        // Mobile view - share prompt
-        html2pdf()
-            .from(content)
-            .toPdf()
-            .get('pdf')
-            .then(function (pdf) {
-                const blob = pdf.output('blob');
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `po-${poNumber}.pdf`; // Dynamic file name for mobile view
-                link.click();
-            });
-    } else {
-        // PC view - download PDF
-        const options = {
-            margin: [10, 10, 10, 10],
-            filename: `po-${poNumber}.pdf`, // Dynamic file name for PC view
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
-        };
-
-        // Use jsPDF with content and specified options for PC download
-        html2pdf().set(options).from(content).save();
-    }
-};
-
+        if (window.innerWidth <= 768) {
+            html2pdf()
+                .from(content)
+                .toPdf()
+                .get('pdf')
+                .then(function (pdf) {
+                    const blob = pdf.output('blob');
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `po-${poNumber}.pdf`;
+                    link.click();
+                });
+        } else {
+            const options = {
+                margin: [10, 10, 10, 10],
+                filename: `po-${poNumber}.pdf`,
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(options).from(content).save();
+        }
+    };
 
     const deletePo = async () => {
         const confirmed = window.confirm("Are you sure you want to delete this PO?");
@@ -105,6 +99,11 @@ const generatePDF = () => {
                 navigate("/");
             }
         }
+    };
+
+    const handleMaterialReceived = async () => {
+        // Logic to handle "Material Received" action
+        alert("Material Received action triggered");
     };
 
     return (
@@ -176,27 +175,30 @@ const generatePDF = () => {
                 <Divider className="my-4" />
 
                 {/* Post Details */}
-                {postDetails && (
-                    <div>
-                        <Typography variant="h6" className="font-semibold mt-4">Related Post Details:</Typography>
-                        <Typography variant="body2">Post ID: {postId}</Typography>
-                        <Typography variant="body2">Description: {postDetails.problem || 'N/A'}</Typography>
-                    </div>
-                )}
+                <div>
+                    <Typography variant="h6" className="font-semibold mt-4">Related Post Details:</Typography>
+                    <Typography variant="body2">Post ID: {postId || "Not Available"}</Typography>
+                    <Typography variant="body2">Description: {postDetails?.problem || postDetails}</Typography>
+                </div>
             </div>
 
-            {/* Buttons for Edit, Delete, and PDF Generation */}
+            {/* Buttons for Edit, Delete, Material Received, and PDF Generation */}
             <div className="flex justify-between mt-6">
                 <div>
-                    <IconButton component="a"  color="primary" > 
+                    <IconButton component="a" color="primary">
                         <Link to={`/edit-po/${poData.$id}`}>
-                        <Edit/>
+                            <Edit />
                         </Link>
                     </IconButton>
                     <IconButton className="bg-red-500" onClick={deletePo}>
                         <Delete />
                     </IconButton>
                 </div>
+                {!procureId && (
+                    <button onClick={handleMaterialReceived} className="bg-green-500 text-white p-2 rounded">
+                        Material Received
+                    </button>
+                )}
                 <button onClick={generatePDF} className="bg-blue-500 text-white p-2 rounded">
                     Print to PDF
                 </button>

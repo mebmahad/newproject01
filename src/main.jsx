@@ -37,6 +37,10 @@ import EditHead from './pages/EditHead.jsx';
 import AllHeads from './pages/AllHeads.jsx';
 import AddHead from './pages/AddHead.jsx';
 import Head from './pages/Head.jsx';
+import AllBudgets from './pages/AllBudgets.jsx';
+import AddBudget from './pages/AddBudget.jsx';
+import Budget from './pages/Budget.jsx';
+import EditBudget from './pages/EditBudget.jsx';
 
 
 const router = createBrowserRouter([
@@ -63,6 +67,34 @@ const router = createBrowserRouter([
             <Signup />
           </AuthLayout>
         ),
+      },
+      {
+        path: "/all-budgets",
+        element: (
+            <AllBudgets />
+        ),
+      },
+      {
+        path: "/add-budget",
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <AddBudget />
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/edit-budget/:id", // Changed from slug to id
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <EditBudget />
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/budget/:id", // Changed from slug to id
+        element: <Budget />,
       },
       {
         path: "/all-posts",

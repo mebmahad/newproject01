@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, ItemBtn, Logo, LogoutBtn } from '../index';
+import { Container, ItemBtn, Logo, LogoutBtn, BudgetBtn } from '../index';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -70,6 +70,11 @@ function Header() {
             {authStatus && (
               <li className="mr-2 mb-2">
                 <LogoutBtn />
+              </li>
+            )}
+            {authStatus && (
+              <li className="mr-2 mb-2">
+                <BudgetBtn />
               </li>
             )}
             {authStatus && (

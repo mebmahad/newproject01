@@ -175,12 +175,12 @@ export default function PoForm({ po }) {
             if (budget) {
                 const yearlyBudget = budget.yearlyBudget;
                 const monthsPassed = new Date().getMonth() + 1; // Current month (1-based)
-                const monthlyBudget = yearlyBudget / 12; // Default to 12 months
+                const monthlyBudget = Math.floor(yearlyBudget / 12); // Default to 12 months
 
                 // Adjust for the number of months in the current year
                 if (monthsPassed < 12) {
                     // Adjust the monthly budget if fewer months have passed
-                    const adjustedMonthlyBudget = yearlyBudget / monthsPassed;
+                    const adjustedMonthlyBudget = Math.floor(yearlyBudget / monthsPassed);
 
                     // Subtract from the yearly and monthly budgets
                     await service.updateBudget(currentYear, {

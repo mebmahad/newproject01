@@ -168,7 +168,7 @@ export default function PoForm({ po }) {
             const totalWithGst = poTotalAmount * (1 + gstPercentage / 100);
 
             // Fetch the current year's budget
-            const currentYear = string(new Date().getFullYear());
+            const currentYear = String(new Date().getFullYear());
             const budget = await service.getBudget(currentYear);
 
             if (budget) {

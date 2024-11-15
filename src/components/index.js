@@ -31,6 +31,7 @@ import HeadBtn from "./Header/HeadBtn";
 import BudgetForm from "./budget-form/BudgetForm";
 import BudgetCard from "./BudgetCard";
 import BudgetBtn from "./Header/BudgetBtn";
+import ManagestoreBtn from "./Header/ManagestoreBtn";
 export {
     Header,
     BudgetForm,
@@ -41,6 +42,7 @@ export {
     Logo,
     LogoutBtn,
     ProcurementBtn,
+    ManagestoreBtn,
     ItemBtn,
     HeadBtn,
     Signup,

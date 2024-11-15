@@ -71,14 +71,15 @@ const router = createBrowserRouter([
       {
         path: "/all-budgets",
         element: (
-            <AllBudgets />
+          <AuthLayout authentication>
+          <AllBudgets />
+        </AuthLayout>
         ),
       },
       {
         path: "/add-budget",
         element: (
           <AuthLayout authentication>
-            {""}
             <AddBudget />
           </AuthLayout>
         ),
@@ -87,14 +88,17 @@ const router = createBrowserRouter([
         path: "/edit-budget/:id", // Changed from slug to id
         element: (
           <AuthLayout authentication>
-            {""}
             <EditBudget />
           </AuthLayout>
         ),
       },
       {
         path: "/budget/:id", // Changed from slug to id
-        element: <Budget />,
+        element: (
+          <AuthLayout authentication>
+            <Budget />
+          </AuthLayout>
+        ),
       },
       {
         path: "/all-posts",
@@ -105,7 +109,10 @@ const router = createBrowserRouter([
       {
         path: "/store-manage",
         element: (
+          <AuthLayout authentication>
+            {""}
             <StorePage />
+          </AuthLayout>
         ),
       },
       {

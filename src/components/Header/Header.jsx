@@ -1,15 +1,35 @@
-import React from 'react';
-import { Container, ItemBtn, Logo, LogoutBtn, BudgetBtn } from '../index';
+import React, {useEffect, useState} from 'react';
+import { Container, ItemBtn, Logo, LogoutBtn, BudgetBtn, ManagestoreBtn } from '../index';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import ProcurementBtn from './ProcurementBtn';
 import HeadBtn from './HeadBtn';
 import AllposBtn from './AllposBtn';
+import authService from '../../appwrite/auth';
+import AddcomplaintsBtn from './AddcomplaintsBtn';
+import AllcomplaintsBtn from './AllcomplaintsBtn';
 
 function Header() {
   const authStatus = useSelector((state) => state.auth.status);
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const user = await authService.getCurrentUser();
+        setCurrentUser(user);
+        console.log("Fetched User:", user); // Debugging output
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, [authStatus]);
+
+  const isAuthor = currentUser?.name;
 
   const navItems = [
     {
@@ -26,21 +46,6 @@ function Header() {
       name: 'Signup',
       slug: '/signup',
       active: !authStatus,
-    },
-    {
-      name: 'All Complaints',
-      slug: '/all-posts',
-      active: true,
-    },
-    {
-      name: 'Add Complaints',
-      slug: '/add-post',
-      active: true,
-    },
-    {
-      name: 'Manage Store',
-      slug: '/store-manage',
-      active: true,
     },
   ];
 
@@ -72,27 +77,42 @@ function Header() {
                 <LogoutBtn />
               </li>
             )}
-            {authStatus && (
+            {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Technician') && (
+              <li className="mr-2 mb-2">
+                <AddcomplaintsBtn />
+              </li>
+            )}
+            {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Technician') && (
+              <li className="mr-2 mb-2">
+                <AllcomplaintsBtn />
+              </li>
+            )}
+            {(isAuthor==='Budget') && (
               <li className="mr-2 mb-2">
                 <BudgetBtn />
               </li>
             )}
-            {authStatus && (
+            {(isAuthor==='Procurement'||isAuthor==='Admin') && (
               <li className="mr-2 mb-2">
                 <ProcurementBtn />
               </li>
             )}
-            {authStatus && (
+            {(isAuthor==='Procurement'||isAuthor==='Admin') && (
               <li className="mr-2 mb-2">
                 <AllposBtn />
               </li>
             )}
-            {authStatus && (
+            {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Store') && (
+              <li className="mr-2 mb-2">
+                <ManagestoreBtn />
+              </li>
+            )}
+            {(isAuthor==='Procurement'||isAuthor==='Admin') && (
               <li className="mr-2 mb-2">
                 <HeadBtn />
               </li>
             )}
-            {authStatus && (
+            {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Store') && (
               <li className="mr-2 mb-2">
                 <ItemBtn />
               </li>

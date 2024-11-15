@@ -19,7 +19,7 @@ export default function Item() {
                 else navigate("/");
             });
         } else navigate("/");
-    }, [id, navigate]);
+    }, [id, navigate, userData]);
 
     const deleteItem = async () => {
         const confirmed = window.confirm("Are you sure you want to delete this item?");

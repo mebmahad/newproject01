@@ -5,10 +5,30 @@ import service from "../appwrite/config";
 import { Query } from "appwrite";
 import DynamicInput from "../components/DynamicInput";
 import { Button } from "../components";
+import { useSelector } from 'react-redux';
+import authService from '../appwrite/auth';
 
 const AllPosts = () => {
+    const authStatus = useSelector((state) => state.auth.status);
     const [posts, setPosts] = useState([]);
     const [filters, setFilters] = useState({ areas: "", feild: "", status: "active" });
+    const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const user = await authService.getCurrentUser();
+        setCurrentUser(user);
+        console.log("Fetched User:", user); // Debugging output
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, [authStatus]);
+
+  const isAuthor = currentUser?.name;
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -44,18 +64,26 @@ const AllPosts = () => {
                     <div className="space-y-4">
                     <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
                             {/* Buttons for status filters in a horizontal scrollable div */}
+                            {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Technician') && (
                             <Button onClick={() => setFilters({ ...filters, status: "active" })}>
-                                Incomplete
+                            Incomplete
                             </Button>
+                            )}
+                            {(isAuthor==='Procurement'||isAuthor==='Admin') && (
                             <Button onClick={() => setFilters({ ...filters, status: "approval" })}>
-                                InApproval
+                            InApproval
                             </Button>
+                            )}
+                            {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Technician') && (
                             <Button onClick={() => setFilters({ ...filters, status: "inactive" })}>
-                                Complete
+                            Complete
                             </Button>
+                            )}
+                            {(isAuthor==='Procurement'||isAuthor==='Admin') && (
                             <Button onClick={() => setFilters({ ...filters, status: "In Procure" })}>
-                                In Procure
+                            In Procure
                             </Button>
+                            )}
                         </div>
                         {posts.map((post) => (
                             <div key={post.$id}>

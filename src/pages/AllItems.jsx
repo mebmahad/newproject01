@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Container, ItemCard } from "../components";
+import { Container, ItemCard, Button } from "../components";
 import service from "../appwrite/config";
 import { useNavigate } from "react-router-dom";
 
@@ -51,9 +51,9 @@ const AllItems = () => {
                 <div className="w-3/4">
                     <h2 className="text-lg font-bold mb-2">Items</h2>
                     <div>
-                    <button className="bg-green-500" onClick={handleItemClick}>
+                    <Button className="bg-green-500" onClick={handleItemClick}>
                                     Add Item
-                                </button>
+                                </Button>
                     </div>
                     <div className="space-y-4">
                         {items.map((item) => (

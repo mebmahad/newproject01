@@ -47,9 +47,9 @@ export default function ItemForm({ item }) {
 
         const fetchHeads = async () => {
             try {
-                const response = await service.getHeads();
+                const response = await service.getHeads([Query.limit(100)]); // Fetch up to 100 items (adjust as needed)
                 console.log("Fetched heads response:", response);
-
+        
                 if (response && response.documents) {
                     setHeads(response.documents);
                 } else {
@@ -60,6 +60,7 @@ export default function ItemForm({ item }) {
                 setHeads([]);
             }
         };
+        
 
         fetchLocations();
         fetchHeads();

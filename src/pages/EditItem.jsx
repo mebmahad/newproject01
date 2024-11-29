@@ -2,13 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Container, ItemForm } from '../components';
 import service from "../appwrite/config";
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 
 function EditItem() {
     const [item, setItem] = useState(null);
     const { id } = useParams(); // Changed from $id to id for clarity
     const navigate = useNavigate();
-    const userData = useSelector((state) => state.auth.userData);
 
     useEffect(() => {
         const fetchItem = async () => {
@@ -16,12 +14,7 @@ function EditItem() {
                 try {
                     const item = await service.getItem(id);
                     if (item) {
-                        // Check if the user is the author
-                        if (item.userId !== userData.$id) {
-                            navigate('/'); // Redirect if not the author
-                        } else {
                             setItem(item);
-                        }
                     } else {
                         navigate('/all-items'); // Redirect if post not found
                     }
@@ -35,7 +28,7 @@ function EditItem() {
         };
 
         fetchItem();
-    }, [id, navigate, userData]);
+    }, [id, navigate]);
 
     return item ? (
         <div className='py-8'>

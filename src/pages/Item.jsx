@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import service from "../appwrite/config";
+import authService from "../appwrite/config";
 import { Button, Container } from "../components";
 import { useSelector } from "react-redux";
 
@@ -8,9 +9,22 @@ export default function Item() {
     const [item, setItem] = useState(null);
     const { id } = useParams();
     const navigate = useNavigate();
+    const [currentUser, setCurrentUser] = useState(null);
+    const authStatus = useSelector((state) => state.auth.status);
 
-    const userData = useSelector((state) => state.auth.userData);
-    const isAuthor = item && userData ? true : false; // Set to false if you want to restrict buttons to authors only
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+          try {
+            const user = await authService.getCurrentUser();
+            setCurrentUser(user);
+            console.log("Fetched User:", user); // Debugging output
+          } catch (error) {
+            console.error("Failed to fetch user:", error);
+          }
+        };
+    
+        fetchCurrentUser();
+      }, [authStatus]);
 
     useEffect(() => {
         if (id) {
@@ -19,7 +33,7 @@ export default function Item() {
                 else navigate("/");
             });
         } else navigate("/");
-    }, [id, navigate, userData]);
+    }, [id, navigate]);
 
     const deleteItem = async () => {
         const confirmed = window.confirm("Are you sure you want to delete this item?");
@@ -36,7 +50,7 @@ export default function Item() {
             <Container>
                 <div className="w-full flex mb-8 relative border rounded-xl p-2">
                     <div className="absolute right-6 top-6">
-                        {isAuthor && (
+                        {authStatus && (
                             <div>
                                 <Link to={`/edit-item/${item.$id}`}>
                                     <Button className="bg-green-500 mr-3">Edit</Button>

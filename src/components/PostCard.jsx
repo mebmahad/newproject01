@@ -22,8 +22,24 @@ function PostCard({ $id, areas, subarea, feild, problem, createdAt, status, isSe
     onSelect($id, !isChecked);
   };
 
+  // Function to get smart color based on status
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "active":
+        return "text-blue-600"; // Incomplete - blue
+      case "approval":
+        return "text-yellow-600"; // InApproval - yellow
+      case "inactive":
+        return "text-green-600"; // Complete - green
+      case "In Procure":
+        return "text-purple-600"; // In Procure - purple
+      default:
+        return "text-gray-500"; // Default color for unknown status
+    }
+  };
+
   return (
-    <div className={`flex flex-col border border-black/10 rounded-lg p-3 shadow-sm ${status === "approval" ? "text-blue-500" : "text-black"}`}>
+    <div className={`flex flex-col border border-black/10 rounded-lg p-3 shadow-sm ${getStatusColor(status)}`}>
       <div className="flex flex-row items-center gap-x-3">
         {isSelectable && (
           <input

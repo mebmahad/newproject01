@@ -92,7 +92,7 @@ function Header() {
                 <BudgetBtn />
               </li>
             )}
-            {(isAuthor==='Procurement'||isAuthor==='Admin') && (
+            {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Store') && (
               <li className="mr-2 mb-2">
                 <ProcurementBtn />
               </li>

@@ -6,7 +6,7 @@ function ItemBtn() {
 
     const handleItemClick = () => {
         // Define your logic here, for example:
-        navigate('/all-items'); // Redirect to the items page
+        navigate('/store'); // Redirect to the items page
     };
 
     return (
@@ -14,7 +14,7 @@ function ItemBtn() {
             className='inline-block px-6 py-2 duration-200 hover:bg-blue-100 rounded-full'
             onClick={handleItemClick}
         >
-            Item
+            Store
         </button>
     );
 }

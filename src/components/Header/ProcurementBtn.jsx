@@ -6,7 +6,7 @@ function ProcurementBtn() {
 
     const handleProcurementClick = () => {
         // Define your logic here, for example:
-        navigate('/all-procures'); // Redirect to the procurement page
+        navigate('/procurement'); // Redirect to the procurement page
     };
 
     return (

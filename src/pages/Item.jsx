@@ -1,30 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import service from "../appwrite/config";
-import authService from "../appwrite/config";
 import { Button, Container } from "../components";
-import { useSelector } from "react-redux";
 
 export default function Item() {
     const [item, setItem] = useState(null);
     const { id } = useParams();
     const navigate = useNavigate();
-    const [currentUser, setCurrentUser] = useState(null);
-    const authStatus = useSelector((state) => state.auth.status);
-
-    useEffect(() => {
-        const fetchCurrentUser = async () => {
-          try {
-            const user = await authService.getCurrentUser();
-            setCurrentUser(user);
-            console.log("Fetched User:", user); // Debugging output
-          } catch (error) {
-            console.error("Failed to fetch user:", error);
-          }
-        };
-    
-        fetchCurrentUser();
-      }, [authStatus]);
 
     useEffect(() => {
         if (id) {
@@ -46,33 +28,53 @@ export default function Item() {
     };
 
     return item ? (
-        <div className="py-8">
+        <div className="py-10 bg-gray-50 min-h-screen">
             <Container>
-                <div className="w-full flex mb-8 relative border rounded-xl p-2">
-                    <div className="absolute right-6 top-6">
-                        {authStatus && (
-                            <div>
-                                <Link to={`/edit-item/${item.$id}`}>
-                                    <Button className="bg-green-500 mr-3">Edit</Button>
-                                </Link>
-                                <Button className="bg-red-500" onClick={deleteItem}>
-                                    Delete
-                                </Button>
-
-                            </div>
-                        )}
-                        <br />
+                <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+                    {/* Action Buttons */}
+                    <div className="flex justify-end p-4 border-b">
+                        <Link to={`/edit-item/${item.$id}`}>
+                            <button
+                                className="text-blue-500 hover:text-blue-700 transition ease-in-out transform hover:scale-110 mr-4"
+                                title="Edit"
+                            >
+                                <i className="fas fa-edit text-2xl"></i>
+                            </button>
+                        </Link>
+                        <button
+                            className="text-red-500 hover:text-red-700 transition ease-in-out transform hover:scale-110"
+                            onClick={deleteItem}
+                            title="Delete"
+                        >
+                            <i className="fas fa-trash text-2xl"></i>
+                        </button>
                     </div>
-                    <div className="browser-css font-bold">
-                        <ul>
-                            <br />
-                            <li>{item.Item}</li>
-                            <li>{item.Head}</li>
-                            <li>{item.Price}</li>
-                            <li>{item.Quantity}</li>
-                            <li>{item.Location}</li>
-                            <br />
-                        </ul>
+
+                    {/* Item Details */}
+                    <div className="p-6">
+                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Item Details</h2>
+                        <div className="space-y-3">
+                            <p>
+                                <span className="font-semibold text-gray-600">Item:</span>{" "}
+                                <span className="text-gray-700">{item.Item}</span>
+                            </p>
+                            <p>
+                                <span className="font-semibold text-gray-600">Head:</span>{" "}
+                                <span className="text-gray-700">{item.Head}</span>
+                            </p>
+                            <p>
+                                <span className="font-semibold text-gray-600">Price:</span>{" "}
+                                <span className="text-gray-700">${item.Price}</span>
+                            </p>
+                            <p>
+                                <span className="font-semibold text-gray-600">Quantity:</span>{" "}
+                                <span className="text-gray-700">{item.Quantity}</span>
+                            </p>
+                            <p>
+                                <span className="font-semibold text-gray-600">Location:</span>{" "}
+                                <span className="text-gray-700">{item.Location}</span>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </Container>

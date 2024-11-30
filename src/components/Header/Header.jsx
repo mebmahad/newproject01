@@ -77,12 +77,7 @@ function Header() {
                 <LogoutBtn />
               </li>
             )}
-            {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Technician') && (
-              <li className="mr-2 mb-2">
-                <AddcomplaintsBtn />
-              </li>
-            )}
-            {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Technician') && (
+            {(isAuthor==='Huzefa') && (
               <li className="mr-2 mb-2">
                 <AllcomplaintsBtn />
               </li>
@@ -95,21 +90,6 @@ function Header() {
             {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Store') && (
               <li className="mr-2 mb-2">
                 <ProcurementBtn />
-              </li>
-            )}
-            {(isAuthor==='Procurement'||isAuthor==='Admin') && (
-              <li className="mr-2 mb-2">
-                <AllposBtn />
-              </li>
-            )}
-            {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Store') && (
-              <li className="mr-2 mb-2">
-                <ManagestoreBtn />
-              </li>
-            )}
-            {(isAuthor==='Procurement'||isAuthor==='Admin') && (
-              <li className="mr-2 mb-2">
-                <HeadBtn />
               </li>
             )}
             {(isAuthor==='Procurement'||isAuthor==='Admin'||isAuthor==='Store') && (

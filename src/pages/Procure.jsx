@@ -98,7 +98,7 @@ export default function Procure() {
                         <h1 className="text-2xl font-bold">Procurement Details</h1>
                         {authStatus && procure.status !== "material received" && (
                             <div className="flex space-x-3">
-                                {(procure.status === "active" || procure.status === "podone") && (
+                                {(procure.status === "active") && (
                                     <Link to={`/edit-procure/${procure.$id}`}>
                                         <button
                                             className="text-blue-500 hover:text-blue-700 mr-3 transition"
@@ -108,7 +108,7 @@ export default function Procure() {
                                         </button>
                                     </Link>
                                 )}
-                                {(procure.status === "active" || procure.status === "podone") && (
+                                {(procure.status === "active") && (
                                     <button
                                         className="text-red-500 hover:text-red-700 mr-3 transition"
                                         onClick={deleteProcure}

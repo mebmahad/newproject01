@@ -16,13 +16,10 @@ function EditProcure() {
                 try {
                     const procure = await service.getProcure(id);
                     if (procure) {
-                        // Check if the user is the author
-                        if (procure.userId !== userData.$id) {
-                            navigate('/'); // Redirect if not the author
-                        } else {
+                        
                             setProcure(procure);
                         }
-                    } else {
+                    else {
                         navigate('/all-procures'); // Redirect if post not found
                     }
                 } catch (error) {

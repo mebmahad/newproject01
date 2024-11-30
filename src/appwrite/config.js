@@ -689,6 +689,11 @@ class Service {
 
     async getHeads(queries = []) {
         try {
+            // Add a limit query if not already provided
+            if (!queries.some(query => query.type === 'limit')) {
+                queries.push(Query.limit(150)); // Use the Appwrite Query object
+            }
+            
             return await this.databases.listDocuments(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionIdhead,
@@ -699,6 +704,7 @@ class Service {
             return false;
         }
     }
+    
 
     async createPo({ VendorName, Items, totalAmount, gst, totalamountwithgst, postId, procureId, pono, id }) {
         try {

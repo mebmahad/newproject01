@@ -1,14 +1,15 @@
-import React from 'react'; 
+import React from 'react';
 import { Link } from 'react-router-dom';
 
 function HeadCard({ $id, Headname, Budgteamount }) {
   return (
-    <Link to={`/head/${$id}`}>
-      <div className="flex border border-black/10 rounded-lg px-3 py-1.5 gap-x-3 shadow-sm shadow-white/50 duration-300 text-black">
-        <li className="text-xl font-bold">
-          <span className="mx-2">{Headname}</span>
-          <span className="mx-2">{Budgteamount}</span>
-        </li>
+    <Link to={`/head/${$id}`} className="block hover:scale-105 transform transition duration-300">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md hover:shadow-lg">
+        {/* Head Info */}
+        <h3 className="text-lg font-bold text-gray-800">{Headname}</h3>
+        <p className="text-sm text-gray-700 mt-2">
+          <span className="font-medium">Budget Amount:</span> ${Budgteamount}
+        </p>
       </div>
     </Link>
   );

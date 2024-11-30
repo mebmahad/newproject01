@@ -16,13 +16,9 @@ function EditPost() {
                 try {
                     const post = await appwriteService.getPost(id);
                     if (post) {
-                        // Check if the user is the author
-                        if (post.userId !== userData.$id) {
-                            navigate('/'); // Redirect if not the author
-                        } else {
                             setPost(post);
                         }
-                    } else {
+                    else {
                         navigate('/all-posts'); // Redirect if post not found
                     }
                 } catch (error) {

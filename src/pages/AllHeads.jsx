@@ -4,74 +4,49 @@ import service from "../appwrite/config";
 import { useNavigate } from "react-router-dom";
 
 const AllHeads = () => {
-    const [heads, setHeads] = useState([]);
-    const [loading, setLoading] = useState(true); // Add loading state
-    const [error, setError] = useState(null); // Add error state
-    const navigate = useNavigate();
+  const [heads, setHeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-    const handleItemClick = () => {
-        // Define your logic here, for example:
-        navigate('/add-head'); // Redirect to the AddItem page
+  const handleAddHeadClick = () => navigate('/add-head');
+
+  useEffect(() => {
+    const fetchHeads = async () => {
+      try {
+        const response = await service.getHeads();
+        setHeads(response?.documents || []);
+      } catch {
+        setError("Failed to fetch heads.");
+        setHeads([]);
+      } finally {
+        setLoading(false);
+      }
     };
-    useEffect(() => {
-        const fetchHeads = async () => {
-            try {
-                const response = await service.getHeads(); // Remove queries if not defined
-    
-                console.log("Fetched Head response:", response); // Log the response for debugging
-    
-                if (response && response.documents) {
-                    setHeads(response.documents); // Set Items if response contains documents
-                } else {
-                    setHeads([]); // Set to empty array if no documents
-                }
-            } catch (error) {
-                setError("Failed to fetch Heads."); // Set error message
-                setHeads([]); // Fallback to empty array on error
-            } finally {
-                setLoading(false); // Set loading to false regardless of success or error
-            }
-        };
-    
-        fetchHeads();
-    }, []);
 
-    if (loading) {
-        return <div>Loading...</div>; // Show loading state
-    }
+    fetchHeads();
+  }, []);
 
-    if (error) {
-        return <div>{error}</div>; // Show error message
-    }
+  if (loading) return <div className="text-center mt-10 text-lg">Loading...</div>;
+  if (error) return <div className="text-center mt-10 text-red-500">{error}</div>;
 
-    return (
-        <Container>
-            <div className="flex gap-4">
-                {/* Heads Section */}
-                <div className="w-3/4">
-                    <h2 className="text-lg font-bold mb-2">Heads</h2>
-                    <br />
-                    <div>
-                    <Button className="bg-green-500" onClick={handleItemClick}>
-                                    Add Head
-                                </Button>
-                    </div>
-                    <br />
-                    <br />
-
-                    <div className="space-y-4">
-                        {heads.map((head) => (
-                            <div key={head.$id}>
-                                <HeadCard 
-                                    {...head} 
-                                />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </Container>
-    );
+  return (
+    <Container className="bg-gray-50 p-6 rounded-md shadow-lg">
+      <div className="flex flex-col gap-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800">Heads</h2>
+          <Button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onClick={handleAddHeadClick}>
+            Add Head
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {heads.slice(0, 150).map((head) => ( // Limit to max 150 entries
+            <HeadCard key={head.$id} {...head} className="bg-white p-4 rounded shadow-md hover:shadow-lg" />
+          ))}
+        </div>
+      </div>
+    </Container>
+  );
 };
 
 export default AllHeads;

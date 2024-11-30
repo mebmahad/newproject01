@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container, PostCard } from "../components";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import service from "../appwrite/config";
 import { Query } from "appwrite";
 import DynamicInput from "../components/DynamicInput";
@@ -10,9 +10,11 @@ import authService from "../appwrite/auth";
 
 const AllPosts = () => {
     const authStatus = useSelector((state) => state.auth.status);
+    const navigate = useNavigate();
     const [posts, setPosts] = useState([]);
     const [filters, setFilters] = useState({ areas: "", feild: "", status: "active" });
     const [currentUser, setCurrentUser] = useState(null);
+    const [activeTab, setActiveTab] = useState('incomplete'); // Manage active tab
 
     useEffect(() => {
         const fetchCurrentUser = async () => {
@@ -63,6 +65,7 @@ const AllPosts = () => {
                 return "text-gray-500"; // Default color for unknown status
         }
     };
+    const handlecomplaintClick = () => navigate('/add-post');
 
     return (
         <Container className="bg-gray-100 min-h-screen py-6 px-4 md:px-8">
@@ -70,40 +73,37 @@ const AllPosts = () => {
                 {/* Complaints Section */}
                 <div className="w-full md:w-3/4 bg-white shadow-md rounded-lg p-4">
                     <h2 className="text-2xl font-semibold mb-4 text-gray-800">Complaints</h2>
-                    <div className="flex gap-3 mb-6 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
-                        {(isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Technician") && (
-                            <Button
-                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                onClick={() => setFilters({ ...filters, status: "active" })}
-                            >
-                                Incomplete
-                            </Button>
-                        )}
-                        {(isAuthor === "Procurement" || isAuthor === "Admin") && (
-                            <Button
-                                className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                                onClick={() => setFilters({ ...filters, status: "approval" })}
-                            >
-                                InApproval
-                            </Button>
-                        )}
-                        {(isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Technician") && (
-                            <Button
-                                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                                onClick={() => setFilters({ ...filters, status: "inactive" })}
-                            >
-                                Complete
-                            </Button>
-                        )}
-                        {(isAuthor === "Procurement" || isAuthor === "Admin") && (
-                            <Button
-                                className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
-                                onClick={() => setFilters({ ...filters, status: "In Procure" })}
-                            >
-                                In Procure
-                            </Button>
-                        )}
+
+                    {/* Tab Navigation */}
+                    <div className="flex gap-3 mb-6">
+                        {/* Tab buttons */}
+                        <Button
+                            className={`px-4 py-2 rounded ${activeTab === 'incomplete' ? 'bg-blue-600 text-white' : 'bg-blue-100'}`}
+                            onClick={() => { setActiveTab('incomplete'); setFilters({ ...filters, status: "active" }); }}
+                        >
+                            Incomplete
+                        </Button>
+                        <Button
+                            className={`px-4 py-2 rounded ${activeTab === 'approval' ? 'bg-yellow-600 text-white' : 'bg-yellow-100'}`}
+                            onClick={() => { setActiveTab('approval'); setFilters({ ...filters, status: "approval" }); }}
+                        >
+                            InApproval
+                        </Button>
+                        <Button
+                            className={`px-4 py-2 rounded ${activeTab === 'complete' ? 'bg-green-600 text-white' : 'bg-green-100'}`}
+                            onClick={() => { setActiveTab('complete'); setFilters({ ...filters, status: "inactive" }); }}
+                        >
+                            Complete
+                        </Button>
+                        <Button
+                            className={`px-4 py-2 rounded ${activeTab === 'inprocure' ? 'bg-purple-600 text-white' : 'bg-purple-100'}`}
+                            onClick={() => { setActiveTab('inprocure'); setFilters({ ...filters, status: "In Procure" }); }}
+                        >
+                            In Procure
+                        </Button>
                     </div>
+
+                    {/* Display posts based on active tab */}
                     {posts.length ? (
                         posts.map((post) => (
                             <Link key={post.$id} to={`/post/${post.$id}`}>
@@ -128,6 +128,13 @@ const AllPosts = () => {
 
                 {/* Filters Section */}
                 <div className="w-full md:w-1/4 bg-white shadow-md rounded-lg p-4">
+                    <br />
+                    <br />
+                    <Button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onClick={handlecomplaintClick}>
+                        Register Complaints
+                    </Button>
+                    <br />
+                    <br />
                     <h2 className="text-xl font-semibold mb-4 text-gray-800">Filters</h2>
                     <DynamicInput
                         label="Areas"

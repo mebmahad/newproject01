@@ -32,7 +32,9 @@ import EditLocation from './pages/EditLocation.jsx';
 import AllLocations from "./pages/AllLocations";
 import AddLocation from "./pages/AddLocation.jsx";
 import Location from "./pages/Location.jsx";
-import StorePage from './pages/StorePage.jsx';
+import Store from './pages/Store.jsx';
+import Stockout from './pages/Stockout.jsx';
+import Procurement from './pages/Procurement.jsx';
 import EditHead from './pages/EditHead.jsx';
 import AllHeads from './pages/AllHeads.jsx';
 import AddHead from './pages/AddHead.jsx';
@@ -107,11 +109,29 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/store-manage",
+        path: "/store",
         element: (
           <AuthLayout authentication>
             {""}
-            <StorePage />
+            <Store/>
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/stock-out",
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <Stockout/>
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/procurement",
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <Procurement/>
           </AuthLayout>
         ),
       },

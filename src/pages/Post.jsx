@@ -1,17 +1,33 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import service from "../appwrite/config";
-import { Button, Container } from "../components";
+import authService from "../appwrite/auth";
+import { Container } from "../components";
 import { useSelector } from "react-redux";
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 export default function Post() {
     const [post, setPost] = useState(null);
-    const [daysPassed, setDaysPassed] = useState(0); // State to store days passed
-    const [isAuthor, setIsAuthor] = useState(false); // State to track if current user is the author
-    const { id } = useParams(); // Post id from URL
+    const [daysPassed, setDaysPassed] = useState(0);
+    const { id } = useParams();
     const navigate = useNavigate();
 
     const userData = useSelector((state) => state.auth.userData);
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const user = await authService.getCurrentUser();
+                setCurrentUser(user);
+            } catch (error) {
+                console.error("Failed to fetch user:", error);
+            }
+        };
+        fetchCurrentUser();
+    }, [userData]);
+
+    const authStatus = currentUser;
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -21,24 +37,24 @@ export default function Post() {
                     if (post) {
                         setPost(post);
 
-                        // Calculate days passed since createdAt, ensure dates are in UTC
+                        // Calculate days passed since createdAt
                         if (post.createdAt) {
                             const createdDate = new Date(post.createdAt);
                             const currentDate = new Date();
+                            const differenceInTime = Date.UTC(
+                                currentDate.getFullYear(),
+                                currentDate.getMonth(),
+                                currentDate.getDate()
+                            ) - Date.UTC(
+                                createdDate.getFullYear(),
+                                createdDate.getMonth(),
+                                createdDate.getDate()
+                            );
 
-                            // Convert both dates to UTC to avoid timezone issues
-                            const differenceInTime = Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate())
-                                - Date.UTC(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate());
-
-                            const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24)); // Convert to days
+                            const differenceInDays = Math.floor(
+                                differenceInTime / (1000 * 3600 * 24)
+                            );
                             setDaysPassed(differenceInDays);
-                        }
-
-                        // Check if the current user is the author
-                        if (userData && userData.$id && post.userId === userData.$id) {
-                            setIsAuthor(true);
-                        } else {
-                            setIsAuthor(false);
                         }
                     } else {
                         navigate("/");
@@ -53,7 +69,7 @@ export default function Post() {
         };
 
         fetchPost();
-    }, [id, navigate, userData]);
+    }, [id, navigate]);
 
     const updateStatus = async (newStatus) => {
         if (!post) return;
@@ -73,7 +89,6 @@ export default function Post() {
         }
     };
 
-
     const deletePost = async () => {
         const confirmed = window.confirm("Are you sure you want to delete this post?");
         if (confirmed) {
@@ -84,57 +99,98 @@ export default function Post() {
         }
     };
 
+    const getStatusClass = (status) => {
+        switch (status) {
+            case "active":
+                return "text-blue-500 font-semibold";
+            case "approval":
+                return "text-green-500 font-semibold";
+            case "inprocure":
+                return "text-yellow-500 font-semibold";
+            case "inactive":
+                return "text-gray-500 font-semibold";
+            default:
+                return "text-black font-semibold";
+        }
+    };
+
     return post ? (
-        <div className="py-8">
+        <div className="py-8 bg-gray-100">
             <Container>
-                <div className="w-full flex mb-8 relative border rounded-xl p-2">
+                <div className="w-full flex mb-8 relative border rounded-xl bg-white shadow-lg p-4">
                     <div className="absolute right-6 top-6">
-                        {isAuthor && (
-                            <div>
+                        {/* Render buttons based on post status */}
+                        {authStatus && post.status === "active" && (
+                            <>
                                 <Link to={`/edit-post/${post.$id}`}>
-                                    <Button className="bg-green-500 mr-3">Edit</Button>
+                                    <button
+                                        className="text-blue-500 hover:text-blue-700 mr-3"
+                                        title="Edit"
+                                    >
+                                        <i className="fas fa-edit text-xl"></i>
+                                    </button>
                                 </Link>
-                                <Button className="bg-red-500" onClick={deletePost}>
-                                    Delete
-                                </Button>
-                            </div>
-                        )}
-                        <br />
-                        <div>
-                            <Link to={`/add-procure/${post.$id}`}>
-                                <Button className="bg-green-500 mr-3">Material Required</Button>
-                            </Link>
-                            {/* Render buttons conditionally based on status */}
-                            {post.status === "active" && (
+
+                                <button
+                                    className="text-red-500 hover:text-red-700 mr-3"
+                                    onClick={deletePost}
+                                    title="Delete"
+                                >
+                                    <i className="fas fa-trash text-xl"></i>
+                                </button>
+
+                                <Link to={`/add-procure/${post.$id}`}>
+                                    <button
+                                        className="text-green-500 hover:text-green-700 mr-3"
+                                        title="Material Required"
+                                    >
+                                        <i className="fas fa-box text-xl"></i>
+                                    </button>
+                                </Link>
+
                                 <button
                                     onClick={() => updateStatus("approval")}
-                                    className="bg-blue-500 text-white px-4 py-2 mt-4"
+                                    className="text-blue-500 hover:text-blue-700"
+                                    title="Complete"
                                 >
-                                    Complete
+                                    <i className="fas fa-check-circle text-xl"></i>
                                 </button>
-                            )}
+                            </>
+                        )}
 
-                            {post.status === "approval" && (
+                        {authStatus && post.status === "approval" && (
+                            <>
                                 <button
                                     onClick={() => updateStatus("inactive")}
-                                    className="bg-green-500 text-white px-4 py-2 mt-4"
+                                    className="text-green-500 hover:text-green-700 mr-3"
+                                    title="Approved"
                                 >
-                                    Approved
+                                    <i className="fas fa-thumbs-up text-xl"></i>
                                 </button>
-                            )}
 
-                        </div>
+                                <button
+                                    onClick={() => updateStatus("active")}
+                                    className="text-yellow-500 hover:text-yellow-700"
+                                    title="Unapprove"
+                                >
+                                    <i className="fas fa-undo text-xl"></i>
+                                </button>
+                            </>
+                        )}
                     </div>
+
                     <div className="browser-css font-bold">
                         <ul>
-                            <br />
+                            <li>
+                                <span className="font-bold">Status: </span>
+                                <span className={getStatusClass(post.status)}>{post.status}</span>
+                            </li>
                             <li><strong>Area:</strong> {post.areas}</li>
                             <li><strong>Subarea:</strong> {post.subarea}</li>
                             <li><strong>Field:</strong> {post.feild}</li>
                             <li><strong>Problem:</strong> {post.problem}</li>
-                            <li><strong>Post ID:</strong> {post.$id}</li> {/* Show the post ID */}
-                            <li><strong>Days :</strong> {daysPassed} </li> {/* Show days since creation */}
-                            <br />
+                            <li><strong>Post ID:</strong> {post.$id}</li>
+                            <li><strong>Days:</strong> {daysPassed}</li>
                         </ul>
                     </div>
                 </div>

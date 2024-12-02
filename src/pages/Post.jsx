@@ -27,7 +27,7 @@ export default function Post() {
         fetchCurrentUser();
     }, [userData]);
 
-    const authStatus = currentUser;
+    const authStatus = currentUser?.name;
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -122,6 +122,8 @@ export default function Post() {
                         {/* Render buttons based on post status */}
                         {authStatus && post.status === "active" && (
                             <>
+                            {(authStatus==='Admin'||authStatus==='Procurement')&&(
+                                <>
                                 <Link to={`/edit-post/${post.$id}`}>
                                     <button
                                         className="text-blue-500 hover:text-blue-700 mr-3"
@@ -138,7 +140,8 @@ export default function Post() {
                                 >
                                     <i className="fas fa-trash text-xl"></i>
                                 </button>
-
+                                </>
+                            )}
                                 <Link to={`/add-procure/${post.$id}`}>
                                     <button
                                         className="text-green-500 hover:text-green-700 mr-3"
@@ -157,7 +160,6 @@ export default function Post() {
                                 </button>
                             </>
                         )}
-
                         {authStatus && post.status === "approval" && (
                             <>
                                 <button

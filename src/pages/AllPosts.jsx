@@ -77,30 +77,38 @@ const AllPosts = () => {
                     {/* Tab Navigation */}
                     <div className="flex gap-3 mb-6">
                         {/* Tab buttons */}
+                        {isAuthor && (
                         <Button
                             className={`px-4 py-2 rounded ${activeTab === 'incomplete' ? 'bg-blue-600 text-white' : 'bg-blue-100'}`}
                             onClick={() => { setActiveTab('incomplete'); setFilters({ ...filters, status: "active" }); }}
                         >
                             Incomplete
                         </Button>
+                        )}
+                        {(isAuthor==='Admin'||isAuthor==='Procurement') && (
                         <Button
                             className={`px-4 py-2 rounded ${activeTab === 'approval' ? 'bg-yellow-600 text-white' : 'bg-yellow-100'}`}
                             onClick={() => { setActiveTab('approval'); setFilters({ ...filters, status: "approval" }); }}
                         >
                             InApproval
                         </Button>
+                        )}
+                        {(isAuthor==='Admin'||isAuthor==='Procurement'||isAuthor==='Technician'||isAuthor==='Store') && (
                         <Button
                             className={`px-4 py-2 rounded ${activeTab === 'complete' ? 'bg-green-600 text-white' : 'bg-green-100'}`}
                             onClick={() => { setActiveTab('complete'); setFilters({ ...filters, status: "inactive" }); }}
                         >
                             Complete
                         </Button>
+                        )}
+                        {(isAuthor==='Admin'||isAuthor==='Procurement') && (
                         <Button
                             className={`px-4 py-2 rounded ${activeTab === 'inprocure' ? 'bg-purple-600 text-white' : 'bg-purple-100'}`}
                             onClick={() => { setActiveTab('inprocure'); setFilters({ ...filters, status: "In Procure" }); }}
                         >
                             In Procure
                         </Button>
+                        )}
                     </div>
 
                     {/* Display posts based on active tab */}

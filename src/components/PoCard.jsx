@@ -1,28 +1,25 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
 
-function PoCard({ id, items, vendorname }) {
+function PoCard({ id, pono, vendorname, totalamountwithgst }) {
   return (
     <Link to={`/po/${id}`}>
-      <div className="mb-8 bg-white shadow-md p-4 rounded">
-        {/* Vendor Name */}
-        <p className="font-bold">Vendor Name: {vendorname || 'No vendor specified'}</p>
+      <div className="mb-4 bg-gray-100 shadow-lg p-6 rounded-lg hover:shadow-xl transition-shadow duration-300">
+        {/* PONO */}
+        <p className="text-gray-700 text-sm uppercase tracking-wide font-semibold">
+          PONO: <span className="text-blue-600">{pono || "N/A"}</span>
+        </p>
 
-        {/* Items */}
-        <ul className="list-disc pl-5 mt-2">
-          {items && items.length > 0 ? (
-            items.map((item, index) => (
-              <li key={index} className="mt-2">
-                <p>Name: <span className="font-bold">{item.name || 'N/A'}</span></p>
-                <p>Quantity: <span className="font-bold">{item.qty || 'N/A'}</span></p>
-                <p>Rate: <span className="font-bold">{item.rate || 'N/A'}</span></p>
-                <p>Amount: <span className="font-bold">{item.qty && item.rate ? item.qty * item.rate : 'N/A'}</span></p>
-              </li>
-            ))
-          ) : (
-            <li>No items specified</li>
-          )}
-        </ul>
+        {/* Vendor Name */}
+        <p className="text-lg font-bold text-gray-800 mt-2">
+          Vendor: <span className="text-indigo-600">{vendorname || "Unknown"}</span>
+        </p>
+
+        {/* Total Amount with GST */}
+        <p className="text-sm text-gray-600 mt-2">
+          <span className="font-medium text-green-500">Total (with GST):</span> ₹
+          {totalamountwithgst || "0.00"}
+        </p>
       </div>
     </Link>
   );

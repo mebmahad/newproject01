@@ -6,21 +6,30 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 const Input = React.forwardRef(({ label, id, onChange, ...props }, ref) => (
-    <div className="mb-4">
-        <label htmlFor={id}>{label}</label>
-        <input ref={ref} id={id} {...props} onChange={onChange} className="border p-2 w-full" />
+    <div className="mb-6">
+        <label htmlFor={id} className="block text-lg font-semibold text-gray-800 mb-2">
+            {label}
+        </label>
+        <input
+            ref={ref}
+            id={id}
+            {...props}
+            onChange={onChange}
+            className="border-2 border-gray-300 p-3 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out"
+        />
     </div>
 ));
-const generateUniqueId = `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`
+
+const generateUniqueId = `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
 export default function ProcureForm({ procure }) {
-    const { postId } = useParams(); // Extract procureId and postId from the URL
+    const { postId } = useParams();
     const { register, handleSubmit, setValue, resetField, watch } = useForm({
         defaultValues: {
             Items: procure?.Items || "",
-            postId: procure?.postId || postId || "",  // Use postId from URL if available
+            postId: procure?.postId || postId || "",
             status: procure?.status || "active",
-            id: procure?.$id || `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate random unique ID
+            id: procure?.$id || generateUniqueId,
         },
     });
     const navigate = useNavigate();
@@ -33,75 +42,56 @@ export default function ProcureForm({ procure }) {
     const [items, setItems] = useState([]);
     const [isEditMode, setIsEditMode] = useState(false);
 
-    // Fetch procure data if id exists
     useEffect(() => {
         if (procure) {
             setIsEditMode(true);
             setValue("Item", procure.Item || "");
             setValue("Quantity", procure.Quantity || "");
-            // Parse Items if it's a JSON string, otherwise default to an empty array
             const parsedItems = Array.isArray(procure.Items) ? procure.Items : JSON.parse(procure.Items || '[]');
             setItems(parsedItems);
         }
     }, [procure, setValue]);
 
-    // Submit the form for new or updated procure
     const submit = async (data) => {
-        console.log("Form submitted:", data); // Log the form data to confirm submission
-        const itemsString = JSON.stringify(items); // Convert items list to JSON string
+        const itemsString = JSON.stringify(items);
         const status = "active";
 
         try {
             let dbProcure;
             if (isEditMode) {
-                if (!procure.$id) {
-                    throw new Error("Procure ID not available for update");
-                }
+                if (!procure.$id) throw new Error("Procure ID not available for update");
 
                 dbProcure = await service.updateProcure(procure.$id, {
                     ...data,
                     userId: userData?.$id,
-                    postId: postId, // Use procureId as postId
+                    postId: postId,
                     Items: itemsString,
                     status: status,
                 });
             } else {
-                console.log("Creating new procure");
-                // Create a new procurement record
                 dbProcure = await service.createProcure({
                     ...data,
                     userId: userData?.$id,
-                    postId: postId, // Use procureId as postId
+                    postId: postId,
                     Items: itemsString,
                     status: status,
                 });
 
-                // Update the post status after creating procure
                 await service.updatePost(postId, { status: "In Procure" });
-                console.log("Post status updated to 'In Procure'");
             }
 
-            console.log("Database response:", dbProcure);
-
-            // Navigate to the updated procure page
-            if (dbProcure) {
-                navigate(`/procure/${dbProcure.$id}`);
-            } else {
-                console.error("No response from database on submit");
-            }
+            if (dbProcure) navigate(`/procure/${dbProcure.$id}`);
         } catch (error) {
             console.error("Error submitting form:", error);
         }
     };
 
-    // Handle input change for item search
     const handleInputChange = (e) => {
-        const inputValue = e.target.value; // Use target to directly get the value
+        const inputValue = e.target.value;
         setValue("Item", inputValue, { shouldValidate: true });
         fetchSuggestions(inputValue);
     };
 
-    // Fetch suggestions for items from the API
     const fetchSuggestions = async (input) => {
         if (!input) {
             setSuggestions([]);
@@ -109,21 +99,19 @@ export default function ProcureForm({ procure }) {
         }
         try {
             const results = await service.searchItems(input);
-            setSuggestions(Array.isArray(results) ? results.map(item => item.Item) : []);
+            setSuggestions(results.map(item => item.Item) || []);
         } catch (error) {
             console.error("Error fetching suggestions:", error);
             setSuggestions([]);
         }
     };
 
-    // Handle item suggestion click
-    const handleSuggestionClick = async (item) => {
+    const handleSuggestionClick = (item) => {
         setSuggestions([]);
         setValue("Item", item, { shouldValidate: true });
         fetchQuantityAndLocation(item);
     };
 
-    // Fetch additional data (Quantity, Location, Budget Amount)
     const fetchQuantityAndLocation = async (itemName) => {
         if (!itemName) return;
         try {
@@ -148,7 +136,6 @@ export default function ProcureForm({ procure }) {
         }
     };
 
-    // Add item to items list
     const addItem = () => {
         const itemData = {
             id: generateUniqueId,
@@ -162,19 +149,18 @@ export default function ProcureForm({ procure }) {
         setBudgetAmount("");
     };
 
-    // Remove item from items list
     const removeItem = (id) => {
         setItems(items.filter(item => item.id !== id));
     };
 
     return (
-        <form onSubmit={handleSubmit(submit)} className="flex justify-center items-center min-h-screen">
-            <div className="flex flex-col">
+        <form onSubmit={handleSubmit(submit)} className="flex justify-center items-center min-h-screen bg-gray-50 py-10">
+            <div className="flex flex-col w-4/5 max-w-2xl bg-white p-8 rounded-xl shadow-xl border border-gray-200">
                 <Input
                     label="Procure Id:"
                     id="id"
                     placeholder="id"
-                    className="mb-4"
+                    className="mb-6"
                     value={generateUniqueId}
                     {...register("id", { required: true })}
                     disabled
@@ -182,62 +168,66 @@ export default function ProcureForm({ procure }) {
                 <Input
                     label="Item:"
                     id="item"
-                    placeholder="Item"
-                    className="mb-4"
+                    placeholder="Search for an item"
+                    className="mb-6"
                     {...register("Item", { required: true })}
                     onChange={handleInputChange}
                 />
                 {suggestions.length > 0 && (
-                    <ul className="absolute bg-white border border-gray-300 w-full z-10">
+                    <ul className="absolute bg-white border border-gray-300 w-full z-10 mt-1 rounded-md shadow-lg">
                         {suggestions.map((item, index) => (
                             <li
                                 key={index}
                                 onClick={() => handleSuggestionClick(item)}
-                                className="p-2 hover:bg-gray-200 cursor-pointer"
+                                className="p-3 hover:bg-indigo-100 cursor-pointer transition duration-200 ease-in-out"
                             >
                                 {item}
                             </li>
                         ))}
                     </ul>
                 )}
-                <div className="mb-4 flex justify-between">
+                <div className="mb-6 flex justify-between text-sm text-gray-600">
                     <span>{quantityMessage}</span>
                     <span>{locationMessage}</span>
                 </div>
-                <div className="mb-4 flex justify-between">
+                <div className="mb-6 flex justify-between text-sm text-gray-600">
                     <span>Budget Amount: {budgetAmount}</span>
                 </div>
                 <Input
                     label="Quantity:"
                     id="quantity"
-                    placeholder="Quantity"
-                    className="mb-4"
+                    placeholder="Enter quantity"
+                    className="mb-6"
                     {...register("Quantity", { required: true })}
                 />
-                <Button type="button" className="w-full bg-blue-500 mb-4" onClick={addItem}>
+                <Button
+                    type="button"
+                    className="w-full bg-indigo-600 text-white py-3 rounded-md mb-6 hover:bg-indigo-700 transition duration-300 ease-in-out"
+                    onClick={addItem}
+                >
                     Add Item
                 </Button>
 
-                <div className="overflow-x-auto">
-                    <table className="table-auto w-full">
-                        <thead>
+                <div className="overflow-x-auto mb-6">
+                    <table className="table-auto w-full bg-gray-100 rounded-lg shadow-md">
+                        <thead className="bg-indigo-600 text-white">
                             <tr>
-                                <th className="px-4 py-2">Item</th>
-                                <th className="px-4 py-2">Quantity</th>
-                                <th className="px-4 py-2">Budget Amount</th>
-                                <th className="px-4 py-2">Action</th>
+                                <th className="px-6 py-3 text-left">Item</th>
+                                <th className="px-6 py-3 text-left">Quantity</th>
+                                <th className="px-6 py-3 text-left">Budget Amount</th>
+                                <th className="px-6 py-3 text-left">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {items.map((item) => (
-                                <tr key={item.id}>
-                                    <td className="px-4 py-2">{item.Item}</td>
-                                    <td className="px-4 py-2">{item.Quantity}</td>
-                                    <td className="px-4 py-2">{item.BudgetAmount}</td>
-                                    <td className="px-4 py-2">
+                                <tr key={item.id} className="hover:bg-indigo-50 transition duration-200 ease-in-out">
+                                    <td className="px-6 py-3">{item.Item}</td>
+                                    <td className="px-6 py-3">{item.Quantity}</td>
+                                    <td className="px-6 py-3">{item.BudgetAmount}</td>
+                                    <td className="px-6 py-3 text-center">
                                         <Button
                                             type="button"
-                                            className="bg-red-500"
+                                            className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-300"
                                             onClick={() => removeItem(item.id)}
                                         >
                                             Remove
@@ -249,11 +239,12 @@ export default function ProcureForm({ procure }) {
                     </table>
                 </div>
 
-                <div className="mt-4">
-                    <Button type="submit" className="w-full bg-green-500">
-                        {isEditMode ? "Update Procure" : "Create Procure"}
-                    </Button>
-                </div>
+                <Button
+                    type="submit"
+                    className="w-full bg-green-600 text-white py-3 rounded-md hover:bg-green-700 transition duration-300"
+                >
+                    {isEditMode ? "Update Procure" : "Create Procure"}
+                </Button>
             </div>
         </form>
     );

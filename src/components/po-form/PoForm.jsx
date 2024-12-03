@@ -120,11 +120,20 @@ export default function PoForm({ po }) {
                 postId: postId,
                 gst: gstValue,
             };
-
+    
+            // Update the PO
             const dbPo = po
                 ? await service.updatePo(po.$id, dataToSave)
                 : await service.createPo({ ...dataToSave, userId: userData?.$id });
-
+    
+            // Update statuses if IDs are present
+            if (procureId) {
+                await service.updateProcure(procureId, { status: 'podone' });
+            }
+            if (postId) {
+                await service.updatePost(postId, { status: 'active' });
+            }
+    
             if (dbPo) {
                 navigate(`/po/${dbPo.$id}`);
             }
@@ -132,6 +141,7 @@ export default function PoForm({ po }) {
             console.error('Error submitting form:', error);
         }
     };
+    
 
     return (
         <div className="p-6 bg-white rounded-lg shadow-lg max-w-4xl mx-auto">

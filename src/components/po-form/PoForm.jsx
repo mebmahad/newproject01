@@ -1,27 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, IconButton, Paper, Typography, Divider, Select, MenuItem } from '@mui/material';
+import { Button, TextField, IconButton, Typography } from '@mui/material';
 import Close from '@mui/icons-material/Close';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import './PoForm.css';
-import { parseInt } from 'lodash';
-
-const ItemList = ({ items, onSelect }) => (
-    <Paper elevation={3} className="max-h-52 overflow-y-auto mb-4 w-full">
-        {items.map((item, idx) => (
-            <div
-                key={idx}
-                onClick={() => onSelect(item.Item)}
-                className="p-2 cursor-pointer hover:bg-gray-200 text-center"
-            >
-                {item.Item}
-            </div>
-        ))}
-    </Paper>
-);
 
 export default function PoForm({ po }) {
     const { register, handleSubmit, control, setValue, watch } = useForm({
@@ -29,24 +13,28 @@ export default function PoForm({ po }) {
             VendorName: po?.VendorName || '',
             procureId: po?.procureId || '',
             postId: po?.postId || '',
-            Items: po?.Items || [{ name: '', qty: 0, rate: 0 }],
+            Items: po?.Items || [], // No default empty item
             totalAmount: po?.totalAmount || 0,
-            gst: 0,
-            totalamountwithgst: 0,
+            totalamountwithgst: po?.totalamountwithgst || 0,
+            gst: po?.gst || 0,
             pono: po?.pono || '',
             id: po?.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         },
     });
 
-    const { fields, append, remove, update } = useFieldArray({ control, name: 'Items' });
+    const { fields, append, remove } = useFieldArray({ control, name: 'Items' });
     const [allVendors, setAllVendors] = useState([]);
     const [allItems, setAllItems] = useState([]);
     const [itemFilter, setItemFilter] = useState('');
-    const [totalAmount, setTotalAmount] = useState(0);
+    const [totalAmountWithoutGST, setTotalAmountWithoutGST] = useState(0);
+    const [totalAmountWithGST, setTotalAmountWithGST] = useState(0);
+    const [openItemPopup, setOpenItemPopup] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [itemQty, setItemQty] = useState(0);
+    const [itemRate, setItemRate] = useState(0);
+
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
-    const [lockedItems, setLockedItems] = useState([]);
-    const didMountRef = useRef(false);
     const location = useLocation();
     const params = new URLSearchParams(location.search);
     const procureId = params.get('procureId');
@@ -77,84 +65,67 @@ export default function PoForm({ po }) {
         fetchItems();
     }, []);
 
-    useEffect(() => {
-        if (po && typeof po === 'string') {
-            const fetchPo = async () => {
-                try {
-                    console.log("po data provided to form:", po);
-                    const poData = await service.getPo(po);  // Assume `po` here is the PO ID
-                    if (poData) {
-                        setValue("VendorName", poData.VendorName || '');
-                        setValue("procureId", poData.procureId || '');
-                        setValue("postId", poData.postId || '');
-                        setValue("Items", poData.Items ? JSON.parse(poData.Items) : [{ name: '', qty: 0, rate: 0 }]);
-                        setValue("totalAmount", poData.totalAmount || 0);
-                        setValue("gst", poData.gst || 0);
-                        setValue("totalamountwithgst", poData.totalamountwithgst || 0);
-                        setValue("pono", poData.pono || '');
-                        setValue("id", poData.$id || `po-${Date.now()}-${Math.floor(Math.random() * 10000)}`);
+    const handleItemSelect = (item) => {
+        setSelectedItem(item);
+    };
 
-                        setTotalAmount(poData.totalAmount || 0);
-                    }
-                } catch (error) {
-                    console.error("Error fetching PO:", error);
-                }
+    const handleAddItem = () => {
+        if (selectedItem && itemQty > 0 && itemRate > 0) {
+            const newItem = {
+                name: selectedItem.Item,
+                qty: Number(itemQty),
+                rate: Number(itemRate),
+                amount: Number(itemQty) * Number(itemRate),
             };
-            fetchPo();
-        } else if (po && typeof po === 'object') {
-            Object.keys(po).forEach(key => setValue(key, po[key]));
-            setTotalAmount(po.totalAmount || 0);
-        }
-    }, [po, setValue]);
 
-    useEffect(() => {
-        if (didMountRef.current) {
-            const subscription = watch((value) => {
-                const calculatedTotal = value.Items.reduce((acc, item) => {
-                    const itemAmount = (item.qty || 0) * (item.rate || 0);
-                    return acc + itemAmount;
-                }, 0);
-                setTotalAmount(calculatedTotal);
-                setValue('totalAmount', calculatedTotal);
-            });
-            return () => subscription.unsubscribe();
-        } else {
-            didMountRef.current = true;
+            append(newItem);
+
+            // Update totals
+            const newTotalWithoutGST = [...fields, newItem].reduce(
+                (total, item) => total + item.amount,
+                0
+            );
+            setTotalAmountWithoutGST(newTotalWithoutGST);
+
+            const gstPercentage = watch('gst') || 0;
+            const newTotalWithGST = newTotalWithoutGST * (1 + gstPercentage / 100);
+            setTotalAmountWithGST(newTotalWithGST);
+
+            // Reset fields and close popup
+            setItemQty(0);
+            setItemRate(0);
+            setSelectedItem(null);
+            setOpenItemPopup(false);
         }
-    }, [watch, setValue]);
+    };
+
+    const handleGstChange = (e) => {
+        const gstPercentage = parseInt(e.target.value, 10) || 0;
+        setValue('gst', gstPercentage);
+
+        const newTotalWithGST = totalAmountWithoutGST * (1 + gstPercentage / 100);
+        setTotalAmountWithGST(newTotalWithGST);
+    };
 
     const submit = async (data) => {
         try {
-            // Ensure gst is an integer before using it
             const gstValue = parseInt(watch('gst'), 10) || 0;
-    
-            const totalWithGst = totalAmount * (1 + gstValue / 100);
+            const totalWithGst = totalAmountWithoutGST * (1 + gstValue / 100);
             const dataToSave = {
                 ...data,
                 Items: JSON.stringify(data.Items),
-                totalAmount: totalAmount.toFixed(2),
-                totalamountwithgst: Math.round(totalWithGst),
+                totalAmount: totalAmountWithoutGST.toFixed(2),
+                totalamountwithgst: parseInt(totalAmountWithGST.toFixed(2)),
                 procureId: procureId,
                 postId: postId,
-                gst: gstValue,  // Ensure gst is an integer here
+                gst: gstValue,
             };
-    
+
             const dbPo = po
                 ? await service.updatePo(po.$id, dataToSave)
                 : await service.createPo({ ...dataToSave, userId: userData?.$id });
-    
+
             if (dbPo) {
-                // Update the budgets
-                await updateBudgets(dbPo.totalAmount, dbPo.gst);
-    
-                // Update status for procureId and postId
-                const updatedPost = await service.updatePost(postId, {
-                    status: "active" // Update the status to "In Procure"
-                });
-                const updatedProcure = await service.updateProcure(procureId, {
-                    status: "podone" // Update the status to "In Procure"
-                });
-    
                 navigate(`/po/${dbPo.$id}`);
             }
         } catch (error) {
@@ -162,147 +133,168 @@ export default function PoForm({ po }) {
         }
     };
 
-    const updateBudgets = async (poTotalAmount, gstPercentage) => {
-        try {
-            // Calculate total with GST
-            const totalWithGst = poTotalAmount * (1 + gstPercentage / 100);
-
-            // Fetch the current year's budget
-            const currentYear = String(new Date().getFullYear());
-            console.log(currentYear)
-            const budget = await service.getBudget(currentYear);
-
-            if (budget) {
-                const yearlyBudget = budget.yearlyBudget;
-                const monthsPassed = new Date().getMonth() + 1; // Current month (1-based)
-                const monthlyBudget = Math.floor(yearlyBudget / 12); // Default to 12 months
-
-                // Adjust for the number of months in the current year
-                if (monthsPassed < 12) {
-                    // Adjust the monthly budget if fewer months have passed
-                    const adjustedMonthlyBudget = Math.floor(yearlyBudget / monthsPassed);
-
-                    // Subtract from the yearly and monthly budgets
-                    await service.updateBudget(currentYear, {
-                        yearlyBudget: yearlyBudget - totalWithGst,
-                        monthlyBudget: adjustedMonthlyBudget - totalWithGst,
-                    });
-                } else {
-                    // Subtract from the full yearly budget
-                    await service.updateBudget(currentYear, {
-                        yearlyBudget: yearlyBudget - totalWithGst,
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Error updating budgets:', error);
-        }
-    };
-
-    const handleItemSelect = (itemName) => {
-        const newIndex = fields.length - 1;
-        update(newIndex, { ...fields[newIndex], name: itemName });
-        setLockedItems((prevLocked) => [...prevLocked, newIndex]);
-    };
-
-    const handleAddItem = () => {
-        append({ name: '', qty: 0, rate: 0 });
-        const calculatedTotal = fields.reduce((acc, item, index) => {
-            const itemQty = watch(`Items.${index}.qty`) || 0;
-            const itemRate = watch(`Items.${index}.rate`) || 0;
-            return acc + (itemQty * itemRate);
-        }, 0);
-        setTotalAmount(calculatedTotal);
-    };
-
-    const handleGstChange = (e) => {
-        const gstPercentage = parseInt(e.target.value, 10); // Use base 10 for integer parsing
-        const validGstPercentage = isNaN(gstPercentage) ? 0 : gstPercentage; // Fallback to 0 if invalid
-        setValue('gst', validGstPercentage);
-    
-        const totalWithGST = totalAmount * (1 + validGstPercentage / 100);
-        setValue('totalamountwithgst', totalWithGST);
-    };
-
     return (
-        <div className="p-4">
+        <div className="p-6 bg-white rounded-lg shadow-lg max-w-4xl mx-auto">
             <form onSubmit={handleSubmit(submit)}>
                 <div className="mb-4">
+                    <Typography variant="h6">PO Number</Typography>
+                    <TextField
+                        label="PO Number"
+                        {...register('pono')}
+                        fullWidth
+                    />
+                </div>
+
+                <div className="mb-4">
                     <Typography variant="h6">Vendor</Typography>
-                    <Select
+                    <TextField
+                        select
                         label="Vendor"
                         {...register('VendorName')}
                         fullWidth
+                        value={watch('VendorName') || ''}
+                        SelectProps={{
+                            native: true,
+                        }}
                     >
+                        <option value="" disabled>Select a Vendor</option>
                         {allVendors.map((vendor) => (
-                            <MenuItem key={vendor.id} value={vendor.Name}>
+                            <option key={vendor.id} value={vendor.Name}>
                                 {vendor.Name}
-                            </MenuItem>
+                            </option>
                         ))}
-                    </Select>
+                    </TextField>
                 </div>
 
-                {/* Items Section */}
                 <div className="mb-4">
                     <Typography variant="h6">Items</Typography>
+                    {fields.length === 0 && (
+                        <Typography className="text-center text-gray-500">
+                            No items added yet. Use "Add Item List" to include items.
+                        </Typography>
+                    )}
                     {fields.map((item, index) => (
-                        <div key={item.id} className="mb-2 flex">
+                        <div key={item.id} className="grid grid-cols-4 gap-2 items-center mb-2">
                             <input
-                                className="mr-2 p-2 border rounded"
+                                className="p-2 border rounded"
                                 {...register(`Items[${index}].name`)}
                                 placeholder="Item"
-                                list="itemList"
+                                readOnly
                             />
                             <TextField
                                 {...register(`Items[${index}].qty`)}
+                                placeholder="Qty"
                                 type="number"
-                                placeholder="Quantity"
-                                fullWidth
-                                className="mr-2"
+                                className="p-2 border rounded"
                             />
                             <TextField
                                 {...register(`Items[${index}].rate`)}
-                                type="number"
                                 placeholder="Rate"
-                                fullWidth
-                                className="mr-2"
+                                type="number"
+                                className="p-2 border rounded"
                             />
-                            <IconButton
+                            <Typography className="text-center">
+                                {(item.qty * item.rate).toFixed(2)}
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                color="secondary"
                                 onClick={() => remove(index)}
-                                className="self-center"
                             >
-                                <Close />
-                            </IconButton>
+                                Remove
+                            </Button>
                         </div>
                     ))}
-                    <ItemList items={allItems} onSelect={handleItemSelect} />
-                    <Button onClick={handleAddItem}>Add Item</Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setOpenItemPopup(true)}
+                    >
+                        Add Item List
+                    </Button>
                 </div>
 
-                {/* GST & Total Calculation */}
+                <Typography variant="h6">
+                    Total Amount Without GST: {totalAmountWithoutGST.toFixed(2) || "0.00"}
+                </Typography>
+
                 <div className="mb-4">
+                    <Typography variant="h6">GST (%)</Typography>
                     <TextField
                         {...register('gst')}
-                        label="GST Percentage"
                         type="number"
-                        onChange={handleGstChange}
                         fullWidth
+                        onChange={handleGstChange}
                     />
-                    <div className="mt-2">
-                        <Typography variant="body1">
-                            Total Amount: {totalAmount}
-                        </Typography>
-                        <Typography variant="body1">
-                            Total Amount with GST: {watch('totalamountwithgst')}
-                        </Typography>
-                    </div>
                 </div>
 
-                {/* Submit Button */}
-                <Button variant="contained" color="primary" type="submit">
-                    Submit Purchase Order
+                <Typography variant="h6">
+                    Total Amount With GST: {totalAmountWithGST.toFixed(2) || "0.00"}
+                </Typography>
+
+                <Button type="submit" variant="contained" color="primary" fullWidth>
+                    Save PO
                 </Button>
             </form>
+
+            {openItemPopup && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-white p-6 rounded-lg w-96 relative">
+                        <input
+                            type="text"
+                            placeholder="Search item..."
+                            value={itemFilter}
+                            onChange={(e) => setItemFilter(e.target.value)}
+                            className="w-full p-2 border rounded mb-2"
+                        />
+                        {allItems
+                            .filter((item) => item.Item.toLowerCase().includes(itemFilter.toLowerCase()))
+                            .map((item) => (
+                                <div
+                                    key={item.id}
+                                    className="cursor-pointer p-2 border-b"
+                                    onClick={() => handleItemSelect(item)}
+                                >
+                                    {item.Item}
+                                </div>
+                            ))}
+                        {selectedItem && (
+                            <div className="mt-4">
+                                <TextField
+                                    label="Quantity"
+                                    type="number"
+                                    value={itemQty}
+                                    onChange={(e) => setItemQty(e.target.value)}
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Rate"
+                                    type="number"
+                                    value={itemRate}
+                                    onChange={(e) => setItemRate(e.target.value)}
+                                    fullWidth
+                                    className="mt-2"
+                                />
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    fullWidth
+                                    className="mt-2"
+                                    onClick={handleAddItem}
+                                >
+                                    Add Item
+                                </Button>
+                            </div>
+                        )}
+                        <IconButton
+                            onClick={() => setOpenItemPopup(false)}
+                            className="absolute top-2 right-2"
+                        >
+                            <Close />
+                        </IconButton>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

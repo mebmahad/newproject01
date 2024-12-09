@@ -14,15 +14,15 @@ const AllItems = () => {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await service.getItems();
-        setItems(response?.documents || []);
+          const response = await service.getItems();
+          setItems(response?.documents || []);
       } catch {
-        setError("Failed to fetch items.");
-        setItems([]);
+          setError("Failed to fetch items.");
+          setItems([]);
       } finally {
-        setLoading(false);
+          setLoading(false);
       }
-    };
+  };
 
     fetchItems();
   }, []);

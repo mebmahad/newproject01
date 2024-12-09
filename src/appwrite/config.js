@@ -417,11 +417,23 @@ class Service {
 
     async getItems(queries = []) {
         try {
-            return await this.databases.listDocuments(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdstore,
-                queries
-            );
+            let allDocuments = [];
+            let hasMore = true;
+            let offset = 0;
+            const limit = 100;
+    
+            while (hasMore) {
+                const response = await this.databases.listDocuments(
+                    conf.appwriteDatabaseId,
+                    conf.appwriteCollectionIdstore,
+                    [...queries, Query.limit(limit), Query.offset(offset)]
+                );
+                allDocuments = [...allDocuments, ...response.documents];
+                hasMore = response.documents.length === limit; // Check if there's more data
+                offset += limit;
+            }
+    
+            return { documents: allDocuments };
         } catch (error) {
             console.log("ComplaintService :: getComplaints :: error", error);
             return false;

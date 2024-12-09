@@ -112,10 +112,10 @@ const Po = () => {
                 {/* Organization Header */}
                 <div className="text-center mb-4">
                     <Typography variant="h5" className="font-semibold">
-                        Dawat Properties Trust
+                        Dawat Properties Trust, Mahad Al Zahra
                     </Typography>
-                    <Typography variant="body2">Mahad al Zahra, Pakhti, Galiakot, Dist-Dungarpur, Rajasthan</Typography>
-                    <Typography variant="body2">GST No: 123456789</Typography>
+                    <Typography variant="body2">3/873, yusufi manzil, devdi mubarak, zampa bazar, Surat-Gujarat, 395003,</Typography>
+                    <Typography variant="body2">code-24, GSTtin - 24AAATD2030M1Z3</Typography>
                 </div>
 
                 <Divider />

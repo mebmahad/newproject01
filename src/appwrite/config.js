@@ -611,13 +611,25 @@ class Service {
 
     async getLocations(queries = []) {
         try {
-            return await this.databases.listDocuments(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdlocation,
-                queries
-            );
+            let allDocuments = [];
+            let hasMore = true;
+            let offset = 0;
+            const limit = 100;
+    
+            while (hasMore) {
+                const response = await this.databases.listDocuments(
+                    conf.appwriteDatabaseId,
+                    conf.appwriteCollectionIdlocation,
+                    [...queries, Query.limit(limit), Query.offset(offset)]
+                );
+                allDocuments = [...allDocuments, ...response.documents];
+                hasMore = response.documents.length === limit; // Check if there's more data
+                offset += limit;
+            }
+    
+            return { documents: allDocuments };
         } catch (error) {
-            console.log("LocationService :: LocationComplaints :: error", error);
+            console.log("LocationService :: locationComplaints :: error", error);
             return false;
         }
     }

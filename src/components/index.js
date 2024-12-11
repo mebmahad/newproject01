@@ -32,8 +32,10 @@ import BudgetForm from "./budget-form/BudgetForm";
 import BudgetCard from "./BudgetCard";
 import BudgetBtn from "./Header/BudgetBtn";
 import ManagestoreBtn from "./Header/ManagestoreBtn";
+import OutformCard from "./OutformCard";
 export {
     Header,
+    OutformCard,
     BudgetForm,
     BudgetCard,
     BudgetBtn,

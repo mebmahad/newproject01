@@ -4,6 +4,7 @@ import { Button, Input, Select } from ".."; // Import necessary components
 import service from "../../appwrite/config"; // Adjusted to use your complaintService
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import gsheetservice from "../../google-sheet/googleSheetService"
 
 export default function PostForm({ post }) {
     const { register, handleSubmit, setValue, watch } = useForm({
@@ -40,6 +41,7 @@ export default function PostForm({ post }) {
     const submit = async (data) => {
         try {
             let dbPost;
+            let dbgPost;
 
             if (post) {
                 if (!post.$id) {
@@ -48,9 +50,10 @@ export default function PostForm({ post }) {
                 dbPost = await service.updatePost(post.$id, { ...data });
             } else {
                 dbPost = await service.createPost({ ...data, userId: userData?.$id });
+                dbgPost = await gsheetservice.createPost({ ...data, userId: userData?.$id });
             }
 
-            if (dbPost) {
+            if (dbPost && dbgPost) {
                 navigate(`/post/${dbPost.$id}`);
             }
         } catch (error) {

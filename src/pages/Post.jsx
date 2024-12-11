@@ -114,6 +114,28 @@ export default function Post() {
         }
     };
 
+    const handlecomplete = () => {
+        updateStatus("approval")
+        console.log("Material required set.");
+        navigate("/all-posts"); // Navigate to all-posts
+    };
+
+    const handleunapprove = () => {
+        updateStatus("active")
+        console.log("Material required set.");
+        navigate("/all-posts"); // Navigate to all-posts
+    };
+
+    const handleapprove = () => {
+        updateStatus("inactive")
+        console.log("Material required set.");
+        navigate("/all-posts"); // Navigate to all-posts
+    };
+
+    const goBack = () => {
+        navigate('/all-posts');
+    };
+
     return post ? (
         <div className="py-8 bg-gray-100">
             <Container>
@@ -122,26 +144,26 @@ export default function Post() {
                         {/* Render buttons based on post status */}
                         {authStatus && post.status === "active" && (
                             <>
-                            {(authStatus==='Admin'||authStatus==='Procurement')&&(
-                                <>
-                                <Link to={`/edit-post/${post.$id}`}>
-                                    <button
-                                        className="text-blue-500 hover:text-blue-700 mr-3"
-                                        title="Edit"
-                                    >
-                                        <i className="fas fa-edit text-xl"></i>
-                                    </button>
-                                </Link>
+                                {(authStatus === 'Admin' || authStatus === 'Procurement') && (
+                                    <>
+                                        <Link to={`/edit-post/${post.$id}`}>
+                                            <button
+                                                className="text-blue-500 hover:text-blue-700 mr-3"
+                                                title="Edit"
+                                            >
+                                                <i className="fas fa-edit text-xl"></i>
+                                            </button>
+                                        </Link>
 
-                                <button
-                                    className="text-red-500 hover:text-red-700 mr-3"
-                                    onClick={deletePost}
-                                    title="Delete"
-                                >
-                                    <i className="fas fa-trash text-xl"></i>
-                                </button>
-                                </>
-                            )}
+                                        <button
+                                            className="text-red-500 hover:text-red-700 mr-3"
+                                            onClick={deletePost}
+                                            title="Delete"
+                                        >
+                                            <i className="fas fa-trash text-xl"></i>
+                                        </button>
+                                    </>
+                                )}
                                 <Link to={`/add-procure/${post.$id}`}>
                                     <button
                                         className="text-green-500 hover:text-green-700 mr-3"
@@ -152,7 +174,7 @@ export default function Post() {
                                 </Link>
 
                                 <button
-                                    onClick={() => updateStatus("approval")}
+                                    onClick={handlecomplete}
                                     className="text-blue-500 hover:text-blue-700"
                                     title="Complete"
                                 >
@@ -163,7 +185,7 @@ export default function Post() {
                         {authStatus && post.status === "approval" && (
                             <>
                                 <button
-                                    onClick={() => updateStatus("inactive")}
+                                    onClick={handleapprove}
                                     className="text-green-500 hover:text-green-700 mr-3"
                                     title="Approved"
                                 >
@@ -171,17 +193,52 @@ export default function Post() {
                                 </button>
 
                                 <button
-                                    onClick={() => updateStatus("active")}
+                                    onClick={handleunapprove}
                                     className="text-yellow-500 hover:text-yellow-700"
                                     title="Unapprove"
                                 >
                                     <i className="fas fa-undo text-xl"></i>
+                                </button>
+
+                                <button
+                                    className="text-red-500 hover:text-red-700 mr-3"
+                                    onClick={deletePost}
+                                    title="Delete"
+                                >
+                                    <i className="fas fa-trash text-xl"></i>
+                                </button>
+                            </>
+                        )}
+                        {(authStatus === 'Admin' || authStatus === 'Procurement') && (post.status === "inactive") && (
+                            <>
+                                <button
+                                    onClick={handleunapprove}
+                                    className="text-yellow-500 hover:text-yellow-700"
+                                    title="Unapprove"
+                                >
+                                    <i className="fas fa-undo text-xl"></i>
+                                </button>
+
+                                <button
+                                    className="text-red-500 hover:text-red-700 mr-3"
+                                    onClick={deletePost}
+                                    title="Delete"
+                                >
+                                    <i className="fas fa-trash text-xl"></i>
                                 </button>
                             </>
                         )}
                     </div>
 
                     <div className="browser-css font-bold">
+                    <button
+                            className="absolute top-2 left-2 px-4 py-2 text-blue-500 hover:text-blue-700 mr-3"
+                            onClick={goBack}
+                        >
+                            <i className="fas fa-arrow-left mr-2"></i>
+                        </button>
+                        <br />
+                        <br />
                         <ul>
                             <li>
                                 <span className="font-bold">Status: </span>

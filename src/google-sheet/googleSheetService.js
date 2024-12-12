@@ -19,10 +19,6 @@ class GoogleSheetService {
           mode: 'no-cors',
         });
   
-        if (!response.ok) {
-          throw new Error('Failed to send data to Google Sheets');
-        }
-  
         return response;
       } catch (error) {
         console.error('GoogleSheetService Error:', error);

@@ -4,6 +4,7 @@ import service from "../appwrite/config";
 import authService from "../appwrite/auth";
 import { Container } from "../components";
 import { useSelector } from "react-redux";
+import gsheetservice from "../google-sheet/googleSheetService";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 export default function Post() {
@@ -80,6 +81,11 @@ export default function Post() {
                 status: newStatus,
             });
 
+            await gsheetservice.updatePost(id, {
+                ...post,
+                status: newStatus,
+            });
+
             setPost((prevPost) => ({
                 ...prevPost,
                 status: newStatus,
@@ -116,7 +122,7 @@ export default function Post() {
 
     const handlecomplete = () => {
         updateStatus("approval")
-        console.log("Material required set.");
+        console.log("Complaint Sent For Approval.");
         navigate("/all-posts"); // Navigate to all-posts
     };
 

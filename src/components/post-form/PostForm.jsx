@@ -50,11 +50,11 @@ export default function PostForm({ post }) {
                 dbPost = await service.updatePost(post.$id, { ...data });
             } else {
                 dbPost = await service.createPost({ ...data, userId: userData?.$id });
-<<<<<<< HEAD
+
                 dbgPost = await gsheetservice.createPost({ ...data});
-=======
+
                 dbgPost = await gsheetservice.createPost({ ...data });
->>>>>>> refs/remotes/origin/main
+
             }
 
             if (dbPost) {

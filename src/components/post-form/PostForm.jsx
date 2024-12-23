@@ -53,8 +53,6 @@ export default function PostForm({ post }) {
 
                 dbgPost = await gsheetservice.createPost({ ...data});
 
-                dbgPost = await gsheetservice.createPost({ ...data });
-
             }
 
             if (dbPost) {

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import AllItems from "./AllItems";
 import AllHeads from "./AllHeads";
 import AllLocations from "./AllLocations";
+import AllOutForms from "./AllOutforms";
 
 const Store = () => {
     const [currentUser, setCurrentUser] = useState(null);
@@ -44,6 +45,10 @@ const Store = () => {
 
     const handleOutFormClick = () => {
         navigate('/stock-out'); // Or just handle routing to an OutForm page
+    };
+
+    const handleAllOutFormClick = () => {
+        navigate('/stock-outentry'); // Or just handle routing to an OutForm page
     };
 
     // Function to dynamically set active tab and color
@@ -95,6 +100,13 @@ const Store = () => {
                             Locations   
                         </Button>
                     )}
+                    {(isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Store") && (
+                        <Button
+                            className={`p-2 rounded-lg ${getTabClass('Storeentry')}`}
+                            onClick={() => handleTabClick('Storeentry')}>
+                            Store Entries   
+                        </Button>
+                    )}
                 </div>
 
                 {/* Tab Content Below */}
@@ -126,6 +138,11 @@ const Store = () => {
                     {activeTab === "Location" && (
                         <div>
                             <AllLocations />
+                        </div>
+                    )}
+                    {activeTab === "Storeentry" && (
+                        <div>
+                            <AllOutForms />
                         </div>
                     )}
                 </div>

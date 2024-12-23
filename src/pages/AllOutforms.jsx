@@ -1,70 +1,110 @@
 import React, { useEffect, useState } from "react";
-import { Container, OutformCard, Button } from "../components";
+import { Container } from "../components";
 import service from "../appwrite/config";
-import authService from "../appwrite/auth";
 import { Query } from "appwrite";
+import authService from "../appwrite/auth";
 import { useSelector } from "react-redux";
 
-const AllOutforms = () => {
-    const [outforms, setOutforms] = useState([]);
-    const [loading, setLoading] = useState(true);
+const AllOutForms = () => {
+    const [outForms, setOutForms] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [filters, setFilters] = useState({ status: "active" });
-    const [currentUser, setCurrentUser] = useState(null);
+    const [offset, setOffset] = useState(0); // Tracks the current offset for pagination
+    const [hasMore, setHasMore] = useState(true); // Tracks if more data is available
+    const limit = 100; // Number of entries to fetch per request
     const authStatus = useSelector((state) => state.auth.status);
-    const [activeTab, setActiveTab] = useState("active");
+
+    const fetchOutForms = async () => {
+        if (loading || !hasMore) return; // Prevent duplicate fetches or fetches when no more data
+        setLoading(true);
+
+        try {
+            const response = await service.getOutForms([
+                Query.limit(limit),
+                Query.offset(offset),
+                Query.orderDesc("timestamp"),
+            ]);
+
+            if (response && response.documents) {
+                const parsedOutForms = response.documents.map((outForm) => ({
+                    ...outForm,
+                    Items: (() => {
+                        try {
+                            return typeof outForm.Items === "string"
+                                ? JSON.parse(outForm.Items)
+                                : Array.isArray(outForm.Items)
+                                ? outForm.Items
+                                : [];
+                        } catch (error) {
+                            console.error(`Error parsing Items for ID: ${outForm.$id}`, error);
+                            return [];
+                        }
+                    })(),
+                }));
+
+                setOutForms((prev) => [...prev, ...parsedOutForms]); // Append new data
+                setOffset((prev) => prev + limit); // Update offset for the next batch
+
+                if (response.documents.length < limit) {
+                    setHasMore(false); // No more entries to fetch
+                }
+            } else {
+                setHasMore(false); // No more data
+            }
+        } catch (error) {
+            console.error("Error fetching OutForms:", error);
+            setError("Failed to fetch out forms.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchCurrentUser = async () => {
-            try {
-                const user = await authService.getCurrentUser();
-                setCurrentUser(user);
-            } catch (error) {
-                console.error("Failed to fetch user:", error);
-            }
-        };
-
-        fetchCurrentUser();
-    }, [authStatus]);
-
-    const isAuthor = currentUser?.name;
-
-    if (loading) {
-        return <div>Loading...</div>;
-    }
+        fetchOutForms(); // Initial fetch on component mount
+    }, []);
 
     if (error) {
-        return <div>{error}</div>;
+        return <div className="text-red-500">{error}</div>;
     }
-
-    // Function to dynamically set active tab and color
-    const getTabClass = (status) => {
-        return activeTab === status
-            ? "bg-blue-500 text-white"
-            : "bg-gray-300 text-black hover:bg-blue-200";
-    };
 
     return (
         <Container>
             <div className="flex gap-4">
-                <div className="w-3/4">
-                    <h2 className="text-lg font-bold mb-2">Out Stock</h2>
-
+                <div className="w-full">
+                    <h2 className="text-lg font-bold mb-2">All Out Forms</h2>
                     <div className="space-y-4 overflow-y-auto h-96 mt-6">
-                        {outforms.map((outform) => (
-                            <div key={outform.$id}>
-                                <OutformCard
-                                    id={outform.$id}
-                                    items={outform.Items}
-                                    post={outform.postId}
-                                />
+                        {outForms.map((outForm) => (
+                            <div key={outForm.$id} className="p-4 border rounded-lg shadow-sm bg-white">
+                                <h3 className="text-md font-semibold">ID: {outForm.id}</h3>
+                                <p><strong>Location:</strong> {outForm.securelocation}</p>
+                                <p><strong>Timestamp:</strong> {new Date(outForm.timestamp).toLocaleString()}</p>
+                                <div>
+                                    <strong>Items:</strong>
+                                    <ul className="list-disc ml-5">
+                                        {outForm.Items.map((item, index) => (
+                                            <li key={index}>
+                                                {item.itemName} - Quantity: {item.qtyChange ?? "N/A"}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                             </div>
                         ))}
                     </div>
+                    {loading && <p>Loading...</p>}
+                    {!loading && hasMore && (
+                        <button
+                            className="mt-4 p-2 bg-blue-500 text-white rounded"
+                            onClick={fetchOutForms}
+                        >
+                            Load More
+                        </button>
+                    )}
+                    {!hasMore && <p className="mt-4 text-gray-500">No more entries to load.</p>}
                 </div>
             </div>
         </Container>
     );
 };
 
-export default AllOutforms;
+export default AllOutForms;

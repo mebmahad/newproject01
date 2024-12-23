@@ -348,39 +348,69 @@ class Service {
         }
     }
 
+
     async updateItemQuantity(itemName, qtyChange) {
         try {
-            // Fetch the current item data to find the item ID
-            const response = await this.databases.listDocuments(conf.appwriteDatabaseId, conf.appwriteCollectionIdstore);
-            const item = response.documents.find(doc => doc.Item === itemName);
+            console.log(`Updating item: ${itemName} with qtyChange: ${qtyChange}`);
+            
+            const allItems = [];
+            let offset = 0;
+            const limit = 100; // Adjust limit based on your requirements
+            
+            // Fetch all items using pagination
+            let hasMore = true;
+            while (hasMore) {
+                const response = await this.databases.listDocuments(
+                    conf.appwriteDatabaseId,
+                    conf.appwriteCollectionIdstore,
+                    [Query.limit(limit), Query.offset(offset)]
+                );
+    
+                allItems.push(...response.documents);
+                hasMore = response.documents.length === limit; // Check if there are more items to fetch
+                offset += limit;
+            }
+    
+            console.log("Available items:", allItems.map(doc => doc.Item));
+    
+            // Find the item to update
+            const item = allItems.find((doc) => doc.Item === itemName);
     
             if (!item) {
+                console.error(`Item not found: ${itemName}`);
                 throw new Error('Item not found');
             }
     
-            // Convert Quantity to a number and calculate the new quantity
-            const currentQuantity = parseInt(item.Quantity, 10) || 0;
-            const newQuantity = currentQuantity + qtyChange;
+            const currentQuantity = parseInt(item.Quantity, 10);
+            if (isNaN(currentQuantity)) {
+                console.error(`Invalid quantity for item: ${itemName}`);
+                throw new Error('Invalid quantity');
+            }
     
+            const newQuantity = currentQuantity + qtyChange;
             if (newQuantity < 0) {
+                console.error(`Insufficient quantity for item: ${itemName}`);
                 throw new Error('Insufficient quantity');
             }
     
-            // Use the existing updateItem function to update the quantity as a string
             await this.updateItem(item.$id, {
-                Item: item.Item,        // retain the item name
+                Item: item.Item,
                 Head: item.Head,
                 Price: item.Price,
-                Quantity: newQuantity.toString(), // convert back to string
-                Location: item.Location
+                Quantity: newQuantity.toString(),
+                Location: item.Location,
             });
     
-            return newQuantity; // return the new quantity if needed
+            console.log(`Updated ${itemName} to new quantity: ${newQuantity}`);
+            return newQuantity;
         } catch (error) {
-            console.error("Error updating item quantity:", error);
+            console.error('Error updating item quantity:', error);
             throw error;
         }
     }
+    
+    
+    
     
 
     async deleteItem(id) {

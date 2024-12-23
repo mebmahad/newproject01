@@ -19,7 +19,7 @@ class GoogleSheetService {
           body: JSON.stringify({ areas, subarea, feild, problem, status, userId, createdAt, id }),
           mode: 'no-cors',
         });
-<<<<<<< HEAD
+
       } catch (error) {
         console.error('GoogleSheetService Error:', error);
         throw error;
@@ -36,10 +36,10 @@ class GoogleSheetService {
           body: JSON.stringify({ areas, subarea, feild, problem, status, userId, createdAt, id }),
           mode: 'no-cors',
         });
-=======
+
   
         return response;
->>>>>>> refs/remotes/origin/main
+
       } catch (error) {
         console.error('GoogleSheetService Error:', error);
         throw error;

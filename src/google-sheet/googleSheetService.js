@@ -33,7 +33,7 @@ class GoogleSheetService {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ areas, subarea, feild, problem, status, userId, createdAt, id }),
+          body: JSON.stringify({ status, id }),
           mode: 'no-cors',
         });
 

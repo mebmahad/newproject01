@@ -128,13 +128,13 @@ export default function Post() {
 
     const handleunapprove = () => {
         updateStatus("active")
-        console.log("Material required set.");
+        console.log("Complaint Sent For Pending.");
         navigate("/all-posts"); // Navigate to all-posts
     };
 
     const handleapprove = () => {
         updateStatus("inactive")
-        console.log("Material required set.");
+        console.log("Complaint Approved & Completed.");
         navigate("/all-posts"); // Navigate to all-posts
     };
 

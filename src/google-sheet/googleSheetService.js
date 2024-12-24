@@ -1,7 +1,7 @@
 class GoogleSheetService {
     constructor() {
       this.scriptURL = 'https://script.google.com/macros/s/AKfycbwVK5wUsBwgc-vo98P8vEHqmGnmM7PBnbDsA1bs-ytmI4pU_QiF00xBtrARI1qwLgfg/exec'; // Replace with your Google Apps Script URL
-      this.scriptURL1 = 'https://script.google.com/macros/s/AKfycbzXzjz0twFJsBeOK3jSTOJ3IrFCDRdjwDijaWZbdbE0Dn1EqA3OzxLCbATB18cPQaod/exec'
+      this.scriptURL1 = 'https://script.google.com/macros/s/AKfycbxMNAbchP6qUYrvE_SJYslk6DpTmjfK9pkcdx0w6yIAfa-brAOVKOF1zkecd1JvPPn8/exec'
     }
   
     /**

@@ -39,6 +39,7 @@ class GoogleSheetService {
 
   
         return response;
+        console.log(response);
 
       } catch (error) {
         console.error('GoogleSheetService Error:', error);

@@ -114,16 +114,19 @@ export default function ProcureForm({ procure }) {
 
     const fetchQuantityAndLocation = async (itemName) => {
         if (!itemName) return;
+
         try {
             const results = await service.searchItems(itemName);
             if (results.length > 0) {
+                // Existing item
                 const { Quantity, Location, Head } = results[0];
                 setQuantityMessage(`Available: ${Quantity}`);
                 setLocationMessage(`Location: ${Location}`);
 
                 const headData = await service.searchHead(Head);
-                setBudgetAmount(headData.length > 0 ? headData[0].Budgteamount : "Not available");
+                setBudgetAmount(headData.length > 0 ? headData[0].BudgetAmount : "Not available");
             } else {
+                // New item
                 setQuantityMessage("Not Available");
                 setLocationMessage("Not Available");
                 setBudgetAmount("Not Available");
@@ -137,12 +140,15 @@ export default function ProcureForm({ procure }) {
     };
 
     const addItem = () => {
+        const newItem = watch("Item");
         const itemData = {
             id: generateUniqueId,
-            Item: watch("Item"),
+            Item: newItem,
             Quantity: watch("Quantity"),
-            BudgetAmount: budgetAmount,
+            BudgetAmount: budgetAmount || "Not Available",
+            isNew: quantityMessage === "Not Available",
         };
+
         setItems([...items, itemData]);
         resetField("Item");
         resetField("Quantity");
@@ -221,7 +227,10 @@ export default function ProcureForm({ procure }) {
                         <tbody>
                             {items.map((item) => (
                                 <tr key={item.id} className="hover:bg-indigo-50 transition duration-200 ease-in-out">
-                                    <td className="px-6 py-3">{item.Item}</td>
+                                    <td className="px-6 py-3">
+                                        {item.Item}
+                                        {item.isNew && <span className="text-xs text-red-500 ml-2">(New)</span>}
+                                    </td>
                                     <td className="px-6 py-3">{item.Quantity}</td>
                                     <td className="px-6 py-3">{item.BudgetAmount}</td>
                                     <td className="px-6 py-3 text-center">
@@ -236,6 +245,7 @@ export default function ProcureForm({ procure }) {
                                 </tr>
                             ))}
                         </tbody>
+
                     </table>
                 </div>
 

@@ -81,7 +81,7 @@ export default function Post() {
                 status: newStatus,
             });
 
-            await gsheetservice.updatePost(id, {
+            gsheetservice.updatePost(id, {
                 ...post,
                 status: newStatus,
             });

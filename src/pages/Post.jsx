@@ -90,6 +90,7 @@ export default function Post() {
                 ...prevPost,
                 status: newStatus,
             }));
+            console.log("Status updated successfully");
         } catch (error) {
             console.error("Error updating status:", error);
         }

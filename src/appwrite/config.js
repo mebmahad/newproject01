@@ -429,19 +429,35 @@ class Service {
 
     async searchItems(input) {
         try {
-            const response = await this.getItems([Query.search("Item", input)]);
-            console.log("searchItems response:", response);
-            if (response.documents) {
-                return response.documents;
-            } else {
-                console.warn("No items found.");
-                return [];
+            const allDocuments = [];
+            let offset = 0;
+            const limit = 100;
+            let hasMore = true;
+    
+            while (hasMore) {
+                const response = await this.databases.listDocuments(
+                    conf.appwriteDatabaseId,
+                    conf.appwriteCollectionIdstore,
+                    [
+                        Query.search("Item", input), // Adjust based on your indexing setup
+                        Query.limit(limit),
+                        Query.offset(offset),
+                    ]
+                );
+    
+                allDocuments.push(...response.documents);
+                hasMore = response.documents.length === limit;
+                offset += limit;
             }
+    
+            console.log("Total items fetched:", allDocuments.length);
+            return allDocuments;
         } catch (error) {
             console.error("Error in searchItems:", error);
             return [];
         }
     }
+    
     
 
     async getItem(id) {

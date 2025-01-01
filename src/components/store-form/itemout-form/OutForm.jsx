@@ -22,13 +22,18 @@ export default function OutForm() {
     const [destinationLocation, setDestinationLocation] = useState('');
     const [openDialog, setOpenDialog] = useState(false);
 
+    // Fetch all items on component load
     useEffect(() => {
         const fetchItems = async () => {
             try {
                 const fetchedItems = await service.getItems();
+                console.log('Fetched Items:', fetchedItems);  // Debugging the fetched data
                 if (Array.isArray(fetchedItems?.documents)) {
                     const itemList = fetchedItems.documents.map((item) => item.Item);
                     setAllItems(itemList);
+                    setFilteredItems(itemList);  // Show all items initially
+                } else {
+                    console.error('Items are not in the expected format');
                 }
             } catch (error) {
                 console.error('Error fetching items:', error);
@@ -37,26 +42,34 @@ export default function OutForm() {
         fetchItems();
     }, []);
 
-    const handleSearchChange = async (e) => {
-        setSearchTerm(e.target.value);
-        if (e.target.value.trim() === '') {
-            setFilteredItems([]);
-            return;
-        }
+    // Handle search term change
+    const handleSearchChange = (e) => {
+        const searchValue = e.target.value.trim().toLowerCase();  // Make it case-insensitive
+        setSearchTerm(searchValue);
 
-        const results = await service.searchItems(e.target.value);
-        setFilteredItems(results.map((item) => item.Item));
+        if (searchValue === '') {
+            setFilteredItems(allItems);  // If search is cleared, show all items
+        } else {
+            // Filter items based on the search term
+            const results = allItems.filter((item) =>
+                item.toLowerCase().includes(searchValue)  // Case-insensitive match
+            );
+            setFilteredItems(results);
+        }
     };
 
+    // Handle item selection from search
     const handleItemSelect = (selectedItem) => {
         setNewItem({ ...newItem, itemName: selectedItem });
-        setFilteredItems([]);
+        setFilteredItems([]);  // Clear search results after selection
     };
 
+    // Handle quantity change
     const handleQuantityChange = (e) => {
         setNewItem({ ...newItem, qtyChange: parseInt(e.target.value, 10) || 0 });
     };
 
+    // Add selected item to the list
     const handleAddItem = () => {
         if (newItem.itemName && newItem.qtyChange > 0) {
             setItems([...items, newItem]);
@@ -66,24 +79,26 @@ export default function OutForm() {
         }
     };
 
+    // Remove item from the list
     const handleRemoveItem = (index) => {
         const updatedItems = items.filter((_, idx) => idx !== index);
         setItems(updatedItems);
     };
 
+    // Submit the form
     const handleSubmit = async () => {
         try {
             const entryId = `out-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
             const timestamp = new Date().toISOString();
             const itemListString = JSON.stringify(items);
-    
+
             await service.createOutForm({
                 Items: itemListString,
                 securelocation: destinationLocation,
                 timestamp,
                 id: entryId,
             });
-    
+
             await Promise.all(
                 items.map(async ({ itemName, qtyChange }) => {
                     try {
@@ -93,15 +108,15 @@ export default function OutForm() {
                     }
                 })
             );
-    
+
             setItems([]);
             setDestinationLocation('');
         } catch (error) {
             console.error('Error submitting OutForm or updating items:', error);
         }
     };
-    
 
+    // Open and close the dialog for adding an item
     const handleDialogOpen = () => setOpenDialog(true);
     const handleDialogClose = () => setOpenDialog(false);
 
@@ -155,6 +170,8 @@ export default function OutForm() {
                         fullWidth
                         className="mb-2"
                     />
+
+                    {/* Display search results */}
                     {filteredItems.length > 0 && (
                         <Paper elevation={3} className="max-h-64 overflow-y-auto mb-4 w-full">
                             {filteredItems.map((item, idx) => (
@@ -168,6 +185,7 @@ export default function OutForm() {
                             ))}
                         </Paper>
                     )}
+
                     <TextField
                         label="Quantity"
                         type="number"

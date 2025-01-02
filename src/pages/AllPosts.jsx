@@ -36,8 +36,8 @@ const AllPosts = () => {
             try {
                 const queries = [];
                 if (filters.status) queries.push(Query.equal("status", filters.status));
-                if (filters.areas) queries.push(Query.equal("areas", filters.areas));
-                if (filters.feild) queries.push(Query.equal("feild", filters.feild));
+                if (filters.areas) queries.push(Query.search("areas", filters.areas));
+                if (filters.feild) queries.push(Query.search("feild", filters.feild));
 
                 const response = await service.getPosts(queries);
                 setPosts(response?.documents || []);

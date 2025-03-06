@@ -127,7 +127,7 @@ export default function PoForm({ po }) {
                 ...data,
                 Items: JSON.stringify(data.Items),
                 totalAmount: totalWithoutGST.toString(),
-                totalamountwithgst: totalWithGST.toString(),
+                totalamountwithgst: totalWithGST,
                 procureId,
                 postId,
                 gst: gstValue,

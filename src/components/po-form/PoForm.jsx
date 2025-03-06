@@ -36,10 +36,10 @@ export default function PoForm({ po }) {
         const fetchVendors = async () => {
             try {
                 const response = await service.getVendors();
-                setAllVendors(response.documents);
+                setVendors(response.documents);
             } catch (error) {
                 console.error("Error fetching vendors:", error);
-                setAllVendors([]);
+                setVendors([]);
             }
         };
 
@@ -178,7 +178,7 @@ export default function PoForm({ po }) {
                         }}
                     >
                         <option value="" disabled>Select a Vendor</option>
-                        {allVendors.map((vendor) => (
+                        {vendors.map((vendor) => (
                             <option key={vendor.id} value={vendor.Name}>
                                 {vendor.Name}
                             </option>

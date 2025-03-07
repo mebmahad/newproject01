@@ -5,7 +5,6 @@ import './index.css';
 import { Provider } from 'react-redux';
 import store from './store/store.js';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
-import Home from './pages/Home.jsx';
 import { AuthLayout, Login, InForm, OutForm } from './components/index.js';
 import AddPost from "./pages/AddPost";
 import Signup from './pages/Signup';
@@ -51,12 +50,9 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     children: [
+      
       {
         path: "/",
-        element: <Home />,
-      },
-      {
-        path: "/dashboard",
         element: <Dashboard />,
       },
       {

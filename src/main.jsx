@@ -43,6 +43,7 @@ import AllBudgets from './pages/AllBudgets.jsx';
 import AddBudget from './pages/AddBudget.jsx';
 import Budget from './pages/Budget.jsx';
 import EditBudget from './pages/EditBudget.jsx';
+import Dashboard from './pages/Dashboard';
 
 
 const router = createBrowserRouter([
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <Home />,
+      },
+      {
+        path: "/dashboard",
+        element: <Dashboard />,
       },
       {
         path: "/login",

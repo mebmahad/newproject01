@@ -7,10 +7,8 @@ const pages = [
   { label: 'Home', path: '/', icon: <AiFillHome size={50} /> },
   { label: 'Login', path: '/login', icon: <AiOutlineLogin size={50} /> },
   { label: 'Signup', path: '/signup', icon: <AiOutlineUserAdd size={50} /> },
-  { label: 'All Posts', path: '/all-posts', icon: <FaListAlt size={50} /> },
-  { label: 'Add Post', path: '/add-post', icon: <AiOutlinePlusCircle size={50} /> },
-  { label: 'Edit Post', path: '/edit-post/:id', icon: <AiOutlineEdit size={50} /> },
-  { label: 'Post', path: '/post/:id', icon: <AiOutlineEye size={50} /> },
+  { label: 'View Complaints', path: '/all-posts', icon: <FaListAlt size={50} /> },
+  { label: 'Register Complaint', path: '/add-post', icon: <AiOutlinePlusCircle size={50} /> },
   { label: 'Store', path: '/store', icon: <FaStore size={50} /> },
   { label: 'Procurement', path: '/procurement', icon: <FaShoppingCart size={50} /> },
 ];

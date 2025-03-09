@@ -1,99 +1,102 @@
 import React, { useEffect, useState } from "react";
-import { Container, Button} from "../components";
+import { Container, Button } from "../components";
 import authService from "../appwrite/auth";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import AllProcures from "./AllProcures";
 import AddPo from "./AddPo";
 import AllPos from "./AllPos";
+// Import icons for each tab
+import { MdInventory } from "react-icons/md";
+import { AiOutlinePlusCircle, AiOutlineOrderedList } from "react-icons/ai";
 
 const Procurement = () => {
-    const [currentUser, setCurrentUser] = useState(null);
-    const [activeTab, setActiveTab] = useState("items"); // Default active tab
-    const authStatus = useSelector((state) => state.auth.status);
-    const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [activeTab, setActiveTab] = useState("allprocures"); // Default to Material Required
+  const authStatus = useSelector((state) => state.auth.status);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchCurrentUser = async () => {
-            try {
-                const user = await authService.getCurrentUser();
-                setCurrentUser(user);
-            } catch (error) {
-                console.error("Failed to fetch user:", error);
-            }
-        };
-
-        fetchCurrentUser();
-    }, [authStatus]);
-
-    const isAuthor = currentUser?.name;
-
-    // Handling tab clicks to set active tab
-    const handleTabClick = (tabName) => {
-        setActiveTab(tabName);
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const user = await authService.getCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
     };
+    fetchCurrentUser();
+  }, [authStatus]);
 
-    // Function to dynamically set active tab and color
-    const getTabClass = (tabName) => {
-        return activeTab === tabName
-            ? "bg-blue-500 text-white"
-            : "bg-gray-300 text-black hover:bg-blue-200";
-    };
+  const isAuthor = currentUser?.name;
 
-    return (
-        <Container>
-            <div className="flex gap-4 flex-col">
-                {/* Tabs as Buttons */}
-                <div className="flex gap-4 mt-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
-                    {(isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Store") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('allprocures')}`}
-                            onClick={() => handleTabClick('allprocures')}>
-                            Material required
-                        </Button>
-                    )}
+  // Handling tab clicks to set active tab
+  const handleTabClick = (tabName) => {
+    setActiveTab(tabName);
+  };
 
-                    {(isAuthor === "Procurement" || isAuthor === "Admin") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('add-po')}`}
-                            onClick={() => handleTabClick('add-po')}>
-                            Make PO
-                        </Button>
-                    )}
+  // Function to dynamically set active tab and color with icons
+  const getTabClass = (tabName) => {
+    return activeTab === tabName
+      ? "flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow transition duration-200"
+      : "flex items-center gap-2 bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-blue-200 transition duration-200";
+  };
 
-                    {(isAuthor === "Procurement" || isAuthor === "Admin") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('all-pos')}`}
-                            onClick={() => handleTabClick('all-pos')}>
-                            All Purchase Orders
-                        </Button>
-                    )}
-                </div>
+  return (
+    <Container>
+      <div className="flex flex-col">
+        {/* Tabs */}
+        <div className="flex gap-4 mt-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
+          {(isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Store") && (
+            <Button
+              className={getTabClass("allprocures")}
+              onClick={() => handleTabClick("allprocures")}
+            >
+              <MdInventory size={20} />
+              <span>Material Required</span>
+            </Button>
+          )}
+          {(isAuthor === "Procurement" || isAuthor === "Admin") && (
+            <Button
+              className={getTabClass("add-po")}
+              onClick={() => handleTabClick("add-po")}
+            >
+              <AiOutlinePlusCircle size={20} />
+              <span>Make PO</span>
+            </Button>
+          )}
+          {(isAuthor === "Procurement" || isAuthor === "Admin") && (
+            <Button
+              className={getTabClass("all-pos")}
+              onClick={() => handleTabClick("all-pos")}
+            >
+              <AiOutlineOrderedList size={20} />
+              <span>All Purchase Orders</span>
+            </Button>
+          )}
+        </div>
 
-                {/* Tab Content Below */}
-                <div className="mt-4">
-                    {activeTab === "allprocures" && (
-                        <div>
-                            {/* Add your Items Component or Page here */}
-                            <AllProcures/>
-                            {/* You can render the Items component here */}
-                        </div>
-                    )}
-
-                    {activeTab === "add-po" && (
-                        <div>
-                            <AddPo />
-                        </div>
-                    )}
-                    {activeTab === "all-pos" && (
-                        <div>
-                            <AllPos />
-                        </div>
-                    )}
-                </div>
+        {/* Tab Content */}
+        <div className="mt-4">
+          {activeTab === "allprocures" && (
+            <div>
+              <AllProcures />
             </div>
-        </Container>
-    );
+          )}
+          {activeTab === "add-po" && (
+            <div>
+              <AddPo />
+            </div>
+          )}
+          {activeTab === "all-pos" && (
+            <div>
+              <AllPos />
+            </div>
+          )}
+        </div>
+      </div>
+    </Container>
+  );
 };
 
 export default Procurement;

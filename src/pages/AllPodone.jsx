@@ -31,7 +31,6 @@ const AllProcures = () => {
     const fetchProcures = async () => {
       setLoading(true);
       try {
-        // Always fetch active status listings.
         const queries = [Query.equal("status", "podone")];
         const response = await service.getProcures(queries);
 
@@ -68,27 +67,26 @@ const AllProcures = () => {
         >
           Back
         </button>
-        <div className="flex gap-4">
-          <div className="w-3/4">
-            <h2 className="text-lg font-bold mb-2">PO Done</h2>
-            <div className="space-y-4 overflow-y-auto h-96 mt-6">
-              {procures.length > 0 ? (
-                procures.map((procure) => (
-                  <div key={procure.$id}>
-                    <ProcureCard
-                      id={procure.$id}
-                      items={procure.Items}
-                      post={procure.postId}
-                    />
-                  </div>
-                ))
-              ) : (
-                <div className="text-gray-500 text-center">
-                  There are no records available at this time.
-                </div>
-              )}
+        <h2 className="text-lg font-bold mb-2">PO DONE</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 p-6 mt-6">
+          {procures.length > 0 ? (
+            procures.map((procure) => (
+              <div 
+                key={procure.$id} 
+                className="flex flex-col items-center justify-center bg-white shadow-md rounded-lg p-4 hover:scale-105 transition transform duration-200"
+              >
+                <ProcureCard
+                  id={procure.$id}
+                  items={procure.Items}
+                  post={procure.postId}
+                />
+              </div>
+            ))
+          ) : (
+            <div className="text-gray-500 text-center col-span-full">
+              There are no records available at this time.
             </div>
-          </div>
+          )}
         </div>
       </div>
     </Container>

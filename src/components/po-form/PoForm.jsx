@@ -161,7 +161,7 @@ export default function PoForm({ po }) {
   return (
     <div className="p-6 bg-white rounded-lg shadow-lg max-w-4xl mx-auto">
       <form onSubmit={handleSubmit(submit)}>
-        <Typography variant="h6">Vendor</Typography>
+        <Typography variant="h6" className="mb-2">Vendor</Typography>
         <TextField
           select
           label="Vendor"
@@ -169,6 +169,7 @@ export default function PoForm({ po }) {
           fullWidth
           defaultValue={po?.VendorName || ''}
           SelectProps={{ native: true }}
+          className="mb-4"
         >
           <option value="" disabled>Select a Vendor</option>
           {vendors.map((vendor) => (
@@ -191,25 +192,30 @@ export default function PoForm({ po }) {
           const currentItem = itemsWatch && itemsWatch[index] ? itemsWatch[index] : item;
           const computedAmount = (Number(currentItem.qty) || 0) * (Number(currentItem.rate) || 0);
           return (
-            <div key={item.id} className="grid grid-cols-5 gap-2 items-center mb-2">
+            <div key={item.id} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-center mb-2">
               <TextField
                 {...register(`Items.${index}.name`)}
                 defaultValue={item.name}
                 fullWidth
+                label="Item Name"
               />
               <TextField
                 type="number"
                 {...register(`Items.${index}.qty`, { valueAsNumber: true })}
                 defaultValue={item.qty}
                 fullWidth
+                label="Quantity"
               />
               <TextField
                 type="number"
                 {...register(`Items.${index}.rate`, { valueAsNumber: true })}
                 defaultValue={item.rate}
                 fullWidth
+                label="Rate"
               />
-              <Typography className="text-center">{computedAmount.toFixed(2)}</Typography>
+              <Typography className="text-center md:col-span-1">
+                {computedAmount.toFixed(2)}
+              </Typography>
               <Button variant="contained" color="secondary" onClick={() => remove(index)}>
                 Remove
               </Button>
@@ -220,7 +226,9 @@ export default function PoForm({ po }) {
         <Button variant="contained" color="primary" onClick={addItem} className="mb-4">
           Add Item
         </Button>
-        <Typography variant="h6">Total Without GST: {totalAmountWithoutGST.toFixed(2)}</Typography>
+        <Typography variant="h6" className="mb-2">
+          Total Without GST: {totalAmountWithoutGST.toFixed(2)}
+        </Typography>
         <TextField
           label="GST (%)"
           {...register('gst', { valueAsNumber: true })}
@@ -229,7 +237,9 @@ export default function PoForm({ po }) {
           defaultValue={po?.gst || 0}
           className="mb-4"
         />
-        <Typography variant="h6">Total With GST: {totalAmountWithGST.toFixed(2)}</Typography>
+        <Typography variant="h6" className="mb-4">
+          Total With GST: {totalAmountWithGST.toFixed(2)}
+        </Typography>
         <Button type="submit" variant="contained" color="primary" fullWidth>
           Save PO
         </Button>

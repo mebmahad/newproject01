@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Container, PoCard } from "../components";
 import service from "../appwrite/config";
+import { useNavigate } from "react-router-dom";
 
 const AllPos = () => {
   const [pos, setPos] = useState([]);
@@ -14,6 +15,8 @@ const AllPos = () => {
   const [vendorFilter, setVendorFilter] = useState("");
   const [ponoFilter, setPonoFilter] = useState("");
   const [amountFilter, setAmountFilter] = useState("");
+
+  const navigate = useNavigate();
 
   const fetchPos = useCallback(async () => {
     if (!hasMore) return;
@@ -32,7 +35,6 @@ const AllPos = () => {
           const uniquePos = parsedPos.filter((po) => !existingIds.has(po.$id));
           return [...prevPos, ...uniquePos];
         });
-
         setHasMore(response.documents.length === 10);
       } else {
         setHasMore(false);
@@ -83,9 +85,15 @@ const AllPos = () => {
 
   return (
     <Container>
-      <div className="flex flex-col gap-6">
-        {/* Heading */}
-        <h2 className="text-2xl font-extrabold text-gray-800">Purchase Orders</h2>
+      <div className="p-6">
+        {/* Corrected Back Button */}
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+          onClick={() => navigate(-1)}
+        >
+          Back
+        </button>
+        <h2 className="text-2xl font-extrabold text-gray-800 mb-4">Purchase Orders</h2>
 
         {/* Filters */}
         <div className="flex gap-4 mb-4">
@@ -112,13 +120,16 @@ const AllPos = () => {
           />
         </div>
 
-        {/* Purchase Orders List */}
+        {/* Listings styled as Dashboard Cards */}
         <div
-          className="space-y-4 overflow-y-auto h-[75vh] border rounded-lg p-4 bg-white shadow-inner"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 p-6 mt-6 overflow-y-auto h-[75vh]"
           onScroll={handleScroll}
         >
           {filteredPos.map((po) => (
-            <div key={po.$id}>
+            <div
+              key={po.$id}
+              className="flex flex-col items-center justify-center bg-white shadow-md rounded-lg p-4 hover:scale-105 transition transform duration-200"
+            >
               <PoCard
                 id={po.$id}
                 pono={po.pono}
@@ -127,7 +138,11 @@ const AllPos = () => {
               />
             </div>
           ))}
-          {loading && <div className="text-center text-gray-500">Loading more...</div>}
+          {loading && (
+            <div className="text-center text-gray-500 col-span-full">
+              Loading more...
+            </div>
+          )}
         </div>
       </div>
     </Container>

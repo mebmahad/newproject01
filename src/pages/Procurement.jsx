@@ -28,16 +28,16 @@ const Procurement = () => {
   const isStore = currentUser?.name === "Store";
   const isAdmin = currentUser?.name === "Admin";
 
-  // Responsive card styling
+  // Responsive tab styling with equal-width buttons
   const tabStyle = (isActive) =>
-    `flex flex-col items-center justify-center min-w-[120px] p-4 rounded-lg shadow-md transition-transform duration-200 hover:scale-105 cursor-pointer
+    `flex-1 flex flex-col items-center justify-center p-4 rounded-lg shadow-md transition-transform duration-200 hover:scale-105 cursor-pointer m-1
     ${isActive ? "bg-blue-500 text-white" : "bg-white text-gray-700"}`;
 
   return (
     <Container>
-      <div className="flex flex-col items-center justify-center gap-6 min-h-screen">
+      <div className="flex flex-col items-center justify-center gap-6 min-h-screen w-full">
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-4 justify-center pb-2">
+        <div className="flex flex-wrap items-center justify-between w-full pb-2">
           {(isStore || isProcurement || isAdmin) && (
             <div className={tabStyle(false)} onClick={() => navigate('/all-procures')}>
               <MdInventory size={32} className="mb-2" />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Button, TextField, Typography } from '@mui/material';
+import { Container, Box, Card, CardContent, TextField, Button, Typography, Grid } from '@mui/material';
 import service from '../../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -159,91 +159,146 @@ export default function PoForm({ po }) {
   };
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-lg max-w-4xl mx-auto">
-      <form onSubmit={handleSubmit(submit)}>
-        <Typography variant="h6" className="mb-2">Vendor</Typography>
-        <TextField
-          select
-          label="Vendor"
-          {...register('VendorName')}
-          fullWidth
-          defaultValue={po?.VendorName || ''}
-          SelectProps={{ native: true }}
-          className="mb-4"
-        >
-          <option value="" disabled>Select a Vendor</option>
-          {vendors.map((vendor) => (
-            <option key={vendor.id} value={vendor.Name}>
-              {vendor.Name}
-            </option>
-          ))}
-        </TextField>
-
-        <TextField 
-          label="PO Number" 
-          {...register('pono')} 
-          fullWidth 
-          className="mb-4" 
-          defaultValue={po?.pono || ''} 
-        />
-
-        <Typography variant="h6" className="mb-4">Items</Typography>
-        {fields.map((item, index) => {
-          const currentItem = itemsWatch && itemsWatch[index] ? itemsWatch[index] : item;
-          const computedAmount = (Number(currentItem.qty) || 0) * (Number(currentItem.rate) || 0);
-          return (
-            <div key={item.id} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-center mb-2">
-              <TextField
-                {...register(`Items.${index}.name`)}
-                defaultValue={item.name}
-                fullWidth
-                label="Item Name"
-              />
-              <TextField
-                type="number"
-                {...register(`Items.${index}.qty`, { valueAsNumber: true })}
-                defaultValue={item.qty}
-                fullWidth
-                label="Quantity"
-              />
-              <TextField
-                type="number"
-                {...register(`Items.${index}.rate`, { valueAsNumber: true })}
-                defaultValue={item.rate}
-                fullWidth
-                label="Rate"
-              />
-              <Typography className="text-center md:col-span-1">
-                {computedAmount.toFixed(2)}
-              </Typography>
-              <Button variant="contained" color="secondary" onClick={() => remove(index)}>
-                Remove
-              </Button>
-            </div>
-          );
-        })}
-
-        <Button variant="contained" color="primary" onClick={addItem} className="mb-4">
-          Add Item
+    <Container maxWidth="md">
+      <Box my={4}>
+        <Button variant="outlined" onClick={() => navigate(-1)} sx={{ mb: 2 }}>
+          Back
         </Button>
-        <Typography variant="h6" className="mb-2">
-          Total Without GST: {totalAmountWithoutGST.toFixed(2)}
-        </Typography>
-        <TextField
-          label="GST (%)"
-          {...register('gst', { valueAsNumber: true })}
-          type="number"
-          fullWidth
-          defaultValue={po?.gst || 0}
-          className="mb-4"
-        />
-        <Typography variant="h6" className="mb-4">
-          Total With GST: {totalAmountWithGST.toFixed(2)}
-        </Typography>
-        <Button type="submit" variant="contained" color="primary" fullWidth>
-          Save PO
-        </Button>
-      </form>
-    </div>
+        <Card elevation={3}>
+          <CardContent>
+            <Typography variant="h5" component="h1" gutterBottom>
+              {po ? 'Edit Purchase Order' : 'Create Purchase Order'}
+            </Typography>
+            <form onSubmit={handleSubmit(submit)} noValidate>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
+                    select
+                    label="Vendor"
+                    {...register('VendorName')}
+                    fullWidth
+                    defaultValue={po?.VendorName || ''}
+                    SelectProps={{ native: true }}
+                    variant="outlined"
+                    required
+                  >
+                    <option value="" disabled>
+                      Select a Vendor
+                    </option>
+                    {vendors.map((vendor) => (
+                      <option key={vendor.id} value={vendor.Name}>
+                        {vendor.Name}
+                      </option>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="PO Number"
+                    {...register('pono')}
+                    fullWidth
+                    defaultValue={po?.pono || ''}
+                    variant="outlined"
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="h6" gutterBottom>
+                    Items
+                  </Typography>
+                  {fields.map((item, index) => {
+                    const currentItem = itemsWatch && itemsWatch[index] ? itemsWatch[index] : item;
+                    const computedAmount = (Number(currentItem.qty) || 0) * (Number(currentItem.rate) || 0);
+                    return (
+                      <Grid container spacing={2} key={item.id} alignItems="center">
+                        <Grid item xs={12} sm={5}>
+                          <TextField
+                            {...register(`Items.${index}.name`)}
+                            defaultValue={item.name}
+                            fullWidth
+                            label="Item Name"
+                            variant="outlined"
+                            required
+                          />
+                        </Grid>
+                        <Grid item xs={6} sm={2}>
+                          <TextField
+                            type="number"
+                            {...register(`Items.${index}.qty`, { valueAsNumber: true })}
+                            defaultValue={item.qty}
+                            fullWidth
+                            label="Quantity"
+                            variant="outlined"
+                            required
+                          />
+                        </Grid>
+                        <Grid item xs={6} sm={2}>
+                          <TextField
+                            type="number"
+                            {...register(`Items.${index}.rate`, { valueAsNumber: true })}
+                            defaultValue={item.rate}
+                            fullWidth
+                            label="Rate"
+                            variant="outlined"
+                            required
+                          />
+                        </Grid>
+                        <Grid item xs={6} sm={2}>
+                          <TextField
+                            value={computedAmount.toFixed(2)}
+                            fullWidth
+                            label="Amount"
+                            variant="outlined"
+                            InputProps={{
+                              readOnly: true,
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={6} sm={1}>
+                          <Button variant="contained" color="secondary" onClick={() => remove(index)}>
+                            Remove
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    );
+                  })}
+                  <Box mt={2}>
+                    <Button variant="contained" color="primary" onClick={addItem}>
+                      Add Item
+                    </Button>
+                  </Box>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1">
+                    Total Without GST: {totalAmountWithoutGST.toFixed(2)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="GST (%)"
+                    {...register('gst', { valueAsNumber: true })}
+                    type="number"
+                    fullWidth
+                    defaultValue={po?.gst || 0}
+                    variant="outlined"
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1">
+                    Total With GST: {totalAmountWithGST.toFixed(2)}
+                  </Typography>
+                </Grid>
+              </Grid>
+              <Box mt={4}>
+                <Button type="submit" variant="contained" color="primary" fullWidth size="large">
+                  {po ? 'Update Purchase Order' : 'Save Purchase Order'}
+                </Button>
+              </Box>
+            </form>
+          </CardContent>
+        </Card>
+      </Box>
+    </Container>
   );
 }

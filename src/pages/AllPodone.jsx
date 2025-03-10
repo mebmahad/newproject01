@@ -32,7 +32,7 @@ const AllProcures = () => {
       setLoading(true);
       try {
         // Always fetch active status listings.
-        const queries = [Query.equal("status", "active")];
+        const queries = [Query.equal("status", "podone")];
         const response = await service.getProcures(queries);
 
         if (response && response.documents) {
@@ -70,7 +70,7 @@ const AllProcures = () => {
         </button>
         <div className="flex gap-4">
           <div className="w-3/4">
-            <h2 className="text-lg font-bold mb-2">Procurements</h2>
+            <h2 className="text-lg font-bold mb-2">PO Done</h2>
             <div className="space-y-4 overflow-y-auto h-96 mt-6">
               {procures.length > 0 ? (
                 procures.map((procure) => (
@@ -84,7 +84,7 @@ const AllProcures = () => {
                 ))
               ) : (
                 <div className="text-gray-500 text-center">
-                  There are no procurement records available at this time.
+                  There are no records available at this time.
                 </div>
               )}
             </div>

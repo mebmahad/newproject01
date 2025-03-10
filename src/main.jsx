@@ -43,6 +43,8 @@ import AddBudget from './pages/AddBudget.jsx';
 import Budget from './pages/Budget.jsx';
 import EditBudget from './pages/EditBudget.jsx';
 import Dashboard from './pages/Dashboard';
+import AllInactiveprocures from './pages/AllInactiveprocures.jsx';
+import AllPodone from './pages/AllPodone.jsx';
 
 
 const router = createBrowserRouter([
@@ -189,6 +191,24 @@ const router = createBrowserRouter([
           <AuthLayout authentication>
             {""}
             <AllProcures />
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/all-podone",
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <AllPodone />
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/all-inactiveprocures",
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <AllInactiveprocures />
           </AuthLayout>
         ),
       },

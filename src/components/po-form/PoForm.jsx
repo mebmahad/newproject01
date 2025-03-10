@@ -161,9 +161,6 @@ export default function PoForm({ po }) {
   return (
     <Container maxWidth="md">
       <Box my={4}>
-        <Button variant="outlined" onClick={() => navigate(-1)} sx={{ mb: 2 }}>
-          Back
-        </Button>
         <Card elevation={3}>
           <CardContent>
             <Typography variant="h5" component="h1" gutterBottom>

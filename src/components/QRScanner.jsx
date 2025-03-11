@@ -15,7 +15,7 @@ const QRScanner = () => {
         const { uniqueId } = JSON.parse(result.text);
         
         // Fetch data from Appwrite
-        const document = await service.getPost(uniqueId);
+        const document = await service.getQr(uniqueId);
 
         setScanResult(document);
         setError('');
@@ -35,7 +35,7 @@ const QRScanner = () => {
 
   const updateData = async (updatedData) => {
     try {
-      await service.updatePost(updatedData.uniqueId, updatedData);
+      await service.updateQr(updatedData.uniqueId, updatedData);
       setScanResult(updatedData);
     } catch (err) {
       setError('Failed to update data');

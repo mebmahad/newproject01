@@ -7,6 +7,8 @@ import AllItems from "./AllItems";
 import AllHeads from "./AllHeads";
 import AllLocations from "./AllLocations";
 import AllOutForms from "./AllOutforms";
+import QRGenerator from "../components/QRGenerator";
+import QRScanner from "../components/QRScanner";
 
 const Store = () => {
     const [currentUser, setCurrentUser] = useState(null);
@@ -49,6 +51,9 @@ const Store = () => {
 
     const handleAllOutFormClick = () => {
         navigate('/stock-outentry'); // Or just handle routing to an OutForm page
+    };
+    const handleqrgeneratorform = () => {
+        navigate('/qrgenerator'); // Or just handle routing to an OutForm page
     };
 
     // Function to dynamically set active tab and color
@@ -95,6 +100,20 @@ const Store = () => {
                     )}
                     {(isAuthor === "Procurement" || isAuthor === "Admin") && (
                         <Button
+                            className={`p-2 rounded-lg ${getTabClass('qrgenerator')}`}
+                            onClick={() => handleTabClick('qrgenerator')}>
+                            Add Appliances
+                        </Button>
+                    )}
+                    {(isAuthor === "Procurement" || isAuthor === "Admin") && (
+                        <Button
+                            className={`p-2 rounded-lg ${getTabClass('qrgenerator')}`}
+                            onClick={() => handleTabClick('qrscanner')}>
+                            View Appliance
+                        </Button>
+                    )}
+                    {(isAuthor === "Procurement" || isAuthor === "Admin") && (
+                        <Button
                             className={`p-2 rounded-lg ${getTabClass('Location')}`}
                             onClick={() => handleTabClick('Location')}>
                             Locations   
@@ -133,6 +152,16 @@ const Store = () => {
                     {activeTab === "Head" && (
                         <div>
                             <AllHeads />
+                        </div>
+                    )}
+                    {activeTab === "qrgenerator" && (
+                        <div>
+                            <QRGenerator />
+                        </div>
+                    )}
+                    {activeTab === "qrscanner" && (
+                        <div>
+                            <QRScanner />
                         </div>
                     )}
                     {activeTab === "Location" && (

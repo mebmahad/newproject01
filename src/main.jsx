@@ -45,6 +45,8 @@ import EditBudget from './pages/EditBudget.jsx';
 import Dashboard from './pages/Dashboard';
 import AllInactiveprocures from './pages/AllInactiveprocures.jsx';
 import AllPodone from './pages/AllPodone.jsx';
+import QRGenerator from './components/QRGenerator.jsx';
+import QRScanner from './components/QRScanner.jsx';
 
 
 const router = createBrowserRouter([
@@ -117,6 +119,24 @@ const router = createBrowserRouter([
           <AuthLayout authentication>
             {""}
             <Store/>
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/qrgenerator",
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <QRGenerator/>
+          </AuthLayout>
+        ),
+      },
+      {
+        path: "/qrscanner",
+        element: (
+          <AuthLayout authentication>
+            {""}
+            <QRScanner/>
           </AuthLayout>
         ),
       },

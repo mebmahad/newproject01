@@ -1,24 +1,29 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import QrScanner from 'react-qr-scanner';
+import service from '../appwrite/config'; // Adjust the import path
 import QRDataViewer from './QRDataViewer';
 
 const QRScanner = () => {
   const [scanResult, setScanResult] = useState(null);
   const [error, setError] = useState('');
-  const [hasCameraAccess, setHasCameraAccess] = useState(false);
-  const scannerRef = useRef(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleScan = (result) => {
-    if (result) {
+  const handleScan = async (result) => {
+    if (result && !loading) {
       try {
-        const data = JSON.parse(result.text);
-        if (data.name && data.modelNo) {
-          setScanResult(data);
-          setError('');
-        }
+        setLoading(true);
+        const { uniqueId } = JSON.parse(result.text);
+        
+        // Fetch data from Appwrite
+        const document = await service.getPost(uniqueId);
+
+        setScanResult(document);
+        setError('');
       } catch (err) {
-        setError('Invalid QR Code');
-        setTimeout(() => setError(''), 2000);
+        setError('Invalid QR Code or Data Not Found');
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -26,28 +31,16 @@ const QRScanner = () => {
   const handleError = (err) => {
     console.error(err);
     setError('Error accessing camera');
-    setHasCameraAccess(false);
   };
 
-  const checkCameraAccess = async () => {
+  const updateData = async (updatedData) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      stream.getTracks().forEach(track => track.stop());
-      setHasCameraAccess(true);
+      await service.updatePost(updatedData.uniqueId, updatedData);
+      setScanResult(updatedData);
     } catch (err) {
-      setError('Camera access denied');
-      setHasCameraAccess(false);
+      setError('Failed to update data');
+      console.error(err);
     }
-  };
-
-  useEffect(() => {
-    checkCameraAccess();
-  }, []);
-
-  const previewStyle = {
-    height: '100%',
-    width: '100%',
-    objectFit: 'cover',
   };
 
   return (
@@ -56,29 +49,19 @@ const QRScanner = () => {
       
       {!scanResult ? (
         <div className="relative overflow-hidden rounded-lg" style={{ paddingTop: '100%' }}>
-          {hasCameraAccess ? (
-            <QrScanner
-              ref={scannerRef}
-              delay={300}
-              onError={handleError}
-              onScan={handleScan}
-              style={previewStyle}
-              constraints={{
-                video: {
-                  facingMode: 'environment',
-                  width: { ideal: 1280 },
-                  height: { ideal: 720 }
-                }
-              }}
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-              <span className="text-gray-600 font-medium">
-                {error || 'Camera access required'}
-              </span>
-            </div>
-          )}
-          {error && hasCameraAccess && (
+          <QrScanner
+            delay={300}
+            onError={handleError}
+            onScan={handleScan}
+            constraints={{
+              video: {
+                facingMode: 'environment',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+              }
+            }}
+          />
+          {error && (
             <div className="absolute inset-0 bg-red-100 flex items-center justify-center">
               <span className="text-red-600 font-medium">{error}</span>
             </div>
@@ -87,7 +70,8 @@ const QRScanner = () => {
       ) : (
         <QRDataViewer 
           data={scanResult} 
-          onUpdate={() => setScanResult(null)}
+          onUpdate={updateData}
+          onClose={() => setScanResult(null)}
         />
       )}
     </div>

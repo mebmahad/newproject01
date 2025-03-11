@@ -1,13 +1,18 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
 
-const QRDataViewer = ({ data, onUpdate }) => {
-  const [isEditing, setIsEditing] = useState(false);
+const QRDataViewer = ({ data, onUpdate, onClose }) => {
   const [formData, setFormData] = useState(data);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleUpdate = () => {
-    localStorage.setItem('applianceData', JSON.stringify(formData));
-    onUpdate();
+    onUpdate(formData);
     setIsEditing(false);
   };
 
@@ -18,10 +23,11 @@ const QRDataViewer = ({ data, onUpdate }) => {
         
         {!isEditing ? (
           <div className="space-y-3">
-            <DetailItem label="Name" value={formData.name} />
-            <DetailItem label="Model Number" value={formData.modelNo} />
-            <DetailItem label="Purchase Date" value={format(new Date(formData.purchaseDate), 'PPP')} />
-            <DetailItem label="Service Date" value={format(new Date(formData.serviceDate), 'PPP')} />
+            <div className="flex justify-between items-center border-b pb-2">
+              <span className="font-medium text-gray-700">Name</span>
+              <span className="text-gray-600">{formData.name}</span>
+            </div>
+            {/* Add other fields (modelNo, purchaseDate, serviceDate) */}
             
             <button
               onClick={() => setIsEditing(true)}
@@ -32,32 +38,17 @@ const QRDataViewer = ({ data, onUpdate }) => {
           </div>
         ) : (
           <div className="space-y-4">
-            <EditField
-              label="Name"
-              name="name"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-            />
-            <EditField
-              label="Model Number"
-              name="modelNo"
-              value={formData.modelNo}
-              onChange={(e) => setFormData({...formData, modelNo: e.target.value})}
-            />
-            <EditField
-              label="Purchase Date"
-              type="date"
-              name="purchaseDate"
-              value={formData.purchaseDate}
-              onChange={(e) => setFormData({...formData, purchaseDate: e.target.value})}
-            />
-            <EditField
-              label="Service Date"
-              type="date"
-              name="serviceDate"
-              value={formData.serviceDate}
-              onChange={(e) => setFormData({...formData, serviceDate: e.target.value})}
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Name</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+              />
+            </div>
+            {/* Add other editable fields */}
             
             <div className="flex gap-4 mt-6">
               <button
@@ -76,28 +67,14 @@ const QRDataViewer = ({ data, onUpdate }) => {
           </div>
         )}
       </div>
+      <button
+        onClick={onClose}
+        className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+      >
+        Close
+      </button>
     </div>
   );
 };
-
-const DetailItem = ({ label, value }) => (
-  <div className="flex justify-between items-center border-b pb-2">
-    <span className="font-medium text-gray-700">{label}</span>
-    <span className="text-gray-600">{value}</span>
-  </div>
-);
-
-const EditField = ({ label, type = 'text', name, value, onChange }) => (
-  <div className="space-y-1">
-    <label className="block text-sm font-medium text-gray-700">{label}</label>
-    <input
-      type={type}
-      name={name}
-      value={value}
-      onChange={onChange}
-      className="w-full rounded-md border-gray-300 shadow-sm p-2 border focus:ring-2 focus:ring-blue-500"
-    />
-  </div>
-);
 
 export default QRDataViewer;

@@ -786,6 +786,87 @@ class Service {
             return false;
         }
     }
+    async createQr({ name, modelNo, purchaseDate, serviceDate, userId, id }) {
+        try {
+            return await this.databases.createDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdqr,
+                id,
+                {
+                    name,
+                    modelNo,
+                    purchaseDate,
+                    serviceDate,
+                    userId,
+                }
+            );
+        } catch (error) {
+            console.log("QrService :: createQr :: error", error);
+        }
+    }
+
+    async updateQr(id, { name, modelNo, purchaseDate, serviceDate }) {
+        try {
+            return await this.databases.updateDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdqr,
+                id,
+                {
+                    name,
+                    modelNo,
+                    purchaseDate,
+                    serviceDate,
+                }
+            );
+        } catch (error) {
+            console.log("QrService :: updateQr :: error", error);
+        }
+    }
+
+    async deleteQr(id) {
+        try {
+            await this.databases.deleteDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdqr,
+                id
+            );
+            return true;
+        } catch (error) {
+            console.log("QrService :: deleteQr :: error", error);
+            return false;
+        }
+    }
+
+    async getQr(id) {
+        try {
+            return await this.databases.getDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdqr,
+                id
+            );
+        } catch (error) {
+            console.log("QrService :: Qr :: error", error);
+            return false;
+        }
+    }
+
+    async getQrs(queries = []) {
+        try {
+            // Add a limit query if not already provided
+            if (!queries.some(query => query.type === 'limit')) {
+                queries.push(Query.limit(150)); // Use the Appwrite Query object
+            }
+            
+            return await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionIdQr,
+                queries
+            );
+        } catch (error) {
+            console.log("QrService :: Qrs :: error", error);
+            return false;
+        }
+    }
     
 
     async createPo({ VendorName, Items, totalAmount, gst, totalamountwithgst, postId, procureId, pono, id }) {

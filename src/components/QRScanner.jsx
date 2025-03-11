@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import QrScanner from 'react-qr-scanner';
 import QRDataViewer from './QRDataViewer';
 
 const QRScanner = () => {
   const [scanResult, setScanResult] = useState(null);
   const [error, setError] = useState('');
+  const [hasCameraAccess, setHasCameraAccess] = useState(false);
+  const scannerRef = useRef(null);
 
   const handleScan = (result) => {
     if (result) {
@@ -23,9 +25,24 @@ const QRScanner = () => {
 
   const handleError = (err) => {
     console.error(err);
-    setError('Error scanning QR code');
-    setTimeout(() => setError(''), 2000);
+    setError('Error accessing camera');
+    setHasCameraAccess(false);
   };
+
+  const checkCameraAccess = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(track => track.stop());
+      setHasCameraAccess(true);
+    } catch (err) {
+      setError('Camera access denied');
+      setHasCameraAccess(false);
+    }
+  };
+
+  useEffect(() => {
+    checkCameraAccess();
+  }, []);
 
   const previewStyle = {
     height: '100%',
@@ -39,16 +56,29 @@ const QRScanner = () => {
       
       {!scanResult ? (
         <div className="relative overflow-hidden rounded-lg" style={{ paddingTop: '100%' }}>
-          <QrScanner
-            delay={300}
-            onError={handleError}
-            onScan={handleScan}
-            style={previewStyle}
-            constraints={{
-              facingMode: 'environment',
-            }}
-          />
-          {error && (
+          {hasCameraAccess ? (
+            <QrScanner
+              ref={scannerRef}
+              delay={300}
+              onError={handleError}
+              onScan={handleScan}
+              style={previewStyle}
+              constraints={{
+                video: {
+                  facingMode: 'environment',
+                  width: { ideal: 1280 },
+                  height: { ideal: 720 }
+                }
+              }}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+              <span className="text-gray-600 font-medium">
+                {error || 'Camera access required'}
+              </span>
+            </div>
+          )}
+          {error && hasCameraAccess && (
             <div className="absolute inset-0 bg-red-100 flex items-center justify-center">
               <span className="text-red-600 font-medium">{error}</span>
             </div>

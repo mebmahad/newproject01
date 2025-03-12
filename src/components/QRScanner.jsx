@@ -36,7 +36,7 @@ const QRScanner = () => {
     setError('Error accessing camera');
   };
 
-  // Update handled via QRDataViewer; simply update local state here.
+  // Update handled via QRDataViewer; update local state when needed.
   const updateData = (updatedData) => {
     setScanResult(updatedData);
   };
@@ -50,9 +50,11 @@ const QRScanner = () => {
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Scan Appliance QR</h1>
       {!scanResult ? (
-        <div className="relative overflow-hidden rounded-lg" style={{ paddingTop: '100%' }}>
+        // Adjusted container styling for better video view
+        <div style={{ width: '100%', height: '400px', position: 'relative' }}>
           <QrScanner
             delay={300}
+            style={{ width: '100%', height: '100%' }}
             onError={handleError}
             onScan={handleScan}
             constraints={{
@@ -64,7 +66,19 @@ const QRScanner = () => {
             }}
           />
           {error && (
-            <div className="absolute inset-0 bg-red-100 flex items-center justify-center">
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
               <span className="text-red-600 font-medium">{error}</span>
             </div>
           )}

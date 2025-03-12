@@ -39,7 +39,7 @@ const QRGenerator = () => {
         ...documentData,
         id: uniqueId,
       });
-      // QR code contains the uniqueId and type info
+      // QR code embeds the uniqueId and type info
       setQrData(JSON.stringify({ 
         uniqueId,
         type: 'appliance'

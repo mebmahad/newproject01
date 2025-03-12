@@ -26,7 +26,7 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
     setLoading(true);
     setError('');
     try {
-      // Use data.$id (the Appwrite document id) for updates
+      // Use document's Appwrite id ($id) for updates
       const updatedData = await service.updateQr(data.$id, formData);
       onUpdate(updatedData);
       setIsEditing(false);

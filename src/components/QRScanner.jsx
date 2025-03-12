@@ -9,11 +9,17 @@ const QRScanner = () => {
   const [loading, setLoading] = useState(false);
 
   const handleScan = async (result) => {
-    if (result && !loading) {
+    if (result && result.data && !loading) {
       try {
         setLoading(true);
-        const { uniqueId } = JSON.parse(result.data);
-        const document = await service.getQr(uniqueId);
+        const parsedData = JSON.parse(result.data);
+        if (!parsedData.uniqueId) {
+          throw new Error("QR code data invalid");
+        }
+        const document = await service.getQr(parsedData.uniqueId);
+        if (!document) {
+          throw new Error("Data not found for QR code");
+        }
         setScanResult(document);
         setError('');
       } catch (err) {
@@ -30,7 +36,7 @@ const QRScanner = () => {
     setError('Error accessing camera');
   };
 
-  // Simplified update function; QRDataViewer already handles the update via service.updateQr.
+  // Update handled via QRDataViewer; simply update local state here.
   const updateData = (updatedData) => {
     setScanResult(updatedData);
   };

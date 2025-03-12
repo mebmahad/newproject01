@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ID } from 'appwrite';
 import service from '../appwrite/config';
-import { uniqueId } from 'lodash';
 
 const QRGenerator = () => {
   const [formData, setFormData] = useState({
@@ -40,6 +39,7 @@ const QRGenerator = () => {
         ...documentData,
         id: uniqueId,
       });
+      // QR code contains the uniqueId and type info
       setQrData(JSON.stringify({ 
         uniqueId,
         type: 'appliance'

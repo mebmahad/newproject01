@@ -12,19 +12,25 @@ const QRScanner = () => {
     if (result && result.data && !loading) {
       try {
         setLoading(true);
-        const parsedData = JSON.parse(result.text);
-        if (!parsedData.uniqueId) {
-          throw new Error("QR code data invalid");
+        const uniqueId = result.data; // Directly use the scanned data as uniqueId
+
+        // Validate the uniqueId format (optional)
+        if (!uniqueId || typeof uniqueId !== 'string') {
+          throw new Error("Invalid QR code format");
         }
-        const document = await service.getQr(parsedData.uniqueId);
+
+        // Fetch data from Appwrite
+        const document = await service.getQr(uniqueId);
+
         if (!document) {
-          throw new Error("Data not found for QR code");
+          throw new Error("Data not found for this QR code");
         }
+
         setScanResult(document);
         setError('');
       } catch (err) {
-        setError('Invalid QR Code or Data Not Found');
-        console.error(err);
+        setError(err.message || 'Invalid QR Code or Data Not Found');
+        console.error('Scan Error:', err);
       } finally {
         setLoading(false);
       }
@@ -32,11 +38,10 @@ const QRScanner = () => {
   };
 
   const handleError = (err) => {
-    console.error(err);
-    setError('Error accessing camera');
+    console.error('Camera Error:', err);
+    setError('Error accessing camera. Please ensure permissions are granted.');
   };
 
-  // Update handled via QRDataViewer; update local state when needed.
   const updateData = (updatedData) => {
     setScanResult(updatedData);
   };
@@ -49,8 +54,8 @@ const QRScanner = () => {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Scan Appliance QR</h1>
+      
       {!scanResult ? (
-        // Adjusted container styling for better video view
         <div style={{ width: '100%', height: '400px', position: 'relative' }}>
           <QrScanner
             delay={300}

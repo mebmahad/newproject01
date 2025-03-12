@@ -26,8 +26,10 @@ const QRGenerator = () => {
       setError('All fields are required');
       return;
     }
+  
     setLoading(true);
     setError('');
+  
     try {
       const uniqueId = ID.unique();
       const documentData = {
@@ -35,15 +37,15 @@ const QRGenerator = () => {
         uniqueId,
         createdAt: new Date().toISOString()
       };
+  
+      // Store in Appwrite
       await service.createQr({
         ...documentData,
         id: uniqueId,
       });
-      // QR code embeds the uniqueId and type info
-      setQrData(JSON.stringify({ 
-        uniqueId,
-        type: 'appliance'
-      }));
+  
+      // Generate QR with only the uniqueId as a string
+      setQrData(uniqueId); // Directly set the uniqueId as QR content
     } catch (err) {
       setError('Failed to create entry. Please try again.');
       console.error(err);

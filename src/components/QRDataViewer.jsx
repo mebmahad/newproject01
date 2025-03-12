@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import service from '../appwrite/config'; // Adjust the import path
 
 const QRDataViewer = ({ data, onUpdate, onClose }) => {
@@ -6,6 +6,11 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Sync formData when parent data updates
+  useEffect(() => {
+    setFormData(data);
+  }, [data]);
 
   const handleChange = (e) => {
     setFormData({

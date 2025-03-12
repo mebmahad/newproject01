@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import QrScanner from 'react-qr-scanner';
-import service from '../appwrite/config'; // Adjust the import path
+import service from '../appwrite/config';
 import QRDataViewer from './QRDataViewer';
 
 const QRScanner = () => {
@@ -12,11 +12,10 @@ const QRScanner = () => {
     if (result && !loading) {
       try {
         setLoading(true);
-        const { uniqueId } = JSON.parse(result.text);
+        // Changed from result.text to result.data
+        const { uniqueId } = JSON.parse(result.data);
         
-        // Fetch data from Appwrite
         const document = await service.getQr(uniqueId);
-
         setScanResult(document);
         setError('');
       } catch (err) {
@@ -35,11 +34,9 @@ const QRScanner = () => {
 
   const updateData = async (updatedData) => {
     try {
-      // Update data in Appwrite
-      const updatedDocument = await service.updateQr(uniqueId, updatedData);
-
-      // Update the local state with the new data
-      setScanResult(updatedDocument);
+      // Use scanResult.uniqueId instead of undefined uniqueId
+      const updatedDocument = await service.updateQr(scanResult.uniqueId, updatedData);
+      setScanResult(updatedDocument); // Update local state with new data
     } catch (err) {
       setError('Failed to update data');
       console.error(err);
@@ -47,8 +44,8 @@ const QRScanner = () => {
   };
 
   const restartScanner = () => {
-    setScanResult(null); // Reset the scan result
-    setError(''); // Clear any errors
+    setScanResult(null);
+    setError('');
   };
 
   return (
@@ -78,8 +75,8 @@ const QRScanner = () => {
       ) : (
         <QRDataViewer 
           data={scanResult} 
-          onUpdate={updateData} // Pass the update function
-          onClose={restartScanner} // Pass the restart function
+          onUpdate={updateData}
+          onClose={restartScanner}
         />
       )}
     </div>

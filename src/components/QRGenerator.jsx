@@ -137,7 +137,7 @@ const QRGenerator = () => {
           {/* Generate Button */}
           <button
             onClick={generateQR}
-            disabled={loading || !uniqueId ||!formData.name || !formData.modelNo || 
+            disabled={loading ||!formData.name || !formData.modelNo || 
                      !formData.purchaseDate || !formData.serviceDate}
             className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
           >

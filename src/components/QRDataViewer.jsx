@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import service from '../path/to/your/config'; // Adjust the import path
+import service from '../appwrite/config'; // Adjust the import path
 
 const QRDataViewer = ({ data, onUpdate, onClose }) => {
   const [formData, setFormData] = useState(data);

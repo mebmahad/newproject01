@@ -31,7 +31,7 @@ const QRGenerator = () => {
     setError('');
   
     try {
-      const uniqueId = ID.unique().toString;
+      const uniqueId = ID.unique();
       const documentData = {
         ...formData,
         uniqueId,

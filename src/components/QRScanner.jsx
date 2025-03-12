@@ -52,7 +52,7 @@ const QRScanner = () => {
 
     try {
       // Parse the QR code content (assuming it contains a uniqueId)
-      const { uniqueId } = JSON.parse(result);
+      const { uniqueId } = JSON.stringify(result);
 
       // Fetch data from Appwrite
       const document = await service.getQr(uniqueId);

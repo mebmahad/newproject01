@@ -43,16 +43,22 @@ const QRGenerator = () => {
         ...documentData,
         id: uniqueId,
       });
-  
-      // Generate QR with only the uniqueId as a string
-      setQrData(uniqueId); // Directly set the uniqueId as QR content
-    } catch (err) {
-      setError('Failed to create entry. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      // Generate QR with unique ID and type
+    const qrContent = JSON.stringify({
+      uniqueId,
+      type: 'appliance'
+    });
+    setQrData(qrContent);
+
+    console.log('QR Code Content:', qrContent); // Debugging: Log the QR content
+  } catch (err) {
+    setError('Failed to create entry. Please try again.');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const downloadQR = () => {
     const svg = document.getElementById('qr-code');

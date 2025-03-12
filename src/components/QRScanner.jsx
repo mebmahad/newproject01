@@ -51,11 +51,17 @@ const QRScanner = () => {
     setError('');
 
     try {
-      // Parse the QR code content (assuming it contains a uniqueId)
-      const { uniqueId } = JSON.parse(result.data);
+      // Parse the QR code content
+      const qrContent = JSON.parse(result);
+  
+      // Validate the QR code content
+      if (!qrContent.uniqueId || qrContent.type !== 'appliance') {
+        setError('Invalid QR code format.');
+        return;
+      }
 
       // Fetch data from Appwrite
-      const document = await service.getQr(uniqueId);
+      const document = await service.getQr(qrContent.uniqueId);
 
       if (document) {
         setScanResult(document);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import QrScanner from 'qr-scanner';
+import QrScanner from 'react-qr-scanner';
 import service from '../appwrite/config'; // Adjust the import path
 import QRDataViewer from './QRDataViewer';
 

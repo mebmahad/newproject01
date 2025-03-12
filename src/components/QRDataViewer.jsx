@@ -26,7 +26,7 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
 
     try {
       // Update data in Appwrite backend
-      const updatedData = await service.updateQr(data.uniqueId, formData);
+      const updatedData = await service.updateQr(formData.id, formData);
 
       // Notify parent component of the update
       onUpdate(updatedData);

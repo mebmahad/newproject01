@@ -26,6 +26,12 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
             <div className="flex justify-between items-center border-b pb-2">
               <span className="font-medium text-gray-700">Name</span>
               <span className="text-gray-600">{formData.name}</span>
+              <span className="font-medium text-gray-700">Model No</span>
+              <span className="text-gray-600">{formData.modelNo}</span>
+              <span className="font-medium text-gray-700">Purchase Date</span>
+              <span className="text-gray-600">{formData.purchaseDate}</span>
+              <span className="font-medium text-gray-700">Service Date</span>
+              <span className="text-gray-600">{formData.serviceDate}</span>
             </div>
             {/* Add other fields (modelNo, purchaseDate, serviceDate) */}
             

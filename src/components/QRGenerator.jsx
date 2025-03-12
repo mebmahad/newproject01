@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ID } from 'appwrite';
 import service from '../appwrite/config'; // Adjust the import path
+import { uniqueId } from 'lodash';
 
 const QRGenerator = () => {
   const [formData, setFormData] = useState({
@@ -136,7 +137,7 @@ const QRGenerator = () => {
           {/* Generate Button */}
           <button
             onClick={generateQR}
-            disabled={loading || !formData.name || !formData.modelNo || 
+            disabled={loading || !uniqueId ||!formData.name || !formData.modelNo || 
                      !formData.purchaseDate || !formData.serviceDate}
             className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
           >

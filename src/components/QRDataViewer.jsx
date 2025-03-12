@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import service from '../appwrite/config'; // Adjust the import path
+import { uniqueId } from 'lodash';
 
 const QRDataViewer = ({ data, onUpdate, onClose }) => {
   const [formData, setFormData] = useState(data);
@@ -47,6 +48,10 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
         
         {!isEditing ? (
           <div className="space-y-3">
+            <div className="flex justify-between items-center border-b pb-2">
+              <span className="font-medium text-gray-700">Id</span>
+              <span className="text-gray-600">{uniqueId}</span>
+            </div>
             <div className="flex justify-between items-center border-b pb-2">
               <span className="font-medium text-gray-700">Name</span>
               <span className="text-gray-600">{formData.name}</span>

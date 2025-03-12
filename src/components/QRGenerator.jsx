@@ -43,13 +43,11 @@ const QRGenerator = () => {
       await service.createQr({
         ...documentData,
         id: uniqueId,
-        userId: 'currentUserId' // Replace with actual user ID
       });
 
       // Generate QR with unique ID
       setQrData(JSON.stringify({ 
         uniqueId,
-        type: 'appliance'
       }));
     } catch (err) {
       setError('Failed to create entry. Please try again.');

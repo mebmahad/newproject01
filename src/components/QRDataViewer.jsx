@@ -16,7 +16,7 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
   };
 
   const handleUpdate = async () => {
-    if (!formData.name || !formData.modelNo || !formData.purchaseDate || !formData.serviceDate) {
+    if (!formData.id ||!formData.name || !formData.modelNo || !formData.purchaseDate || !formData.serviceDate) {
       setError('All fields are required');
       return;
     }
@@ -50,7 +50,7 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
           <div className="space-y-3">
             <div className="flex justify-between items-center border-b pb-2">
               <span className="font-medium text-gray-700">Id</span>
-              <span className="text-gray-600">{uniqueId}</span>
+              <span className="text-gray-600">{formData.id}</span>
             </div>
             <div className="flex justify-between items-center border-b pb-2">
               <span className="font-medium text-gray-700">Name</span>

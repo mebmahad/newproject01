@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import service from '../appwrite/config'; // Adjust the import path
-import { uniqueId } from 'lodash';
+import { uniqueId } from './QRScanner';
 
 const QRDataViewer = ({ data, onUpdate, onClose }) => {
   const [formData, setFormData] = useState(data);
@@ -26,7 +26,7 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
 
     try {
       // Update data in Appwrite backend
-      const updatedData = await service.updateQr(data.uniqueId, formData);
+      const updatedData = await service.updateQr(uniqueId, formData);
 
       // Notify parent component of the update
       onUpdate(updatedData);

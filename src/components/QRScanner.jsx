@@ -12,7 +12,7 @@ const QRScanner = () => {
     if (result && result.data && !loading) {
       try {
         setLoading(true);
-        const parsedData = JSON.parse(result.data);
+        const parsedData = JSON.parse(result.text);
         if (!parsedData.uniqueId) {
           throw new Error("QR code data invalid");
         }

@@ -36,7 +36,7 @@ const QRScanner = () => {
   const updateData = async (updatedData) => {
     try {
       // Update data in Appwrite
-      const updatedDocument = await service.updateQr(updatedData.uniqueId, updatedData);
+      const updatedDocument = await service.updateQr(uniqueId, updatedData);
 
       // Update the local state with the new data
       setScanResult(updatedDocument);

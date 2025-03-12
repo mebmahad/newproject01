@@ -35,12 +35,20 @@ const QRScanner = () => {
 
   const updateData = async (updatedData) => {
     try {
-      await service.updateQr(updatedData.uniqueId, updatedData);
-      setScanResult(updatedData);
+      // Update data in Appwrite
+      const updatedDocument = await service.updateQr(updatedData.uniqueId, updatedData);
+
+      // Update the local state with the new data
+      setScanResult(updatedDocument);
     } catch (err) {
       setError('Failed to update data');
       console.error(err);
     }
+  };
+
+  const restartScanner = () => {
+    setScanResult(null); // Reset the scan result
+    setError(''); // Clear any errors
   };
 
   return (
@@ -70,8 +78,8 @@ const QRScanner = () => {
       ) : (
         <QRDataViewer 
           data={scanResult} 
-          onUpdate={updateData}
-          onClose={() => setScanResult(null)}
+          onUpdate={updateData} // Pass the update function
+          onClose={restartScanner} // Pass the restart function
         />
       )}
     </div>

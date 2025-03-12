@@ -48,6 +48,7 @@ const QRGenerator = () => {
       // Generate QR with unique ID
       setQrData(JSON.stringify({ 
         uniqueId,
+        type: 'appliance'
       }));
     } catch (err) {
       setError('Failed to create entry. Please try again.');

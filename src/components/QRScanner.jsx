@@ -12,9 +12,7 @@ const QRScanner = () => {
     if (result && !loading) {
       try {
         setLoading(true);
-        // Changed from result.text to result.data
         const { uniqueId } = JSON.parse(result.data);
-        
         const document = await service.getQr(uniqueId);
         setScanResult(document);
         setError('');
@@ -32,15 +30,9 @@ const QRScanner = () => {
     setError('Error accessing camera');
   };
 
-  const updateData = async (updatedData) => {
-    try {
-      // Use scanResult.uniqueId instead of undefined uniqueId
-      const updatedDocument = await service.updateQr(scanResult.uniqueId, updatedData);
-      setScanResult(updatedDocument); // Update local state with new data
-    } catch (err) {
-      setError('Failed to update data');
-      console.error(err);
-    }
+  // Simplified update function; QRDataViewer already handles the update via service.updateQr.
+  const updateData = (updatedData) => {
+    setScanResult(updatedData);
   };
 
   const restartScanner = () => {
@@ -51,7 +43,6 @@ const QRScanner = () => {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Scan Appliance QR</h1>
-      
       {!scanResult ? (
         <div className="relative overflow-hidden rounded-lg" style={{ paddingTop: '100%' }}>
           <QrScanner

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ID } from 'appwrite';
-import service from '../appwrite/config'; // Adjust the import path
+import service from '../appwrite/config';
 import { uniqueId } from 'lodash';
 
 const QRGenerator = () => {
@@ -23,15 +23,12 @@ const QRGenerator = () => {
   };
 
   const generateQR = async () => {
-    // Validate all fields
     if (!formData.name || !formData.modelNo || !formData.purchaseDate || !formData.serviceDate) {
       setError('All fields are required');
       return;
     }
-
     setLoading(true);
     setError('');
-
     try {
       const uniqueId = ID.unique();
       const documentData = {
@@ -39,14 +36,10 @@ const QRGenerator = () => {
         uniqueId,
         createdAt: new Date().toISOString()
       };
-
-      // Store in Appwrite
       await service.createQr({
         ...documentData,
         id: uniqueId,
       });
-
-      // Generate QR with unique ID
       setQrData(JSON.stringify({ 
         uniqueId,
         type: 'appliance'
@@ -64,7 +57,6 @@ const QRGenerator = () => {
     const svgData = new XMLSerializer().serializeToString(svg);
     const blob = new Blob([svgData], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
-    
     const downloadLink = document.createElement('a');
     downloadLink.href = url;
     downloadLink.download = `${formData.name}_qr.svg`;
@@ -77,10 +69,8 @@ const QRGenerator = () => {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Appliance QR Generator</h1>
-      
       {!qrData ? (
         <div className="space-y-4">
-          {/* Name Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
@@ -93,8 +83,6 @@ const QRGenerator = () => {
               required
             />
           </div>
-
-          {/* Model Number Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Model Number</label>
             <input
@@ -107,8 +95,6 @@ const QRGenerator = () => {
               required
             />
           </div>
-
-          {/* Purchase Date Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Purchase Date</label>
             <input
@@ -120,8 +106,6 @@ const QRGenerator = () => {
               required
             />
           </div>
-
-          {/* Service Date Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Service Date</label>
             <input
@@ -133,17 +117,13 @@ const QRGenerator = () => {
               required
             />
           </div>
-
-          {/* Generate Button */}
           <button
             onClick={generateQR}
-            disabled={loading ||!formData.name || !formData.modelNo || 
-                     !formData.purchaseDate || !formData.serviceDate}
+            disabled={loading || !formData.name || !formData.modelNo || !formData.purchaseDate || !formData.serviceDate}
             className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
           >
             {loading ? 'Generating...' : 'Generate QR Code'}
           </button>
-
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         </div>
       ) : (
@@ -155,14 +135,12 @@ const QRGenerator = () => {
             level="H"
             className="border-4 border-white rounded-lg"
           />
-
           <button
             onClick={downloadQR}
             className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
           >
             Download QR
           </button>
-
           <button
             onClick={() => setFormData({
               name: '',

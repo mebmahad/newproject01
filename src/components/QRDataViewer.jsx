@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import service from '../appwrite/config';
+import { Button } from '../components';
 
 const QRDataViewer = ({ data, onUpdate, onClose }) => {
   const [formData, setFormData] = useState(data);
@@ -19,14 +20,14 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
   };
 
   const handleUpdate = async () => {
-    if (!formData.name || !formData.modelNo || !formData.purchaseDate || !formData.serviceDate) {
+    if (!formData.name || !formData.modelNo || !formData.purchaseDate || 
+        !formData.serviceDate || !formData.location) {
       setError('All fields are required');
       return;
     }
     setLoading(true);
     setError('');
     try {
-      // Use document's Appwrite id ($id) for updates
       const updatedData = await service.updateQr(data.$id, formData);
       onUpdate(updatedData);
       setIsEditing(false);
@@ -59,6 +60,10 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
             <div className="flex justify-between items-center border-b pb-2">
               <span className="font-medium text-gray-700">Service Date</span>
               <span className="text-gray-600">{formData.serviceDate}</span>
+            </div>
+            <div className="flex justify-between items-center border-b pb-2">
+              <span className="font-medium text-gray-700">Location</span>
+              <span className="text-gray-600">{formData.location}</span>
             </div>
             <button
               onClick={() => setIsEditing(true)}
@@ -109,6 +114,16 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Location</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+              />
+            </div>
             <div className="flex gap-4 mt-6">
               <button
                 onClick={handleUpdate}
@@ -117,21 +132,21 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
               >
                 {loading ? 'Saving...' : 'Save Changes'}
               </button>
-              <button
+              <Button
                 onClick={() => setIsEditing(false)}
                 className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </div>
         )}
       </div>
-      <button
+      <Button
         onClick={() => navigate('/')} className="mb-4">
         Close
-      </button>
+      </Button>
     </div>
   );
 };

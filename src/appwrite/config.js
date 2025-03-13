@@ -786,7 +786,7 @@ class Service {
             return false;
         }
     }
-    async createQr({ name, modelNo, purchaseDate, serviceDate, userId, id }) {
+    async createQr({ name, location, modelNo, purchaseDate, serviceDate, userId, id }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
@@ -794,6 +794,7 @@ class Service {
                 id,
                 {
                     name,
+                    location,
                     modelNo,
                     purchaseDate,
                     serviceDate,
@@ -805,7 +806,7 @@ class Service {
         }
     }
 
-    async updateQr(id, { name, modelNo, purchaseDate, serviceDate }) {
+    async updateQr(id, { name, location, modelNo, purchaseDate, serviceDate }) {
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
@@ -813,6 +814,7 @@ class Service {
                 id,
                 {
                     name,
+                    location,
                     modelNo,
                     purchaseDate,
                     serviceDate,

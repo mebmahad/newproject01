@@ -2,20 +2,21 @@ import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ID } from 'appwrite';
 import service from '../appwrite/config';
-import { Container, HeadCard, Button } from "../components";
+import { Container, Button } from "../components";
 import { useNavigate } from "react-router-dom";
-
 
 const QRGenerator = () => {
   const [formData, setFormData] = useState({
     name: '',
     modelNo: '',
     purchaseDate: '',
-    serviceDate: ''
+    serviceDate: '',
+    location: ''
   });
   const [qrData, setQrData] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -23,16 +24,17 @@ const QRGenerator = () => {
       [e.target.name]: e.target.value
     });
   };
-  const navigate = useNavigate();
+
   const generateQR = async () => {
-    if (!formData.name || !formData.modelNo || !formData.purchaseDate || !formData.serviceDate) {
+    if (!formData.name || !formData.modelNo || !formData.purchaseDate || 
+        !formData.serviceDate || !formData.location) {
       setError('All fields are required');
       return;
     }
-  
+
     setLoading(true);
     setError('');
-  
+
     try {
       const uniqueId = ID.unique();
       const documentData = {
@@ -40,28 +42,25 @@ const QRGenerator = () => {
         uniqueId,
         createdAt: new Date().toISOString()
       };
-  
-      // Store in Appwrite
+
       await service.createQr({
         ...documentData,
         id: uniqueId,
       });
 
-      // Generate QR with unique ID and type
-    const qrContent = JSON.stringify({
-      uniqueId,
-      type: 'appliance'
-    });
-    setQrData(qrContent);
-
-    console.log('QR Code Content:', qrContent); // Debugging: Log the QR content
-  } catch (err) {
-    setError('Failed to create entry. Please try again.');
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+      const qrContent = JSON.stringify({
+        uniqueId,
+        type: 'appliance',
+        location: formData.location
+      });
+      setQrData(qrContent);
+    } catch (err) {
+      setError('Failed to create entry. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const downloadQR = () => {
     const svg = document.getElementById('qr-code');
@@ -80,97 +79,111 @@ const QRGenerator = () => {
   return (
     <Container>
       <Button onClick={() => navigate('/store')} className="mb-4">
-                ← Back to Store
-            </Button>
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">Appliance QR Generator</h1>
-      {!qrData ? (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
-              placeholder="Enter appliance name"
-              required
-            />
+        ← Back to Store
+      </Button>
+      <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold mb-6 text-gray-800">Appliance QR Generator</h1>
+        {!qrData ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Name</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                placeholder="Enter appliance name"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Model Number</label>
+              <input
+                type="text"
+                name="modelNo"
+                value={formData.modelNo}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                placeholder="Enter model number"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Location</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                placeholder="Enter location"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Purchase Date</label>
+              <input
+                type="date"
+                name="purchaseDate"
+                value={formData.purchaseDate}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Service Date</label>
+              <input
+                type="date"
+                name="serviceDate"
+                value={formData.serviceDate}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                required
+              />
+            </div>
+            <button
+              onClick={generateQR}
+              disabled={loading || !formData.name || !formData.modelNo || 
+                        !formData.purchaseDate || !formData.serviceDate || !formData.location}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+            >
+              {loading ? 'Generating...' : 'Generate QR Code'}
+            </button>
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Model Number</label>
-            <input
-              type="text"
-              name="modelNo"
-              value={formData.modelNo}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
-              placeholder="Enter model number"
-              required
+        ) : (
+          <div className="flex flex-col items-center space-y-4">
+            <QRCodeSVG
+              id="qr-code"
+              value={qrData}
+              size={256}
+              level="H"
+              className="border-4 border-white rounded-lg"
             />
+            <button
+              onClick={downloadQR}
+              className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+            >
+              Download QR
+            </button>
+            <button
+              onClick={() => setFormData({
+                name: '',
+                modelNo: '',
+                purchaseDate: '',
+                serviceDate: '',
+                location: ''
+              })}
+              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+            >
+              Create New Entry
+            </button>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Purchase Date</label>
-            <input
-              type="date"
-              name="purchaseDate"
-              value={formData.purchaseDate}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Service Date</label>
-            <input
-              type="date"
-              name="serviceDate"
-              value={formData.serviceDate}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
-              required
-            />
-          </div>
-          <button
-            onClick={generateQR}
-            disabled={loading || !formData.name || !formData.modelNo || !formData.purchaseDate || !formData.serviceDate}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
-          >
-            {loading ? 'Generating...' : 'Generate QR Code'}
-          </button>
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center space-y-4">
-          <QRCodeSVG
-            id="qr-code"
-            value={qrData}
-            size={256}
-            level="H"
-            className="border-4 border-white rounded-lg"
-          />
-          <button
-            onClick={downloadQR}
-            className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-          >
-            Download QR
-          </button>
-          <button
-            onClick={() => setFormData({
-              name: '',
-              modelNo: '',
-              purchaseDate: '',
-              serviceDate: ''
-            })}
-            className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-          >
-            Create New Entry
-          </button>
-        </div>
-      )}
-    </div>
-</Container>
+        )}
+      </div>
+    </Container>
   );
 };
 

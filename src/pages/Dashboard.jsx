@@ -7,7 +7,7 @@ import {
   AiOutlineUserAdd, 
   AiOutlinePlusCircle, 
 } from 'react-icons/ai';
-import { FaStore, FaShoppingCart, FaListAlt, FaQrcode } from 'react-icons/fa';
+import { FaStore, FaShoppingCart, FaListAlt, FaQrcode, FaSearch } from 'react-icons/fa';
 import authService from '../appwrite/auth'; // Make sure to import your auth service
 
 const Dashboard = () => {
@@ -58,6 +58,7 @@ const Dashboard = () => {
         currentUser?.name === "IT" || currentUser?.name === "Admin"
           ? [
               { label: 'Add Multiple Devices', path: '/multipleqr', icon: <FaQrcode size={50} /> },
+              { label: 'View Appliance', path: '/qrscanner', icon: <FaSearch size={50} /> },
             ]
           : [];
 

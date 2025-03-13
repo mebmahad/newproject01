@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import QrScanner from 'qr-scanner'; // Use the base qr-scanner library
 import QRDataViewer from './QRDataViewer';
 import service from '../appwrite/config';
+import { Container} from "../components";
+import { useNavigate } from "react-router-dom";
 
 const QRScanner = () => {
   const [scanResult, setScanResult] = useState(null);
@@ -10,6 +12,7 @@ const QRScanner = () => {
   const [cameraActive, setCameraActive] = useState(false);
   const videoRef = useRef(null);
   const qrScannerRef = useRef(null);
+  const navigate = useNavigate();
 
   // Initialize QR Scanner
   useEffect(() => {
@@ -105,6 +108,7 @@ const QRScanner = () => {
   };
 
   return (
+    <Container>
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Scan Appliance QR</h1>
       
@@ -147,6 +151,7 @@ const QRScanner = () => {
         />
       )}
     </div>
+    </Container>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Container, LocationCard } from "../components";
+import { Container, LocationCard, Button } from "../components";
 import service from "../appwrite/config";
 import { useNavigate } from "react-router-dom";
 
@@ -42,6 +42,9 @@ const AllLocations = () => {
 
     return (
         <Container>
+            <Button onClick={() => navigate('/store')} className="mb-4">
+                ← Back to Store
+            </Button>
             <div className="flex gap-4">
                 {/* Locations Section */}
                 <div className="w-3/4">

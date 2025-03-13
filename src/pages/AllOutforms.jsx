@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Container } from "../components";
+import { Button } from "../components";
 import service from "../appwrite/config";
 import { Query } from "appwrite";
 import authService from "../appwrite/auth";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const AllOutForms = () => {
     const [outForms, setOutForms] = useState([]);
@@ -13,6 +15,7 @@ const AllOutForms = () => {
     const [hasMore, setHasMore] = useState(true); // Tracks if more data is available
     const limit = 100; // Number of entries to fetch per request
     const authStatus = useSelector((state) => state.auth.status);
+    const navigate = useNavigate();
 
     const fetchOutForms = async () => {
         if (loading || !hasMore) return; // Prevent duplicate fetches or fetches when no more data
@@ -69,6 +72,9 @@ const AllOutForms = () => {
 
     return (
         <Container>
+            <Button onClick={() => navigate('/store')} className="mb-4">
+                ← Back to Store
+            </Button>
             <div className="flex gap-4">
                 <div className="w-full">
                     <h2 className="text-lg font-bold mb-2">All Out Forms</h2>

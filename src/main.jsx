@@ -47,6 +47,8 @@ import AllInactiveprocures from './pages/AllInactiveprocures.jsx';
 import AllPodone from './pages/AllPodone.jsx';
 import QRGenerator from './components/QRGenerator.jsx';
 import QRScanner from './components/QRScanner.jsx';
+import MultipleQRGenerator from './components/MultipleQRGenerator.jsx';
+import AllOutForms from './pages/AllOutforms.jsx';
 
 
 const router = createBrowserRouter([
@@ -73,6 +75,22 @@ const router = createBrowserRouter([
           <AuthLayout authentication={false}>
             <Signup />
           </AuthLayout>
+        ),
+      },
+      {
+        path: "/all-outforms",
+        element: (
+          <AuthLayout authentication>
+          <AllOutForms />
+        </AuthLayout>
+        ),
+      },
+      {
+        path: "/multipleqr",
+        element: (
+          <AuthLayout authentication>
+          <MultipleQRGenerator />
+        </AuthLayout>
         ),
       },
       {

@@ -32,6 +32,9 @@ const AllHeads = () => {
 
   return (
     <Container className="bg-gray-50 p-6 rounded-md shadow-lg">
+      <Button onClick={() => navigate('/store')} className="mb-4">
+                ← Back to Store
+            </Button>
       <div className="flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800">Heads</h2>

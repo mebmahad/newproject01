@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Container, Button, OutForm, InForm, ItemForm } from "../components";
+import { Link } from "react-router-dom";
+import { Container } from "../components";
 import authService from "../appwrite/auth";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import AllItems from "./AllItems";
-import AllHeads from "./AllHeads";
-import AllLocations from "./AllLocations";
-import AllOutForms from "./AllOutforms";
-import QRGenerator from "../components/QRGenerator";
-import QRScanner from "../components/QRScanner";
+import {
+  FaListAlt,
+  FaSignOutAlt,
+  FaPlus,
+  FaUsers,
+  FaQrcode,
+  FaSearch,
+  FaMapMarkerAlt,
+  FaArchive,
+} from 'react-icons/fa';
+import { AiOutlinePlus } from 'react-icons/ai';
 
 const Store = () => {
     const [currentUser, setCurrentUser] = useState(null);
-    const [activeTab, setActiveTab] = useState("items"); // Default active tab
     const authStatus = useSelector((state) => state.auth.status);
-    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchCurrentUser = async () => {
@@ -25,156 +28,42 @@ const Store = () => {
                 console.error("Failed to fetch user:", error);
             }
         };
-
         fetchCurrentUser();
     }, [authStatus]);
 
     const isAuthor = currentUser?.name;
 
-    // Handling tab clicks to set active tab
-    const handleTabClick = (tabName) => {
-        setActiveTab(tabName);
-    };
-
-    // Navigation functions
-    const handleAllItemClick = () => {
-        navigate('/all-items');
-    };
-
-    const handleAllHeadClick = () => {
-        navigate('/all-heads');
-    };
-
-    const handleOutFormClick = () => {
-        navigate('/stock-out'); // Or just handle routing to an OutForm page
-    };
-
-    const handleAllOutFormClick = () => {
-        navigate('/stock-outentry'); // Or just handle routing to an OutForm page
-    };
-    const handleqrgeneratorform = () => {
-        navigate('/qrgenerator'); // Or just handle routing to an OutForm page
-    };
-
-    // Function to dynamically set active tab and color
-    const getTabClass = (tabName) => {
-        return activeTab === tabName
-            ? "bg-blue-500 text-white"
-            : "bg-gray-300 text-black hover:bg-blue-200";
-    };
+    const storePages = [
+        ...((isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Store") ? [
+            { label: 'Items', path: '/all-items', icon: <FaListAlt size={50} /> },
+            { label: 'Stock Out', path: '/stock-out', icon: <FaSignOutAlt size={50} /> },
+            { label: 'Add Item', path: '/add-item', icon: <AiOutlinePlus size={50} /> },
+        ] : []),
+        ...((isAuthor === "Procurement" || isAuthor === "Admin") ? [
+            { label: 'Heads', path: '/all-heads', icon: <FaUsers size={50} /> },
+            { label: 'Add Appliances', path: '/qrgenerator', icon: <FaQrcode size={50} /> },
+            { label: 'View Appliance', path: '/qrscanner', icon: <FaSearch size={50} /> },
+            { label: 'Locations', path: '/all-locations', icon: <FaMapMarkerAlt size={50} /> },
+        ] : []),
+        ...((isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Store") ? [
+            { label: 'Store Entries', path: '/all-outforms', icon: <FaArchive size={50} /> },
+            { label: 'Multiple QR', path: '/multipleqr', icon: <FaQrcode size={50} /> },
+        ] : []),
+    ];
 
     return (
         <Container>
-            <div className="flex gap-4 flex-col">
-                {/* Tabs as Buttons */}
-                <div className="flex gap-4 mt-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
-                    {(isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Store") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('items')}`}
-                            onClick={() => handleTabClick('items')}>
-                            Items
-                        </Button>
-                    )}
-
-                    {(isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Store") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('stock-out')}`}
-                            onClick={() => handleTabClick('stock-out')}>
-                            Stock Out
-                        </Button>
-                    )}
-
-                    {(isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Store") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('add-item')}`}
-                            onClick={() => handleTabClick('add-item')}>
-                            Add Item
-                        </Button>
-                    )}
-                    {(isAuthor === "Procurement" || isAuthor === "Admin") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('Head')}`}
-                            onClick={() => handleTabClick('Head')}>
-                            Heads
-                        </Button>
-                    )}
-                    {(isAuthor === "Procurement" || isAuthor === "Admin") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('qrgenerator')}`}
-                            onClick={() => handleTabClick('qrgenerator')}>
-                            Add Appliances
-                        </Button>
-                    )}
-                    {(isAuthor === "Procurement" || isAuthor === "Admin") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('qrgenerator')}`}
-                            onClick={() => handleTabClick('qrscanner')}>
-                            View Appliance
-                        </Button>
-                    )}
-                    {(isAuthor === "Procurement" || isAuthor === "Admin") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('Location')}`}
-                            onClick={() => handleTabClick('Location')}>
-                            Locations   
-                        </Button>
-                    )}
-                    {(isAuthor === "Procurement" || isAuthor === "Admin" || isAuthor === "Store") && (
-                        <Button
-                            className={`p-2 rounded-lg ${getTabClass('Storeentry')}`}
-                            onClick={() => handleTabClick('Storeentry')}>
-                            Store Entries   
-                        </Button>
-                    )}
-                </div>
-
-                {/* Tab Content Below */}
-                <div className="mt-4">
-                    {activeTab === "items" && (
-                        <div>
-                            {/* Add your Items Component or Page here */}
-                            <AllItems/>
-                            {/* You can render the Items component here */}
-                        </div>
-                    )}
-
-                    {activeTab === "stock-out" && (
-                        <div>
-                            <OutForm />
-                        </div>
-                    )}
-
-                    {activeTab === "add-item" && (
-                        <div>
-                            <ItemForm />
-                        </div>
-                    )}
-                    {activeTab === "Head" && (
-                        <div>
-                            <AllHeads />
-                        </div>
-                    )}
-                    {activeTab === "qrgenerator" && (
-                        <div>
-                            <QRGenerator />
-                        </div>
-                    )}
-                    {activeTab === "qrscanner" && (
-                        <div>
-                            <QRScanner />
-                        </div>
-                    )}
-                    {activeTab === "Location" && (
-                        <div>
-                            <AllLocations />
-                        </div>
-                    )}
-                    {activeTab === "Storeentry" && (
-                        <div>
-                            <AllOutForms />
-                        </div>
-                    )}
-                </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 p-6">
+                {storePages.map((page) => (
+                    <Link
+                        key={page.path}
+                        to={page.path}
+                        className="flex flex-col items-center justify-center bg-white shadow-md rounded-lg p-4 hover:scale-105 transition transform duration-200"
+                    >
+                        <div className="mb-2 text-blue-500">{page.icon}</div>
+                        <div className="text-gray-700 font-semibold text-sm">{page.label}</div>
+                    </Link>
+                ))}
             </div>
         </Container>
     );

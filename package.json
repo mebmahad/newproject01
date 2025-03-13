@@ -23,6 +23,7 @@
     "axios": "^1.7.7",
     "date-fns": "^4.1.0",
     "html-react-parser": "^5.1.16",
+    "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.10.2",
     "jspdf": "^2.5.2",
     "lodash": "^4.17.21",

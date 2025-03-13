@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ID } from 'appwrite';
 import service from '../appwrite/config';
+import { Container, HeadCard, Button } from "../components";
+import { useNavigate } from "react-router-dom";
+
 
 const QRGenerator = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +23,7 @@ const QRGenerator = () => {
       [e.target.name]: e.target.value
     });
   };
-
+  const navigate = useNavigate();
   const generateQR = async () => {
     if (!formData.name || !formData.modelNo || !formData.purchaseDate || !formData.serviceDate) {
       setError('All fields are required');
@@ -75,6 +78,10 @@ const QRGenerator = () => {
   };
 
   return (
+    <Container>
+      <Button onClick={() => navigate('/store')} className="mb-4">
+                ← Back to Store
+            </Button>
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Appliance QR Generator</h1>
       {!qrData ? (
@@ -163,6 +170,7 @@ const QRGenerator = () => {
         </div>
       )}
     </div>
+</Container>
   );
 };
 

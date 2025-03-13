@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Button,
     TextField,
     Paper,
     Typography,
@@ -10,8 +9,10 @@ import {
     DialogTitle,
     IconButton,
 } from '@mui/material';
+import {Button, Container} from '../../../components';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import service from '../../../appwrite/config';
+import { useNavigate } from "react-router-dom";
 
 export default function OutForm() {
     const [allItems, setAllItems] = useState([]);
@@ -21,6 +22,7 @@ export default function OutForm() {
     const [items, setItems] = useState([]);
     const [destinationLocation, setDestinationLocation] = useState('');
     const [openDialog, setOpenDialog] = useState(false);
+    const navigate = useNavigate();
 
     // Fetch all items on component load
     useEffect(() => {
@@ -121,6 +123,10 @@ export default function OutForm() {
     const handleDialogClose = () => setOpenDialog(false);
 
     return (
+        <Container>
+            <Button onClick={() => navigate('/store')} className="mb-4">
+                ← Back to Store
+            </Button>
         <div className="p-4 bg-gray-50 min-h-screen">
             <Typography variant="h5" className="mb-4">
                 OutForm Entry
@@ -204,5 +210,6 @@ export default function OutForm() {
                 </DialogActions>
             </Dialog>
         </div>
+</Container>
     );
 }

@@ -144,7 +144,7 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
         )}
       </div>
       <Button
-        onClick={() => navigate('/')} className="mb-4">
+        onClick={() => navigate('/*')} className="mb-4">
         Close
       </Button>
     </div>

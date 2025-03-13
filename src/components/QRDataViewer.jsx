@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import service from '../appwrite/config';
 import { Button } from '../components';
+import { useNavigate } from 'react-router-dom';
 
 const QRDataViewer = ({ data, onUpdate, onClose }) => {
   const [formData, setFormData] = useState(data);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     setFormData(data);
@@ -144,7 +146,7 @@ const QRDataViewer = ({ data, onUpdate, onClose }) => {
         )}
       </div>
       <Button
-        onClick={() => navigate('/*')} className="mb-4">
+        onClick={() => navigate('/')} className="mb-4">
         Close
       </Button>
     </div>

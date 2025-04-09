@@ -251,10 +251,9 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/add-procure/:postId",
+        path: "/add-procure/:postId?",
         element: (
           <AuthLayout authentication>
-            {""}
             <AddProcure />
           </AuthLayout>
         ),

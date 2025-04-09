@@ -4,10 +4,11 @@ import { Button } from "../index";
 import service from "../../appwrite/config";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useLocation } from 'react-router-dom';
 
 const Input = React.forwardRef(({ label, id, onChange, ...props }, ref) => (
-    <div className="mb-6">
-        <label htmlFor={id} className="block text-lg font-semibold text-gray-800 mb-2">
+    <div className="mb-4">
+        <label htmlFor={id} className="block text-sm md:text-base font-medium text-gray-700 mb-1">
             {label}
         </label>
         <input
@@ -15,7 +16,7 @@ const Input = React.forwardRef(({ label, id, onChange, ...props }, ref) => (
             id={id}
             {...props}
             onChange={onChange}
-            className="border-2 border-gray-300 p-3 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm md:text-base"
         />
     </div>
 ));
@@ -60,7 +61,6 @@ export default function ProcureForm({ procure }) {
             let dbProcure;
             if (isEditMode) {
                 if (!procure.$id) throw new Error("Procure ID not available for update");
-
                 dbProcure = await service.updateProcure(procure.$id, {
                     ...data,
                     userId: userData?.$id,
@@ -69,6 +69,7 @@ export default function ProcureForm({ procure }) {
                     status: status,
                 });
             } else {
+                // Create the procurement first
                 dbProcure = await service.createProcure({
                     ...data,
                     userId: userData?.$id,
@@ -77,7 +78,16 @@ export default function ProcureForm({ procure }) {
                     status: status,
                 });
 
-                await service.updatePost(postId, { status: "In Procure" });
+                // Then update all linked complaints
+                if (location.state?.mergeMode && location.state.complaintIds) {
+                    await Promise.all(
+                        location.state.complaintIds.map(id => 
+                            service.updatePost(id, { status: "In Procure" })
+                        )
+                    );
+                } else if (postId) {
+                    await service.updatePost(postId, { status: "In Procure" });
+                }
             }
 
             if (dbProcure) navigate(`/procure/${dbProcure.$id}`);
@@ -159,84 +169,114 @@ export default function ProcureForm({ procure }) {
         setItems(items.filter(item => item.id !== id));
     };
 
-    return (
-        <form onSubmit={handleSubmit(submit)} className="flex justify-center items-center min-h-screen bg-gray-50 py-10">
-            <div className="flex flex-col w-4/5 max-w-2xl bg-white p-8 rounded-xl shadow-xl border border-gray-200">
-                <Input
-                    label="Procure Id:"
-                    id="id"
-                    placeholder="id"
-                    className="mb-6"
-                    value={generateUniqueId}
-                    {...register("id", { required: true })}
-                    disabled
-                />
-                <Input
-                    label="Item:"
-                    id="item"
-                    placeholder="Search for an item"
-                    className="mb-6"
-                    {...register("Item", { required: true })}
-                    onChange={handleInputChange}
-                />
-                {suggestions.length > 0 && (
-                    <ul className="absolute bg-white border border-gray-300 w-full z-10 mt-1 rounded-md shadow-lg">
-                        {suggestions.map((item, index) => (
-                            <li
-                                key={index}
-                                onClick={() => handleSuggestionClick(item)}
-                                className="p-3 hover:bg-indigo-100 cursor-pointer transition duration-200 ease-in-out"
-                            >
-                                {item}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                <div className="mb-6 flex justify-between text-sm text-gray-600">
-                    <span>{quantityMessage}</span>
-                    <span>{locationMessage}</span>
-                </div>
-                <div className="mb-6 flex justify-between text-sm text-gray-600">
-                    <span>Budget Amount: {budgetAmount}</span>
-                </div>
-                <Input
-                    label="Quantity:"
-                    id="quantity"
-                    placeholder="Enter quantity"
-                    className="mb-6"
-                    {...register("Quantity", { required: true })}
-                />
-                <Button
-                    type="button"
-                    className="w-full bg-indigo-600 text-white py-3 rounded-md mb-6 hover:bg-indigo-700 transition duration-300 ease-in-out"
-                    onClick={addItem}
-                >
-                    Add Item
-                </Button>
+    const location = useLocation();
+    const [mergedComplaints, setMergedComplaints] = useState([]);
+    
+    useEffect(() => {
+        if (location.state?.mergeMode && location.state.complaintIds) {
+            fetchMergedComplaints(location.state.complaintIds);
+        }
+    }, [location]);
 
-                <div className="overflow-x-auto mb-6">
-                    <table className="table-auto w-full bg-gray-100 rounded-lg shadow-md">
-                        <thead className="bg-indigo-600 text-white">
+    const fetchMergedComplaints = async (ids) => {
+        try {
+            const complaints = await Promise.all(
+                ids.map(id => service.getPost(id))
+            );
+            setMergedComplaints(complaints.filter(c => c));
+        } catch (error) {
+            console.error("Error fetching complaints:", error);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit(submit)} className="min-h-screen bg-gray-50 py-4 md:py-8 px-4">
+            <div className="max-w-2xl mx-auto bg-white p-4 md:p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">
+                    {isEditMode ? "Edit Procurement" : "Create New Procurement"}
+                </h2>
+
+                <div className="grid grid-cols-1 gap-4 md:gap-6">
+                    <Input
+                        label="Procure ID:"
+                        id="id"
+                        placeholder="Procurement ID"
+                        value={generateUniqueId}
+                        {...register("id", { required: true })}
+                        disabled
+                    />
+
+                    <div className="relative">
+                        <Input
+                            label="Item:"
+                            id="item"
+                            placeholder="Search for an item"
+                            {...register("Item", { required: true })}
+                            onChange={handleInputChange}
+                        />
+                        {suggestions.length > 0 && (
+                            <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                                {suggestions.map((item, index) => (
+                                    <li
+                                        key={index}
+                                        onClick={() => handleSuggestionClick(item)}
+                                        className="px-4 py-2 text-sm hover:bg-indigo-50 cursor-pointer"
+                                    >
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-xs md:text-sm text-gray-600 mb-2">
+                        <span className="bg-gray-100 p-2 rounded">{quantityMessage}</span>
+                        <span className="bg-gray-100 p-2 rounded">{locationMessage}</span>
+                    </div>
+
+                    <div className="text-sm md:text-base bg-gray-100 p-2 rounded mb-2">
+                        <span className="font-medium">Budget Amount:</span> {budgetAmount}
+                    </div>
+
+                    <Input
+                        label="Quantity:"
+                        id="quantity"
+                        placeholder="Enter quantity"
+                        {...register("Quantity", { required: true })}
+                    />
+
+                    <Button
+                        type="button"
+                        className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm md:text-base"
+                        onClick={addItem}
+                    >
+                        Add Item
+                    </Button>
+                </div>
+
+                <div className="mt-6 overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-indigo-600">
                             <tr>
-                                <th className="px-6 py-3 text-left">Item</th>
-                                <th className="px-6 py-3 text-left">Quantity</th>
-                                <th className="px-6 py-3 text-left">Budget Amount</th>
-                                <th className="px-6 py-3 text-left">Action</th>
+                                <th className="px-4 py-2 md:px-6 md:py-3 text-left text-xs md:text-sm font-medium text-white uppercase tracking-wider">Item</th>
+                                <th className="px-4 py-2 md:px-6 md:py-3 text-left text-xs md:text-sm font-medium text-white uppercase tracking-wider">Quantity</th>
+                                <th className="px-4 py-2 md:px-6 md:py-3 text-left text-xs md:text-sm font-medium text-white uppercase tracking-wider">Budget</th>
+                                <th className="px-4 py-2 md:px-6 md:py-3 text-left text-xs md:text-sm font-medium text-white uppercase tracking-wider">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="bg-white divide-y divide-gray-200">
                             {items.map((item) => (
-                                <tr key={item.id} className="hover:bg-indigo-50 transition duration-200 ease-in-out">
-                                    <td className="px-6 py-3">
+                                <tr key={item.id} className="hover:bg-indigo-50">
+                                    <td className="px-4 py-2 md:px-6 md:py-3 whitespace-nowrap text-sm">
                                         {item.Item}
-                                        {item.isNew && <span className="text-xs text-red-500 ml-2">(New)</span>}
+                                        {item.isNew && <span className="ml-1 text-xs text-red-500">(New)</span>}
                                     </td>
-                                    <td className="px-6 py-3">{item.Quantity}</td>
-                                    <td className="px-6 py-3">{item.BudgetAmount}</td>
-                                    <td className="px-6 py-3 text-center">
+                                    <td className="px-4 py-2 md:px-6 md:py-3 whitespace-nowrap text-sm">{item.Quantity}</td>
+                                    <td className="px-4 py-2 md:px-6 md:py-3 whitespace-nowrap text-sm">{item.BudgetAmount}</td>
+                                    <td className="px-4 py-2 md:px-6 md:py-3 whitespace-nowrap text-sm">
                                         <Button
                                             type="button"
-                                            className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-300"
+                                            className="bg-red-500 hover:bg-red-600 text-white py-1 px-2 md:py-2 md:px-4 rounded text-xs md:text-sm"
                                             onClick={() => removeItem(item.id)}
                                         >
                                             Remove
@@ -245,15 +285,14 @@ export default function ProcureForm({ procure }) {
                                 </tr>
                             ))}
                         </tbody>
-
                     </table>
                 </div>
 
                 <Button
                     type="submit"
-                    className="w-full bg-green-600 text-white py-3 rounded-md hover:bg-green-700 transition duration-300"
+                    className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-2 rounded-md transition-colors text-sm md:text-base"
                 >
-                    {isEditMode ? "Update Procure" : "Create Procure"}
+                    {isEditMode ? "Update Procurement" : "Create Procurement"}
                 </Button>
             </div>
         </form>

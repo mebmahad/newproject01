@@ -103,7 +103,7 @@ export default function PostForm({ post }) {
             </div>
             <div className="w-1/3 px-2">
                 <Select
-                    options={["active", "inactive", "approval"]}
+                    options={["active", "task", "approval", "inprocure"]}
                     label="Status"
                     className="mb-4"
                     {...register("status", { required: true })}

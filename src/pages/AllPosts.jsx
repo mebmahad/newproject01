@@ -51,6 +51,7 @@ const AllPosts = () => {
     fetchPosts();
   }, [filters]);
 
+  // Add to existing status color function
   const getStatusColor = (status) => {
     switch (status) {
       case "active":
@@ -61,6 +62,8 @@ const AllPosts = () => {
         return "text-green-600";
       case "In Procure":
         return "text-purple-600";
+      case "task":
+        return "text-orange-600";
       default:
         return "text-gray-500";
     }
@@ -140,6 +143,16 @@ const AllPosts = () => {
     }
   };
 
+  const handleMaterialRequired = (selectedIds) => {
+      // Navigate to procurement form with selected complaint IDs
+      navigate('/add-procure', { 
+          state: { 
+              complaintIds: selectedIds,
+              mergeMode: true 
+          } 
+      });
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen p-6">
       {/* Bulk Actions */}
@@ -156,6 +169,13 @@ const AllPosts = () => {
             onClick={handleBulkComplete}
           >
             Complete Selected ({selectedPosts.length})
+          </Button>
+          <Button
+              onClick={() => handleMaterialRequired(selectedPosts)}
+              disabled={!selectedPosts.length}
+              className="bg-purple-600 text-white px-4 py-2 rounded"
+          >
+              Material Required
           </Button>
         </div>
       )}
@@ -227,6 +247,22 @@ const AllPosts = () => {
               </div>
             </Button>
           )}
+          
+          {/* Add Task button - visible to everyone */}
+          <Button
+            className={`px-3 py-2 text-sm rounded ${
+              activeTab === "task" ? "bg-orange-600 text-white" : "bg-orange-100"
+            }`}
+            onClick={() => {
+              setActiveTab("task");
+              setFilters({ ...filters, status: "task" });
+            }}
+          >
+            <div className="flex items-center gap-1">
+              <AiOutlineFileText size={16} />
+              <span>Tasks</span>
+            </div>
+          </Button>
         </div>
         <div className="flex justify-end mb-4">
           <Button

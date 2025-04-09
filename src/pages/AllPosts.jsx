@@ -64,6 +64,8 @@ const AllPosts = () => {
         return "text-purple-600";
       case "task":
         return "text-orange-600";
+        case "Laundry":
+          return "text-brown-600";
       default:
         return "text-gray-500";
     }
@@ -144,12 +146,14 @@ const AllPosts = () => {
   };
 
   const handleMaterialRequired = (selectedIds) => {
-      // Navigate to procurement form with selected complaint IDs
+      if (!selectedIds.length) return;
+      
       navigate('/add-procure', { 
           state: { 
               complaintIds: selectedIds,
               mergeMode: true 
-          } 
+          },
+          replace: true // Add this to ensure proper navigation state
       });
   };
 
@@ -261,6 +265,22 @@ const AllPosts = () => {
             <div className="flex items-center gap-1">
               <AiOutlineFileText size={16} />
               <span>Tasks</span>
+            </div>
+          </Button>
+
+          {/* Add Laundry button - visible to everyone */}
+          <Button
+            className={`px-3 py-2 text-sm rounded ${
+              activeTab === "laundry" ? "bg-orange-600 text-white" : "bg-orange-100"
+            }`}
+            onClick={() => {
+              setActiveTab("laundry");
+              setFilters({ ...filters, status: "laundry" });
+            }}
+          >
+            <div className="flex items-center gap-1">
+              <AiOutlineFileText size={16} />
+              <span>Laundry</span>
             </div>
           </Button>
         </div>

@@ -162,10 +162,10 @@ const AllPosts = () => {
 
       {/* Tabs and Register Complaint Button */}
       <div className="mb-6">
-        <div className="flex gap-3 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           {isAuthor && (
             <Button
-              className={`px-4 py-2 rounded ${
+              className={`px-3 py-2 text-sm rounded ${
                 activeTab === "incomplete" ? "bg-blue-600 text-white" : "bg-blue-100"
               }`}
               onClick={() => {
@@ -174,14 +174,14 @@ const AllPosts = () => {
               }}
             >
               <div className="flex items-center gap-1">
-                <MdPendingActions size={20} />
+                <MdPendingActions size={16} />
                 <span>Incomplete</span>
               </div>
             </Button>
           )}
           {(isAuthor === "Admin" || isAuthor === "Procurement" || isAuthor === "Store") && (
             <Button
-              className={`px-4 py-2 rounded ${
+              className={`px-3 py-2 text-sm rounded ${
                 activeTab === "approval" ? "bg-yellow-600 text-white" : "bg-yellow-100"
               }`}
               onClick={() => {
@@ -190,17 +190,14 @@ const AllPosts = () => {
               }}
             >
               <div className="flex items-center gap-1">
-                <FaRegThumbsUp size={20} />
+                <FaRegThumbsUp size={16} />
                 <span>InApproval</span>
               </div>
             </Button>
           )}
-          {(isAuthor === "Admin" ||
-            isAuthor === "Procurement" ||
-            isAuthor === "Technician" ||
-            isAuthor === "Store") && (
+          {(isAuthor === "Admin" || isAuthor === "Procurement" || isAuthor === "Technician" || isAuthor === "Store") && (
             <Button
-              className={`px-4 py-2 rounded ${
+              className={`px-3 py-2 text-sm rounded ${
                 activeTab === "complete" ? "bg-green-600 text-white" : "bg-green-100"
               }`}
               onClick={() => {
@@ -209,14 +206,14 @@ const AllPosts = () => {
               }}
             >
               <div className="flex items-center gap-1">
-                <AiOutlineCheckCircle size={20} />
+                <AiOutlineCheckCircle size={16} />
                 <span>Complete</span>
               </div>
             </Button>
           )}
           {(isAuthor === "Admin" || isAuthor === "Procurement") && (
             <Button
-              className={`px-4 py-2 rounded ${
+              className={`px-3 py-2 text-sm rounded ${
                 activeTab === "inprocure" ? "bg-purple-600 text-white" : "bg-purple-100"
               }`}
               onClick={() => {
@@ -225,7 +222,7 @@ const AllPosts = () => {
               }}
             >
               <div className="flex items-center gap-1">
-                <FaShippingFast size={20} />
+                <FaShippingFast size={16} />
                 <span>In Procure</span>
               </div>
             </Button>

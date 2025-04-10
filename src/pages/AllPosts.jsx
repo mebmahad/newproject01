@@ -116,7 +116,8 @@ const AllPosts = () => {
           const post = posts.find(p => p.$id === id);
           let newStatus;
           
-          if (post.status === "active") {
+          if (post.status === "active" || post.status === "task" ||
+              post.status === "laundry" || post.status === "inprocure") {
             newStatus = "approval"; // Move from active to approval
           } else if (post.status === "approval") {
             newStatus = "inactive"; // Move from approval to inactive

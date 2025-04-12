@@ -117,7 +117,7 @@ const AllPosts = () => {
           let newStatus;
           
           if (post.status === "active" || post.status === "task" ||
-              post.status === "laundry" || post.status === "inprocure") {
+              post.status === "laundry" || post.status === "In Procure") {
             newStatus = "approval"; // Move from active to approval
           } else if (post.status === "approval") {
             newStatus = "inactive"; // Move from approval to inactive
@@ -149,13 +149,9 @@ const AllPosts = () => {
   const handleMaterialRequired = (selectedIds) => {
       if (!selectedIds.length) return;
       
-      navigate('/add-procure', { 
-          state: { 
-              complaintIds: selectedIds,
-              mergeMode: true 
-          },
-          replace: true // Add this to ensure proper navigation state
-      });
+      navigate('/add-procure', {
+        state: { complaintIds: [...selectedIds] }
+      })
   };
 
   return (
@@ -176,7 +172,7 @@ const AllPosts = () => {
             Complete Selected ({selectedPosts.length})
           </Button>
           <Button
-              onClick={() => handleMaterialRequired(selectedPosts)}
+              onClick={() => handleMaterialRequired(selectedPosts.filter(id => id))}
               disabled={!selectedPosts.length}
               className="bg-purple-600 text-white px-4 py-2 rounded"
           >

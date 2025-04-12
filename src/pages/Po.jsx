@@ -13,6 +13,7 @@ const Po = () => {
     const [poData, setPoData] = useState(null);
     const [vendorData, setVendorData] = useState(null);
     const [postDetails, setPostDetails] = useState(null);
+    const [complaints, setComplaints] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -41,6 +42,21 @@ const Po = () => {
                 } else {
                     setPostDetails("Not Available");
                 }
+
+                // Fetch associated complaints
+                if (poData?.procureId) {
+                    const procure = await service.getProcure(poData.procureId);
+                    if (procure?.complaintIds) {
+                        const ids = JSON.parse(procure.complaintIds);
+                        const fetchedComplaints = await Promise.all(
+                            ids.map(id => service.getPost(id))
+                        );
+                        setComplaints(fetchedComplaints.filter(c => c));
+                    } else if (procure?.postId) {
+                        const complaint = await service.getPost(procure.postId);
+                        if (complaint) setComplaints([complaint]);
+                    }
+                }
             } catch (error) {
                 console.error("Error fetching PO data:", error);
             }
@@ -48,6 +64,49 @@ const Po = () => {
 
         fetchData();
     }, [id]);
+
+    // Add this to your state declarations at the top
+    const [relatedComplaints, setRelatedComplaints] = useState([]);
+    
+    // Remove the duplicate useEffect block and modify the existing one:
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const poData = await service.getPo(id);
+                // Replace the complaints fetch section with:
+                if (poData?.procureId) {
+                    const procure = await service.getProcure(poData.procureId);
+                    if (procure?.complaintIds) {
+                        try {
+                            const ids = typeof procure.complaintIds === 'string' ? 
+                                JSON.parse(procure.complaintIds) : 
+                                procure.complaintIds;
+                                
+                            const fetchedComplaints = await Promise.all(
+                                ids.map(id => service.getPost(id))
+                            );
+                            setRelatedComplaints(fetchedComplaints.filter(c => c));
+                        } catch (error) {
+                            console.error("Error parsing complaint IDs:", error);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching PO data:", error);
+            }
+        };
+        fetchData();
+    }, [id]);
+
+    // Update the render section to use the correct state variable:
+    {relatedComplaints.map(complaint => (
+        <div key={complaint.$id} className="mb-4 p-4 border rounded">
+            <h3 className="font-semibold">{complaint.problem}</h3>
+            <p>Area: {complaint.areas}</p>
+            <p>Status: {complaint.status}</p>
+            <p>Created: {new Date(complaint.$createdAt).toLocaleDateString()}</p>
+        </div>
+    ))}
 
     // Ensure loading state is handled gracefully
     if (!poData || !vendorData || postDetails === null) {

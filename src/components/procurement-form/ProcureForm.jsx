@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "../index";
 import service from "../../appwrite/config";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useLocation } from 'react-router-dom';
 
 const Input = React.forwardRef(({ label, id, onChange, ...props }, ref) => (
     <div className="mb-4">
@@ -21,81 +20,41 @@ const Input = React.forwardRef(({ label, id, onChange, ...props }, ref) => (
     </div>
 ));
 
-const generateUniqueId = `procure-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-
 export default function ProcureForm({ procure }) {
-    const { postId } = useParams();
-    const { register, handleSubmit, setValue, resetField, watch } = useForm({
-        defaultValues: {
-            Items: procure?.Items || "",
-            postId: procure?.postId || postId || "",
-            status: procure?.status || "active",
-            id: procure?.$id || generateUniqueId,
-        },
-    });
-    const navigate = useNavigate();
-    const userData = useSelector((state) => state.auth.userData);
-
+    const { register, handleSubmit, setValue, watch, resetField } = useForm();
+    const [items, setItems] = useState([]);
     const [suggestions, setSuggestions] = useState([]);
     const [quantityMessage, setQuantityMessage] = useState("");
     const [locationMessage, setLocationMessage] = useState("");
     const [budgetAmount, setBudgetAmount] = useState("");
-    const [items, setItems] = useState([]);
-    const [isEditMode, setIsEditMode] = useState(false);
+    const [mergedComplaints, setMergedComplaints] = useState([]);
+    
+    
+    const navigate = useNavigate();
+    const { state } = useLocation();
+    const complaintIds = state?.complaintIds || [];
+    const location = useLocation();
+    const userData = useSelector((state) => state.auth.userData);
+    const isEditMode = !!procure;
 
+    // Fetch complaint details
     useEffect(() => {
-        if (procure) {
-            setIsEditMode(true);
-            setValue("Item", procure.Item || "");
-            setValue("Quantity", procure.Quantity || "");
-            const parsedItems = Array.isArray(procure.Items) ? procure.Items : JSON.parse(procure.Items || '[]');
-            setItems(parsedItems);
-        }
-    }, [procure, setValue]);
-
-    const submit = async (data) => {
-        const itemsString = JSON.stringify(items);
-        const status = "active";
-
-        try {
-            let dbProcure;
-            if (isEditMode) {
-                if (!procure.$id) throw new Error("Procure ID not available for update");
-                dbProcure = await service.updateProcure(procure.$id, {
-                    ...data,
-                    userId: userData?.$id,
-                    postId: postId,
-                    Items: itemsString,
-                    status: status,
-                });
-            } else {
-                // Create the procurement first
-                dbProcure = await service.createProcure({
-                    ...data,
-                    userId: userData?.$id,
-                    postId: postId,
-                    Items: itemsString,
-                    status: status,
-                });
-
-                // Then update all linked complaints
-                if (location.state?.mergeMode && location.state.complaintIds) {
-                    await Promise.all(
-                        location.state.complaintIds.map(id => 
-                            service.updatePost(id, { status: "In Procure" })
-                        )
+        const fetchComplaints = async () => {
+            if (complaintIds.length > 0) {
+                try {
+                    const complaints = await Promise.all(
+                        complaintIds.map(id => service.getPost(id))
                     );
-                } else if (postId) {
-                    await service.updatePost(postId, { status: "In Procure" });
+                    setMergedComplaints(complaints.filter(c => c !== null));
+                } catch (error) {
+                    console.error("Failed to fetch complaints:", error);
                 }
             }
+        };
+        fetchComplaints();
+    }, [complaintIds]);
 
-            if (dbProcure) navigate(`/procure/${dbProcure.$id}`);
-        } catch (error) {
-            console.error("Error submitting form:", error);
-        }
-    };
-
+    // Rest of your existing item handling functions
     const handleInputChange = (e) => {
         const inputValue = e.target.value;
         setValue("Item", inputValue, { shouldValidate: true });
@@ -128,15 +87,17 @@ export default function ProcureForm({ procure }) {
         try {
             const results = await service.searchItems(itemName);
             if (results.length > 0) {
-                // Existing item
                 const { Quantity, Location, Head } = results[0];
-                setQuantityMessage(`Available: ${Quantity}`);
-                setLocationMessage(`Location: ${Location}`);
+                setQuantityMessage(Quantity ? `Available: ${Quantity}` : "Not Available");
+                setLocationMessage(Location ? `Location: ${Location}` : "Not Available");
 
-                const headData = await service.searchHead(Head);
-                setBudgetAmount(headData.length > 0 ? headData[0].BudgetAmount : "Not available");
+                if (Head) {
+                    const headData = await service.searchHead(Head);
+                    setBudgetAmount(headData[0]?.BudgetAmount || "Not available");
+                } else {
+                    setBudgetAmount("Not available");
+                }
             } else {
-                // New item
                 setQuantityMessage("Not Available");
                 setLocationMessage("Not Available");
                 setBudgetAmount("Not Available");
@@ -151,15 +112,22 @@ export default function ProcureForm({ procure }) {
 
     const addItem = () => {
         const newItem = watch("Item");
+        const newQuantity = watch("Quantity");
+        
+        if (!newItem || !newQuantity) {
+            alert("Please fill both Item and Quantity fields before adding");
+            return;
+        }
+
         const itemData = {
-            id: generateUniqueId,
+            id: `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             Item: newItem,
-            Quantity: watch("Quantity"),
+            Quantity: newQuantity,
             BudgetAmount: budgetAmount || "Not Available",
             isNew: quantityMessage === "Not Available",
         };
 
-        setItems([...items, itemData]);
+        setItems(prev => [...prev, itemData]);
         resetField("Item");
         resetField("Quantity");
         setBudgetAmount("");
@@ -169,43 +137,72 @@ export default function ProcureForm({ procure }) {
         setItems(items.filter(item => item.id !== id));
     };
 
-    const location = useLocation();
-    const [mergedComplaints, setMergedComplaints] = useState([]);
-    
-    useEffect(() => {
-        if (location.state?.mergeMode && location.state.complaintIds) {
-            fetchMergedComplaints(location.state.complaintIds);
-        }
-    }, [location]);
-
-    const fetchMergedComplaints = async (ids) => {
+    const onSubmit = async (data) => {
         try {
-            const complaints = await Promise.all(
-                ids.map(id => service.getPost(id))
-            );
-            setMergedComplaints(complaints.filter(c => c));
+            if (items.length === 0) {
+                alert("Please add at least one item to the procurement");
+                return;
+            }
+
+            console.log("Submitting with complaint IDs:", complaintIds);
+
+            const procureData = {
+                Items: JSON.stringify(items),
+                userId: userData?.$id,
+                status: "active",
+                complaintIds: JSON.stringify(complaintIds)
+            };
+
+            const dbProcure = await service.createProcure({
+                Items: JSON.stringify(items),
+                userId: userData?.$id,
+                status: "active",
+                complaintIds: complaintIds
+            });
+            
+            if (dbProcure) {
+                // Update associated complaint statuses
+                try {
+                    await Promise.all(complaintIds.map(async (complaintId) => {
+                        await service.updatePost(complaintId, {
+                            status: "In Procure"
+                        });
+                    }));
+                } catch (error) {
+                    console.error("Error updating complaint statuses:", error);
+                }
+
+                localStorage.setItem('currentProcureId', dbProcure.$id);
+                navigate(`/procure/${dbProcure.$id}`);
+            }
         } catch (error) {
-            console.error("Error fetching complaints:", error);
+            console.error("Submission failed:", error);
+            alert(`Creation failed: ${error.message}`);
         }
     };
 
+    // Keep your existing JSX return statement
     return (
-        <form onSubmit={handleSubmit(submit)} className="min-h-screen bg-gray-50 py-4 md:py-8 px-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="min-h-screen bg-gray-50 py-4 md:py-8 px-4">
             <div className="max-w-2xl mx-auto bg-white p-4 md:p-6 rounded-lg shadow-sm border border-gray-200">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">
                     {isEditMode ? "Edit Procurement" : "Create New Procurement"}
                 </h2>
 
-                <div className="grid grid-cols-1 gap-4 md:gap-6">
-                    <Input
-                        label="Procure ID:"
-                        id="id"
-                        placeholder="Procurement ID"
-                        value={generateUniqueId}
-                        {...register("id", { required: true })}
-                        disabled
-                    />
+                {mergedComplaints.length > 0 && (
+                    <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-3">Linked Requests</h3>
+                        {mergedComplaints.map((post, index) => (
+                            <div key={post.$id} className="mb-3 p-3 bg-white rounded shadow-sm">
+                                <p className="font-medium">#{index + 1}: {post.problem}</p>
+                                <p className="text-sm text-gray-600">ID: {post.$id}</p>
+                                <p className="text-sm text-gray-600">{post.areas} - {post.subarea}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
+                <div className="grid grid-cols-1 gap-4 md:gap-6">
                     <div className="relative">
                         <Input
                             label="Item:"
@@ -288,12 +285,15 @@ export default function ProcureForm({ procure }) {
                     </table>
                 </div>
 
-                <Button
-                    type="submit"
-                    className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-2 rounded-md transition-colors text-sm md:text-base"
-                >
-                    {isEditMode ? "Update Procurement" : "Create Procurement"}
-                </Button>
+                <div className="mt-6">
+                    <Button
+                        type="submit"
+                        bgColor="bg-green-500"
+                        className="w-full"
+                    >
+                        {isEditMode ? "Update Procurement" : "Create Procurement"}
+                    </Button>
+                </div>
             </div>
         </form>
     );

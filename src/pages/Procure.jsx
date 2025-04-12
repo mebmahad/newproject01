@@ -29,12 +29,30 @@ export default function Procure() {
     const authStatus = currentUser;
 
     useEffect(() => {
-        const fetchProcure = async () => {
+        const fetchProcureAndPosts = async () => {
             if (id) {
                 try {
                     const fetchedProcure = await service.getProcure(id);
                     if (fetchedProcure) {
-                        setProcure(fetchedProcure);
+                        // Parse complaint IDs and fetch associated posts
+                        // Handle both stringified arrays and raw arrays
+let complaintIds = fetchedProcure.complaintIds;
+try {
+  complaintIds = typeof complaintIds === 'string' ? JSON.parse(complaintIds) : complaintIds;
+} catch (e) {
+  console.error('Error parsing complaintIds:', e);
+  complaintIds = [];
+}
+if (!Array.isArray(complaintIds)) complaintIds = [];
+                        // Filter out invalid IDs before fetching
+const validIds = complaintIds.filter(id => id && typeof id === 'string');
+const posts = await Promise.all(
+    validIds.map(id => service.getPost(id).catch(e => {
+        console.error(`Failed to fetch post ${id}:`, e);
+        return null;
+    }))
+);
+                        setProcure({ ...fetchedProcure, posts: posts.filter(p => p) });
                     } else {
                         console.error("Procurement not found");
                         navigate("/"); 
@@ -49,7 +67,7 @@ export default function Procure() {
             }
         };
 
-        fetchProcure();
+        fetchProcureAndPosts();
     }, [id, navigate]);
 
     const deleteProcure = async () => {
@@ -140,19 +158,20 @@ export default function Procure() {
                     </div>
 
                     {/* Post Information */}
-                    {procure.post && (
-                        <div className="mt-6 p-4 border-t border-gray-300">
-                            <h2 className="text-xl font-semibold">Associated Complaint/Request</h2>
-                            <p><span className="font-semibold">Area:</span> {procure.post.areas}</p>
-                            <p><span className="font-semibold">Sub Area:</span> {procure.post.subarea}</p>
-                            <p><span className="font-semibold">Problem:</span> {procure.post.problem}</p>
+                    {procure.posts?.map((post, index) => (
+                        <div key={post.$id} className="mt-6 p-4 border-t border-gray-300">
+                            <h2 className="text-xl font-semibold">Associated Complaint/Request #{index + 1}</h2>
+                            <p><span className="font-semibold">ID:</span> {post.$id}</p>
+                            <p><span className="font-semibold">Area:</span> {post.areas}</p>
+                            <p><span className="font-semibold">Sub Area:</span> {post.subarea}</p>
+                            <p><span className="font-semibold">Problem:</span> {post.problem}</p>
                         </div>
-                    )}
+                    ))}
 
                     {/* Create Purchase Order Button (below Associated Complaint/Request) */}
                     {procure.status === "active" && (
                         <div className="mt-6">
-                            <Link to={`/add-po?procureId=${procure.$id}&postId=${procure.postId}`}>
+                            <Link to={`/add-po?procureId=${procure.$id}&complaintIds=${encodeURIComponent(procure.complaintIds)}`}>
                                 <Button className={`bg-blue-500 text-white p-2 rounded hover:bg-blue-700 transition`}>
                                     Create Purchase Order
                                 </Button>

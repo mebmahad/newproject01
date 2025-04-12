@@ -9,94 +9,6 @@ class Service {
         this.databases = new Databases(this.client);
     }
 
-    async createBudget({ yearlyBudget, monthlyBudget, fiscalYear, startDate, endDate, 
-        isActive, updatedAt, userId, createdAt,  id }) {
-        try {
-            return await this.databases.createDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdbudget,
-                id,
-                {
-                    yearlyBudget,
-                    monthlyBudget,
-                    fiscalYear,
-                    startDate,
-                    endDate,
-                    userId,
-                    createdAt,
-                    isActive,
-                    updatedAt,
-                }
-            );
-        } catch (error) {
-            console.log("BudgetService :: createBudget :: error", error);
-        }
-    }
-
-    async updateBudget(id, { yearlyBudget, monthlyBudget, fiscalYear, startDate, endDate, 
-        isActive, updatedAt, userId, createdAt }) {
-        try {
-            return await this.databases.updateDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdbudget,
-                id,
-                {
-                    yearlyBudget,
-                    monthlyBudget,
-                    fiscalYear,
-                    startDate,
-                    endDate,
-                    userId,
-                    createdAt,
-                    isActive,
-                    updatedAt,
-                }
-            );
-        } catch (error) {
-            console.log("BudgetService :: updateBudget :: error", error);
-        }
-    }
-
-    async deleteBudget(id) {
-        try {
-            await this.databases.deleteDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdbudget,
-                id
-            );
-            return true;
-        } catch (error) {
-            console.log("BudgetService :: deleteBudget :: error", error);
-            return false;
-        }
-    }
-
-    async getBudget(id) {
-        try {
-            return await this.databases.getDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdbudget,
-                id
-            );
-        } catch (error) {
-            console.log("BudgetService :: getBudget :: error", error);
-            return false;
-        }
-    }
-
-    async getBudgets(queries = []) {
-        try {
-            return await this.databases.listDocuments(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdbudget,
-                queries
-            );
-        } catch (error) {
-            console.log("BudgetService :: getBudgets :: error", error);
-            return false;
-        }
-    }
-
     async createPost({ areas, subarea, feild, problem, status, userId, createdAt, id }) {
         try {
             return await this.databases.createDocument(
@@ -205,25 +117,27 @@ class Service {
         return this.getPosts([Query.equal("feild", feild)]); // Fetch complaints by field
     }
 
-    async createProcure({ Items, userId, postId, status, id }) {
+    async createProcure({ Items, userId, postId, status, complaintIds = [] }) {
         try {
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionIdprocurement,
-                id,
+                ID.unique(), // Generate unique ID here instead of using user-provided value
                 {
                     Items,
                     userId,
                     postId,
                     status,
+                    complaintIds,
                 }
             );
         } catch (error) {
-            console.log("ProcureService :: createProcure :: error", error);
+            console.error("ProcureService :: createProcure :: error", error);
+            throw error;
         }
     }
-
-    async updateProcure(id, { Items, userId, postId, status }) {
+    
+    async updateProcure(id, { Items, userId, postId, status, complaintIds = [] }) {
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
@@ -234,6 +148,7 @@ class Service {
                     userId,
                     postId,
                     status,
+                    complaintIds: JSON.stringify(Array.isArray(complaintIds) ? complaintIds : [])
                 }
             );
         } catch (error) {
@@ -257,7 +172,6 @@ class Service {
 
     async getProcure(id) {
         try {
-            // Fetch the procurement document
             const procure = await this.databases.getDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionIdprocurement,
@@ -267,18 +181,21 @@ class Service {
             // Parse the `items` field if it exists and is in string format
             if (procure && procure.Items) {
                 try {
-                    procure.items = JSON.parse(procure.Items); // Parse the string into an array of item objects
+                    procure.items = JSON.parse(procure.Items);
                 } catch (error) {
                     console.log("ProcureService :: getProcure :: JSON parse error for items:", error);
-                    procure.items = []; // Set to an empty array if parsing fails
+                    procure.items = [];
                 }
             }
     
-            // Check if procure has a postId, then fetch the post data
-            if (procure && procure.postId) {
-                const post = await this.getPost(procure.postId); // Pass the actual postId value
-                // Attach the post data to the procure object
-                procure.post = post;
+            // Check if procure has complaintIds
+            if (procure?.complaintIds) {
+                try {
+                    procure.complaintIds = JSON.parse(procure.complaintIds);
+                } catch (error) {
+                    console.log("ProcureService :: getProcure :: JSON parse error for complaintIds:", error);
+                    procure.complaintIds = [];
+                }
             }
     
             return procure;
@@ -408,10 +325,6 @@ class Service {
             throw error;
         }
     }
-    
-    
-    
-    
 
     async deleteItem(id) {
         try {
@@ -457,7 +370,6 @@ class Service {
             return [];
         }
     }
-    
     
 
     async getItem(id) {
@@ -871,12 +783,17 @@ class Service {
     }
     
 
-    async createPo({ VendorName, Items, totalAmount, gst, totalamountwithgst, postId, procureId, pono, id }) {
+    async createPo({ VendorName, Items, totalAmount, gst, totalamountwithgst, postId, procureId, pono, complaintIds = [], id }) {
         try {
+            // Get procurement to copy complaint IDs
+        const procure = await this.getProcure(procureId);
+        if (!procure) throw new Error('Procurement not found');
+        const validatedComplaintIds = Array.isArray(complaintIds) ? complaintIds : [];
+        const parsedComplaintIds = typeof procure.complaintIds === 'string' ? JSON.parse(procure.complaintIds) : [];
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionIdpoform,
-                id,
+                ID.unique(),
                 {
                     VendorName,
                     Items,
@@ -886,10 +803,12 @@ class Service {
                     procureId,
                     postId,
                     pono,
+                    complaintIds: JSON.stringify(Array.isArray(complaintIds) ? complaintIds : [])
                 }
             );
         } catch (error) {
             console.log("PoService :: createPo :: error", error);
+            throw error;
         }
     }
 
@@ -990,180 +909,6 @@ class Service {
             return response;
         } catch (error) {
             console.log("PoService :: getPos :: error", error);
-            return false;
-        }
-    }
-
-    async createInForm({ Items, securelocation, timestamp, id }) {
-        try {
-            return await this.databases.createDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdinform,
-                id,
-                {
-                    Items,
-                    securelocation,
-                    timestamp,
-                }
-            );
-        } catch (error) {
-            console.log("InFormService :: createInForm :: error", error);
-        }
-    }
-
-    async updateInForm(id, { Items, securelocation }) {
-        try {
-            return await this.databases.updateDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdinform,
-                id,
-                {
-                    Items,
-                    securelocation,
-                }
-            );
-        } catch (error) {
-            console.log("InFormService :: updateInForm :: error", error);
-        }
-    }
-
-    async deleteInForm(id) {
-        try {
-            await this.databases.deleteDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdinform,
-                id
-            );
-            return true;
-        } catch (error) {
-            console.log("InFormService :: deleteInForm :: error", error);
-            return false;
-        }
-    }
-    
-    async getInForm(id) {
-        try {
-            const document = await this.databases.getDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdinform,
-                id
-            );
-    
-            // Parse `Items` if it exists
-            return {
-                ...document,
-                Items: document.Items ? JSON.parse(document.Items) : [], // Parse Items if available
-            };
-        } catch (error) {
-            console.log("InFormService :: getInForm :: error", error);
-            return false;
-        }
-    }
-
-    async getInForms(queries = []) {
-        try {
-            const response = await this.databases.listDocuments(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdinform,
-                queries
-            );
-    
-            // Parse `Items` for each PO if it exists
-            response.documents = response.documents.map((doc) => ({
-                ...doc,
-                Items: doc.Items ? JSON.parse(doc.Items) : [], // Parse Items if available
-            }));
-    
-            return response;
-        } catch (error) {
-            console.log("InFormService :: getInForms :: error", error);
-            return false;
-        }
-    }
-
-    async createOutForm({ Items, securelocation, timestamp, id }) {
-        try {
-            return await this.databases.createDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdoutform,
-                id,
-                {
-                    Items,
-                    securelocation,
-                    timestamp,
-                }
-            );
-        } catch (error) {
-            console.log("OutFormService :: createOutForm :: error", error);
-        }
-    }
-
-    async updateOutForm(id, { Items, securelocation }) {
-        try {
-            return await this.databases.updateDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdoutform,
-                id,
-                {
-                    Items,
-                    securelocation,
-                }
-            );
-        } catch (error) {
-            console.log("OutFormService :: updateOutForm :: error", error);
-        }
-    }
-
-    async deleteOutForm(id) {
-        try {
-            await this.databases.deleteDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdoutform,
-                id
-            );
-            return true;
-        } catch (error) {
-            console.log("OutFormService :: deleteOutForm :: error", error);
-            return false;
-        }
-    }
-    
-    async getOutForm(id) {
-        try {
-            const document = await this.databases.getDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdoutform,
-                id
-            );
-    
-            // Parse `Items` if it exists
-            return {
-                ...document,
-                Items: document.Items ? JSON.parse(document.Items) : [], // Parse Items if available
-            };
-        } catch (error) {
-            console.log("OutFormService :: getOutForm :: error", error);
-            return false;
-        }
-    }
-
-    async getOutForms(queries = []) {
-        try {
-            const response = await this.databases.listDocuments(
-                conf.appwriteDatabaseId,
-                conf.appwriteCollectionIdoutform,
-                queries
-            );
-    
-            // Parse `Items` for each PO if it exists
-            response.documents = response.documents.map((doc) => ({
-                ...doc,
-                Items: doc.Items ? JSON.parse(doc.Items) : [], // Parse Items if available
-            }));
-    
-            return response;
-        } catch (error) {
-            console.log("OutFormService :: getOutForms :: error", error);
             return false;
         }
     }

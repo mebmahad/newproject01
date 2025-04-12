@@ -16,6 +16,7 @@ export default function PostForm({ post }) {
             status: post?.status || "active",
             id: post?.$id || `post-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate random unique ID
             createdAt: post?.createdAt || new Date().toISOString(), // Add createdAt field
+            complaintIds: post?.complaintIds || [], // Initialize complaintIds as empty array
         },
     });
 
@@ -49,7 +50,11 @@ export default function PostForm({ post }) {
                 }
                 dbPost = await service.updatePost(post.$id, { ...data });
             } else {
-                dbPost = await service.createPost({ ...data, userId: userData?.$id });
+                dbPost = await service.createPost({ 
+    ...data, 
+    userId: userData?.$id,
+    complaintIds: data.complaintIds 
+});
 
                 dbgPost = await gsheetservice.createPost({ ...data});
 
@@ -97,13 +102,22 @@ export default function PostForm({ post }) {
                     className="mb-4"
                     {...register("problem", { required: true })}
                 />
+                <Input
+                    label="Complaint IDs:"
+                    placeholder="Enter complaint IDs (comma-separated)"
+                    className="mb-4"
+                    {...register("complaintIds", {
+                        required: true,
+                        setValueAs: value => value.split(',').map(id => id.trim())
+                    })}
+                />
                 <div className="mb-4">
                     <strong>Days since post creation:</strong> {daysPassed} days
                 </div>
             </div>
             <div className="w-1/3 px-2">
                 <Select
-                    options={["active", "task", "approval", "inprocure", "laundry"]}
+                    options={["active", "task", "approval", "In Procure", "laundry"]}
                     label="Status"
                     className="mb-4"
                     {...register("status", { required: true })}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container, BudgetCard } from "../components";
-import service from "../appwrite/config";
+import budgetservice from "../appwrite/budgetConfig";
 import { useNavigate } from "react-router-dom";
 
 const AllBudgets = () => {
@@ -16,7 +16,7 @@ const AllBudgets = () => {
     useEffect(() => {
         const fetchBudgets = async () => {
             try {
-                const response = await service.getBudgets(); // Remove queries if not defined
+                const response = await budgetservice.getBudgets(); // Remove queries if not defined
     
                 console.log("Fetched Budget response:", response); // Log the response for debugging
     

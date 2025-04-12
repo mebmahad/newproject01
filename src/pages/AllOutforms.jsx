@@ -6,6 +6,7 @@ import { Query } from "appwrite";
 import authService from "../appwrite/auth";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import InOutservice from "../appwrite/storeentriesConfig";
 
 const AllOutForms = () => {
     const [outForms, setOutForms] = useState([]);
@@ -22,7 +23,7 @@ const AllOutForms = () => {
         setLoading(true);
 
         try {
-            const response = await service.getOutForms([
+            const response = await InOutservice.getOutForms([
                 Query.limit(limit),
                 Query.offset(offset),
                 Query.orderDesc("timestamp"),

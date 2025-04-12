@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, TextField, Paper, Typography } from '@mui/material';
-import service from '../../../appwrite/config';
+import InOutservice from '../../../appwrite/storeentriesConfig';
 
 export default function InForm() {
     const [items, setItems] = useState([{ itemName: '', quantity: 0 }]);
@@ -25,7 +25,7 @@ export default function InForm() {
             const timestamp = new Date().toISOString();
             const itemListString = JSON.stringify(items);
 
-            await service.createInForm({
+            await InOutservice.createInForm({
                 Items: itemListString,
                 securelocation: sourceLocation,
                 timestamp,

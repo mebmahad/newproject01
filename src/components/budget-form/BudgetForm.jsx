@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import Service from '../../appwrite/config';
+import budgetservice from '../../appwrite/budgetConfig';
 import { useSelector } from "react-redux";
 
 const BudgetForm = () => {
@@ -40,7 +40,7 @@ const BudgetForm = () => {
         };
 
         try {
-            const response = await Service.createBudget(budgetData);
+            const response = await budgetservice.createBudget(budgetData);
             setStatusMessage("Budget created successfully!");
             console.log("Created budget:", response);
 

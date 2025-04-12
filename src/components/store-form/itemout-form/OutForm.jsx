@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import {Button, Container} from '../../../components';
 import { Delete as DeleteIcon } from '@mui/icons-material';
-import service from '../../../appwrite/config';
+import InOutservice from '../../../appwrite/storeentriesConfig';
 import { useNavigate } from "react-router-dom";
 
 export default function OutForm() {
@@ -94,7 +94,7 @@ export default function OutForm() {
             const timestamp = new Date().toISOString();
             const itemListString = JSON.stringify(items);
 
-            await service.createOutForm({
+            await InOutservice.createOutForm({
                 Items: itemListString,
                 securelocation: destinationLocation,
                 timestamp,

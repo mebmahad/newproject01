@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container } from "../components";
 import { Button } from "../components";
-import service from "../appwrite/config";
 import { Query } from "appwrite";
-import authService from "../appwrite/auth";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import InOutservice from "../appwrite/storeentriesConfig";

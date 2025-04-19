@@ -4,7 +4,7 @@ import { Button } from "../components";
 import { Query } from "appwrite";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import InOutservice from "../appwrite/storeentriesConfig";
+import InOutservice from "../appwrite/storeEntriesConfig";
 
 const AllOutForms = () => {
     const [outForms, setOutForms] = useState([]);

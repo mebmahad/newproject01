@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, TextField, Paper, Typography } from '@mui/material';
-import InOutservice from '../../../appwrite/storeentriesConfig';
+import InOutservice from '../../../appwrite/storeEntriesConfig';
 
 export default function InForm() {
     const [items, setItems] = useState([{ itemName: '', quantity: 0 }]);

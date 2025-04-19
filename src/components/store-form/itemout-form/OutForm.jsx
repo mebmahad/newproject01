@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import {Button, Container} from '../../../components';
 import { Delete as DeleteIcon } from '@mui/icons-material';
-import InOutservice from '../../../appwrite/storeEntriesConfig';
+import InOutservice from '../../../appwrite/storeentriesConfig';
 import { useNavigate } from "react-router-dom";
 
 export default function OutForm() {

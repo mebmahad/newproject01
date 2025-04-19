@@ -102,22 +102,13 @@ export default function PostForm({ post }) {
                     className="mb-4"
                     {...register("problem", { required: true })}
                 />
-                <Input
-                    label="Complaint IDs:"
-                    placeholder="Enter complaint IDs (comma-separated)"
-                    className="mb-4"
-                    {...register("complaintIds", {
-                        required: true,
-                        setValueAs: value => value.split(',').map(id => id.trim())
-                    })}
-                />
                 <div className="mb-4">
                     <strong>Days since post creation:</strong> {daysPassed} days
                 </div>
             </div>
             <div className="w-1/3 px-2">
                 <Select
-                    options={["active", "task", "approval", "In Procure", "laundry"]}
+                    options={["active", "task", "active_imp", "laundry"]}
                     label="Status"
                     className="mb-4"
                     {...register("status", { required: true })}

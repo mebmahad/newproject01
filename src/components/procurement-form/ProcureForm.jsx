@@ -150,7 +150,7 @@ export default function ProcureForm({ procure }) {
                 Items: JSON.stringify(items),
                 userId: userData?.$id,
                 status: "active",
-                complaintIds: JSON.stringify(complaintIds)
+                complaintIds: complaintIds
             };
 
             const dbProcure = await service.createProcure({
@@ -158,7 +158,7 @@ export default function ProcureForm({ procure }) {
                 userId: userData?.$id,
                 status: "active",
                 complaintIds: complaintIds
-            });
+        });
             
             if (dbProcure) {
                 // Update associated complaint statuses

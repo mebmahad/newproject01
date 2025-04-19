@@ -24,22 +24,24 @@ function PostCard({ $id, areas, subarea, feild, problem, createdAt, status, isSe
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "active":
-        return "text-blue-600"; // Incomplete - blue
+        return "text-blue-600 bg-blue-50";
+      case "active_imp":
+        return "text-amber-700 bg-amber-100";
       case "approval":
-        return "text-yellow-600"; // InApproval - yellow
+        return "text-yellow-600 bg-yellow-50";
       case "inactive":
-        return "text-green-600"; // Complete - green
-      case "In Procure":
-        return "text-purple-600"; // In Procure - purple
+        return "text-green-600 bg-green-50";
+      case "in procure":
+        return "text-purple-600 bg-purple-50";
       default:
-        return "text-gray-500"; // Default color for unknown status
+        return "text-gray-500 bg-gray-50";
     }
   };
 
   return (
-    <div className="flex flex-col bg-white border border-gray-200 rounded-lg p-4 shadow-md hover:shadow-lg transition transform hover:scale-105">
+    <div className={`flex flex-col border border-gray-200 rounded-lg p-4 shadow-md hover:shadow-lg transition transform hover:scale-105 ${status === 'active_imp' ? 'bg-amber-50 border-amber-200' : 'bg-white'}`}>
       {/* Selectable Checkbox */}
       {isSelectable && (
         <div className="flex items-center mb-3">
@@ -69,7 +71,10 @@ function PostCard({ $id, areas, subarea, feild, problem, createdAt, status, isSe
       {/* Status Section */}
       <div className="mt-3">
         <span className="text-sm text-gray-600">Status: </span>
-        <span className={`text-sm font-bold ${getStatusColor(status)}`}>{status}</span>
+        <span className={`text-sm font-bold ${getStatusColor(status)} px-2 py-1 rounded-md`}>{
+          status === 'active_imp' ? 'Active (Important)' : 
+          status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
+        }</span>
       </div>
     </div>
   );

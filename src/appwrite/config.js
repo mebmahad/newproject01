@@ -128,7 +128,7 @@ class Service {
                     userId,
                     postId,
                     status,
-                    complaintIds,
+                    complaintIds: JSON.stringify(Array.isArray(complaintIds) ? complaintIds : []),
                 }
             );
         } catch (error) {

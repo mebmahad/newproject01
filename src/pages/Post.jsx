@@ -126,6 +126,16 @@ export default function Post() {
         console.log("Complaint Sent For Approval.");
         navigate("/all-posts"); // Navigate to all-posts
     };
+    const handletask = () => {
+        updateStatus("task")
+        console.log("task set.");
+        navigate("/all-posts"); // Navigate to all-posts
+    };
+    const handleimp = () => {
+        updateStatus("active_imp")
+        console.log("Complaint set as Important.");
+        navigate("/all-posts"); // Navigate to all-posts
+    };
 
     const handleunapprove = () => {
         updateStatus("active")
@@ -151,7 +161,62 @@ export default function Post() {
                         {/* Render buttons based on post status */}
                         {authStatus && post.status === "active" && (
                             <>
-                                {(authStatus === 'Admin' || authStatus === 'Procurement') && (
+                                {(authStatus === 'Admin' || authStatus === 'Procurement' || authStatus === 'Technician') && (
+                                    <>
+                                        <Link to={`/edit-post/${post.$id}`}>
+                                            <button
+                                                className="text-grey-500 hover:text-grey-700 mr-3"
+                                                title="Edit"
+                                            >
+                                                <i className="fas fa-edit text-xl"></i>
+                                            </button>
+                                        </Link>
+
+                                        <button
+                                            className="text-red-500 hover:text-red-700 mr-3"
+                                            onClick={deletePost}
+                                            title="Delete"
+                                        >
+                                            <i className="fas fa-trash text-xl"></i>
+                                        </button>
+                                        <button
+                                            onClick={handletask}
+                                            className="text-orange-500 hover:text-orange-700 mr-3"
+                                            title="task"
+                                        >
+                                            <i className="fas fa-tasks text-xl"></i>
+                                        </button>
+                                        <button
+                                    onClick={handleimp}
+                                    className="text-yellow-500 hover:text-yellow-700 mr-3"
+                                    title="active_imp"
+                                >
+                                    <i className="fas fa-exclamation-circle text-xl"></i>
+                                </button>
+                                    </>
+                                )}
+
+                                <Link to={`/add-procure/${post.$id}`}>
+                                    <button
+                                        className="text-green-500 hover:text-green-700 mr-3"
+                                        title="Material Required"
+                                    >
+                                        <i className="fas fa-box text-xl"></i>
+                                    </button>
+                                </Link>
+
+                                <button
+                                    onClick={handlecomplete}
+                                    className="text-blue-500 hover:text-blue-700"
+                                    title="Complete"
+                                >
+                                    <i className="fas fa-check-circle text-xl"></i>
+                                </button>
+                            </>
+                        )}
+                        {authStatus && post.status === "active_imp" && (
+                            <>
+                                {(authStatus === 'Admin' || authStatus === 'Procurement' || authStatus === 'Technician') && (
                                     <>
                                         <Link to={`/edit-post/${post.$id}`}>
                                             <button
@@ -189,6 +254,71 @@ export default function Post() {
                                 </button>
                             </>
                         )}
+                        {authStatus && post.status === "task" && (
+                            <>
+                                {(authStatus === 'Admin' || authStatus === 'Procurement' || authStatus === 'Technician') && (
+                                    <>
+                                        <Link to={`/edit-post/${post.$id}`}>
+                                            <button
+                                                className="text-blue-500 hover:text-blue-700 mr-3"
+                                                title="Edit"
+                                            >
+                                                <i className="fas fa-edit text-xl"></i>
+                                            </button>
+                                        </Link>
+
+                                        <button
+                                            className="text-red-500 hover:text-red-700 mr-3"
+                                            onClick={deletePost}
+                                            title="Delete"
+                                        >
+                                            <i className="fas fa-trash text-xl"></i>
+                                        </button>
+                                    </>
+                                )}
+
+                                <button
+                                    onClick={handlecomplete}
+                                    className="text-blue-500 hover:text-blue-700"
+                                    title="Complete"
+                                >
+                                    <i className="fas fa-check-circle text-xl"></i>
+                                </button>
+                            </>
+                        )}
+                        {authStatus && post.status === "laundry" && (
+                            <>
+                                {(authStatus === 'Admin' || authStatus === 'Procurement' || authStatus === 'Technician') && (
+                                    <>
+                                        <Link to={`/edit-post/${post.$id}`}>
+                                            <button
+                                                className="text-blue-500 hover:text-blue-700 mr-3"
+                                                title="Edit"
+                                            >
+                                                <i className="fas fa-edit text-xl"></i>
+                                            </button>
+                                        </Link>
+
+                                        <button
+                                            className="text-red-500 hover:text-red-700 mr-3"
+                                            onClick={deletePost}
+                                            title="Delete"
+                                        >
+                                            <i className="fas fa-trash text-xl"></i>
+                                        </button>
+                                    </>
+                                )}
+
+                                <button
+                                    onClick={handlecomplete}
+                                    className="text-blue-500 hover:text-blue-700"
+                                    title="Complete"
+                                >
+                                    <i className="fas fa-check-circle text-xl"></i>
+                                </button>
+                            </>
+                        )}
+
                         {authStatus && post.status === "approval" && (
                             <>
                                 <button
@@ -235,10 +365,30 @@ export default function Post() {
                                 </button>
                             </>
                         )}
+                        {(authStatus === 'Admin' || authStatus === 'Procurement') && (post.status === "In Procure") && (
+                            <>
+                                <button
+                                    onClick={handleunapprove}
+                                    className="text-yellow-500 hover:text-yellow-700"
+                                    title="Unapprove"
+                                >
+                                    <i className="fas fa-undo text-xl"></i>
+                                </button>
+
+                                <button
+                                    className="text-red-500 hover:text-red-700 mr-3"
+                                    onClick={deletePost}
+                                    title="Delete"
+                                >
+                                    <i className="fas fa-trash text-xl"></i>
+                                </button>
+                            </>
+                        )}
+
                     </div>
 
                     <div className="browser-css font-bold">
-                    <button
+                        <button
                             className="absolute top-2 left-2 px-4 py-2 text-blue-500 hover:text-blue-700 mr-3"
                             onClick={goBack}
                         >

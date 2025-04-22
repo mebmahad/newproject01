@@ -173,18 +173,21 @@ const AllPosts = () => {
       {/* Bulk Actions */}
       {selectedPosts.length > 0 && (
         <div className="flex gap-2 mb-4">
+          {(authStatus === 'Admin' || authStatus === 'Procurement' ) && (
           <Button 
             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
             onClick={handleBulkDelete}
           >
             Delete Selected ({selectedPosts.length})
           </Button>
+          )}
           <Button 
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             onClick={handleBulkComplete}
           >
             Complete Selected ({selectedPosts.length})
           </Button>
+          {(authStatus === 'Admin' || authStatus === 'Procurement' || authStatus === 'Technician') && (
           <Button
               onClick={() => handleMaterialRequired(selectedPosts.filter(id => id))}
               disabled={!selectedPosts.length}
@@ -192,6 +195,7 @@ const AllPosts = () => {
           >
               Material Required
           </Button>
+          )}
         </div>
       )}
 

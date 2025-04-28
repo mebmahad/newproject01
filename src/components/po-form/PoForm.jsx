@@ -94,29 +94,31 @@ export default function PoForm({ po }) {
 
           setValue('procureId', procureId);
           let complaintIds = [];
-try {
-  if (typeof procure.complaintIds === 'string') {
-    complaintIds = procure.complaintIds.trim() 
-      ? JSON.parse(procure.complaintIds)
-      : [];
-  } else if (Array.isArray(procure.complaintIds)) {
-    complaintIds = [...procure.complaintIds];
-  }
-  
-  if (!Array.isArray(complaintIds)) {
-    throw new Error('Invalid complaint IDs format');
-  }
-} catch (e) {
-  console.error('Error parsing complaintIds:', e);
-  complaintIds = [];
-}
-const validIds = complaintIds
-  .map(id => String(id).trim())
-  .filter(id => id.length > 0);
-setValue('complaintIds', validIds);
+          try {
+            if (typeof procure.complaintIds === 'string') {
+              complaintIds = procure.complaintIds.trim() 
+                ? JSON.parse(procure.complaintIds)
+                : [];
+            } else if (Array.isArray(procure.complaintIds)) {
+              complaintIds = [...procure.complaintIds];
+            }
+            if (!Array.isArray(complaintIds)) {
+              throw new Error('Invalid complaint IDs format');
+            }
+          } catch (e) {
+            console.error('Error parsing complaintIds:', e);
+            complaintIds = [];
+          }
+          const validIds = complaintIds
+            .map(id => String(id).trim())
+            .filter(id => id.length > 0);
+          setValue('complaintIds', validIds);
         } catch (error) {
           console.error('Error fetching procurement details:', error);
         }
+      } else {
+        setValue('procureId', '');
+        setValue('complaintIds', []);
       }
     };
 

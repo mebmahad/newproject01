@@ -48,14 +48,23 @@ const Po = () => {
                     const procure = await service.getProcure(poData.procureId);
                     if (procure?.complaintIds) {
                         const ids = JSON.parse(procure.complaintIds);
-                        const fetchedComplaints = await Promise.all(
-                            ids.map(id => service.getPost(id))
-                        );
-                        setComplaints(fetchedComplaints.filter(c => c));
+                        if (Array.isArray(ids) && ids.length > 0) {
+                            const fetchedComplaints = await Promise.all(
+                                ids.map(id => service.getPost(id))
+                            );
+                            setComplaints(fetchedComplaints.filter(c => c));
+                        } else {
+                            setComplaints([]);
+                        }
                     } else if (procure?.postId) {
                         const complaint = await service.getPost(procure.postId);
                         if (complaint) setComplaints([complaint]);
+                        else setComplaints([]);
+                    } else {
+                        setComplaints([]);
                     }
+                } else {
+                    setComplaints([]);
                 }
             } catch (error) {
                 console.error("Error fetching PO data:", error);
@@ -234,11 +243,25 @@ const Po = () => {
                 <Divider className="my-4" />
 
                 {/* Post Details */}
-                <div>
-                    <Typography variant="h6" className="font-semibold mt-4">Related Post Details:</Typography>
-                    <Typography variant="body2">Post ID: {postId || "Not Available"}</Typography>
-                    <Typography variant="body2">Description: {postDetails?.problem || postDetails}</Typography>
-                </div>
+                {(postId || (complaints && complaints.length > 0)) && (
+                    <>
+                        <Typography variant="h6" className="font-semibold mt-4">Related Post Details:</Typography>
+                        {postId && (
+                            <Typography variant="body2">Post ID: {postId}</Typography>
+                        )}
+                        <Typography variant="body2">Description: {postDetails?.problem || postDetails}</Typography>
+                        {complaints && complaints.length > 0 && (
+                            <>
+                                <Typography variant="body2" className="font-semibold mt-2">Complaint IDs:</Typography>
+                                <ul>
+                                    {complaints.map((c, idx) => (
+                                        <li key={c.$id || idx}>{c.$id} - {c.problem}</li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
+                    </>
+                )}
             </div>
 
             {/* Buttons for Edit, Delete, Material Received, and PDF Generation */}
